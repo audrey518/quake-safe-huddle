@@ -1,26 +1,12 @@
 export type BuildingMaterial = "reinforced-concrete" | "masonry" | "wood" | "steel" | "adobe";
 
-export interface Building {
-  id: string;
-  name: string;
-  address: string;
+export interface BuildingInput {
   yearBuilt: number;
   floors: number;
   material: BuildingMaterial;
-  createdAt: string;
 }
 
 export type HazardType = "earthquake-damage" | "flooding" | "landslide" | "ground-crack";
-
-export interface HazardReport {
-  id: string;
-  type: HazardType;
-  description: string;
-  latitude: number;
-  longitude: number;
-  imageUrl?: string;
-  createdAt: string;
-}
 
 export const MATERIAL_LABELS: Record<BuildingMaterial, string> = {
   "reinforced-concrete": "Reinforced concrete",
@@ -37,18 +23,19 @@ export const HAZARD_LABELS: Record<HazardType, string> = {
   "ground-crack": "Ground crack",
 };
 
+export type RiskCategory = "Low" | "Moderate" | "High" | "Very High";
+
 export interface RiskResult {
-  score: number; // 0-100
-  category: "Low" | "Moderate" | "High";
+  score: number;
+  category: RiskCategory;
   explanation: string;
   factors: { label: string; impact: string }[];
 }
 
-export function assessRisk(b: Pick<Building, "yearBuilt" | "floors" | "material">): RiskResult {
+export function assessRisk(b: BuildingInput): RiskResult {
   const currentYear = new Date().getFullYear();
   const age = Math.max(0, currentYear - b.yearBuilt);
 
-  // Baseline material risk
   const materialScores: Record<BuildingMaterial, number> = {
     steel: 5,
     "reinforced-concrete": 5,
@@ -60,13 +47,13 @@ export function assessRisk(b: Pick<Building, "yearBuilt" | "floors" | "material"
   let score = materialScores[b.material];
   if (age > 30) score += 20;
   if (b.floors > 5) score += 15;
-
   score = Math.round(Math.min(100, score));
 
-  let category: RiskResult["category"];
-  if (score < 35) category = "Low";
-  else if (score < 65) category = "Moderate";
-  else category = "High";
+  let category: RiskCategory;
+  if (score < 25) category = "Low";
+  else if (score < 50) category = "Moderate";
+  else if (score < 75) category = "High";
+  else category = "Very High";
 
   const factors = [
     {
@@ -107,4 +94,20 @@ export function assessRisk(b: Pick<Building, "yearBuilt" | "floors" | "material"
   }
 
   return { score, category, explanation, factors };
+}
+
+export function riskCategoryColor(cat: RiskCategory): string {
+  switch (cat) {
+    case "Low": return "var(--color-risk-low)";
+    case "Moderate": return "var(--color-risk-moderate)";
+    case "High": return "var(--color-risk-high)";
+    case "Very High": return "var(--color-risk-very-high)";
+  }
+}
+
+export function magnitudeColor(mag: number): string {
+  if (mag >= 6) return "var(--color-risk-very-high)";
+  if (mag >= 4.5) return "var(--color-risk-high)";
+  if (mag >= 3) return "var(--color-risk-moderate)";
+  return "var(--color-risk-low)";
 }
