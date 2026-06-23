@@ -10,7 +10,7 @@ import { Field, inputClass, RiskPill } from "@/components/safeground/ui";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/buildings")({
-  head: () => ({ meta: [{ title: "Buildings — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Buildings — GeoSafe AI" }] }),
   component: BuildingsPage,
 });
 

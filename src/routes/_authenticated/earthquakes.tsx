@@ -8,7 +8,7 @@ import { MagnitudeBadge } from "@/components/safeground/ui";
 import { ExternalLink, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/earthquakes")({
-  head: () => ({ meta: [{ title: "Earthquakes — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Earthquakes — GeoSafe AI" }] }),
   component: EarthquakesPage,
 });
 

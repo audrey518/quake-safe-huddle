@@ -10,7 +10,7 @@ import { Droplets, MapPin, Plus, TrendingDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/wells")({
-  head: () => ({ meta: [{ title: "Wells & Groundwater — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Wells & Groundwater — GeoSafe AI" }] }),
   component: WellsPage,
 });
 

@@ -1,9 +1,10 @@
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { Activity, Building2, Droplets, Home, Layers, LogOut, Map, Megaphone, Mountain, ShieldAlert } from "lucide-react";
+import { Activity, Building2, Droplets, Home, LogOut, Map, Megaphone, Mountain, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/hooks/use-role";
 import { useAuth } from "@/hooks/use-auth";
+import { GeoSafeLogo } from "@/components/geosafe-logo";
 
 const BASE_NAV = [
   { to: "/", label: "Home", icon: Home },
@@ -34,13 +35,11 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
         <div className="container-app flex h-16 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 group">
-            <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Layers className="relative h-4 w-4" />
-            </span>
+            <GeoSafeLogo className="h-8 w-8 rounded-lg" />
             <div className="leading-tight">
-              <div className="font-display font-semibold tracking-tight">SafeGround</div>
+              <div className="font-display font-semibold tracking-tight">GeoSafe AI</div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Disaster awareness
+                Geo-risk awareness
               </div>
             </div>
           </Link>
@@ -109,7 +108,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
 
       <footer className="hidden lg:block border-t border-border bg-background">
         <div className="container-app py-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
-          <span>SafeGround MVP — community awareness, not engineering advice.</span>
+          <span>GeoSafe AI MVP — community awareness, not engineering advice.</span>
           <span>
             Earthquake data: <a href="https://earthquake.usgs.gov/" target="_blank" rel="noreferrer" className="underline hover:text-foreground">USGS</a>
           </span>

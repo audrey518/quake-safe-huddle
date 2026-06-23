@@ -1,4 +1,4 @@
-## SafeGround — Full-Stack MVP Plan
+## GeoSafe AI — Full-Stack MVP Plan
 
 A community disaster-awareness platform with auth, roles, interactive map, real-time USGS feed, and rule-based risk scoring. Minimalist earth + aqua theme.
 
