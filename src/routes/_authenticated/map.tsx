@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { MapView, type MapMarker } from "@/components/safeground/map-view";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchRecentEarthquakes } from "@/lib/usgs";
-import { assessRisk, magnitudeColor, riskCategoryColor, type BuildingMaterial, type HazardType, HAZARD_LABELS } from "@/lib/safeground";
+import { assessRisk, magnitudeColor, riskCategoryColor, type BuildingMaterial, type HazardType, HAZARD_LABELS, MATERIAL_LABELS } from "@/lib/safeground";
 import { Activity, Building2, Droplets, Megaphone, Mountain } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/map")({
