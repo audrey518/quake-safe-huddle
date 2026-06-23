@@ -1,8 +1,9 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Layers, Mail, Lock, User, ShieldCheck, Briefcase } from "lucide-react";
+import { Mail, Lock, User, ShieldCheck, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { GeoSafeLogo } from "@/components/geosafe-logo";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/auth")({
     const { data } = await supabase.auth.getUser();
     if (data.user) throw redirect({ to: "/" });
   },
-  head: () => ({ meta: [{ title: "Sign in — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Sign in — GeoSafe AI" }] }),
   component: AuthPage,
 });
 
@@ -33,21 +34,26 @@ function AuthPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
+        const { data, error } = await supabase.auth.signUp({
+          email: cleanEmail,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { display_name: displayName || email.split("@")[0], role },
+            data: { display_name: displayName.trim() || cleanEmail.split("@")[0], role },
           },
         });
         if (error) throw error;
+        if (!data.session) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+          if (signInError) throw signInError;
+        }
         toast.success("Account created. You're signed in.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) throw error;
       }
     } catch (err) {
@@ -61,12 +67,10 @@ function AuthPage() {
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-primary/15 via-accent/30 to-background p-10">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Layers className="h-4 w-4" />
-          </span>
+          <GeoSafeLogo />
           <div className="leading-tight">
-            <div className="font-display font-semibold tracking-tight text-lg">SafeGround</div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Disaster awareness</div>
+            <div className="font-display font-semibold tracking-tight text-lg">GeoSafe AI</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Geo-risk awareness</div>
           </div>
         </div>
         <div className="max-w-md">
@@ -103,10 +107,10 @@ function AuthPage() {
           </div>
 
           <h2 className="font-display text-2xl font-semibold tracking-tight">
-            {mode === "signin" ? "Welcome back" : "Join SafeGround"}
+            {mode === "signin" ? "Welcome back" : "Join GeoSafe AI"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "signin" ? "Sign in to monitor your community." : "Pick your role to get started."}
+            {mode === "signin" ? "Sign in to monitor your community." : "Create your account, then sign in with the same email and password."}
           </p>
 
           <form className="mt-6 space-y-3" onSubmit={onSubmit}>

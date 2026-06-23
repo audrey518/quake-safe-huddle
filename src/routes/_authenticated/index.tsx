@@ -10,7 +10,7 @@ import { MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/")({
-  head: () => ({ meta: [{ title: "Dashboard — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — GeoSafe AI" }] }),
   component: Dashboard,
 });
 

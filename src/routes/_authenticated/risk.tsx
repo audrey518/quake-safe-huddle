@@ -8,7 +8,7 @@ import { Field, inputClass } from "@/components/safeground/ui";
 import { Info } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/risk")({
-  head: () => ({ meta: [{ title: "Risk assessment — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Risk assessment — GeoSafe AI" }] }),
   component: RiskPage,
 });
 

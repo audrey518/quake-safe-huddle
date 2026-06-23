@@ -9,7 +9,7 @@ import { assessRisk, magnitudeColor, riskCategoryColor, type BuildingMaterial, t
 import { Activity, Building2, Droplets, Megaphone, Mountain } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/map")({
-  head: () => ({ meta: [{ title: "Map — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Map — GeoSafe AI" }] }),
   component: MapPage,
 });
 

@@ -11,7 +11,7 @@ import { Lock, MapPin, Mountain, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/soil")({
-  head: () => ({ meta: [{ title: "Soil information — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Soil information — GeoSafe AI" }] }),
   component: SoilPage,
 });
 

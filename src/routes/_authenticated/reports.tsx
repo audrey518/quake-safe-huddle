@@ -11,7 +11,7 @@ import { MapPin, Megaphone, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/reports")({
-  head: () => ({ meta: [{ title: "Hazard reports — SafeGround" }] }),
+  head: () => ({ meta: [{ title: "Hazard reports — GeoSafe AI" }] }),
   component: ReportsPage,
 });
 
