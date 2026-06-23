@@ -31,7 +31,7 @@ function BuildingsPage() {
   });
 
   const create = useMutation({
-    mutationFn: async (payload: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial }) => {
+    mutationFn: async (payload: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null }) => {
       const r = assessRisk({ yearBuilt: payload.year_built, floors: payload.floors, material: payload.material });
       const { error } = await supabase.from("buildings").insert({
         user_id: user!.id,
@@ -125,7 +125,7 @@ function Meta({ label, value }: { label: string; value: string }) {
 }
 
 function BuildingForm({ onSubmit, onCancel, submitting }: {
-  onSubmit: (b: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial }) => void;
+  onSubmit: (b: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null }) => void;
   onCancel: () => void;
   submitting: boolean;
 }) {
@@ -134,6 +134,28 @@ function BuildingForm({ onSubmit, onCancel, submitting }: {
   const [yearBuilt, setYearBuilt] = useState(2000);
   const [floors, setFloors] = useState(2);
   const [material, setMaterial] = useState<BuildingMaterial>("reinforced-concrete");
+  const [lat, setLat] = useState<string>("");
+  const [lng, setLng] = useState<string>("");
+  const [locating, setLocating] = useState(false);
+
+  function useMyLocation() {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation not available in this browser");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude.toFixed(6));
+        setLng(pos.coords.longitude.toFixed(6));
+        setLocating(false);
+      },
+      (err) => {
+        toast.error(err.message || "Could not get location");
+        setLocating(false);
+      },
+    );
+  }
 
   return (
     <form
@@ -141,12 +163,24 @@ function BuildingForm({ onSubmit, onCancel, submitting }: {
       onSubmit={(e) => {
         e.preventDefault();
         if (!name.trim() || !address.trim()) return;
+        const latN = lat.trim() === "" ? null : Number(lat);
+        const lngN = lng.trim() === "" ? null : Number(lng);
+        if (latN !== null && (!Number.isFinite(latN) || latN < -90 || latN > 90)) {
+          toast.error("Latitude must be between -90 and 90");
+          return;
+        }
+        if (lngN !== null && (!Number.isFinite(lngN) || lngN < -180 || lngN > 180)) {
+          toast.error("Longitude must be between -180 and 180");
+          return;
+        }
         onSubmit({
           name: name.trim().slice(0, 80),
           address: address.trim().slice(0, 200),
           year_built: Math.min(new Date().getFullYear(), Math.max(1800, yearBuilt)),
           floors: Math.min(150, Math.max(1, floors)),
           material,
+          latitude: latN,
+          longitude: lngN,
         });
       }}
     >
@@ -159,6 +193,14 @@ function BuildingForm({ onSubmit, onCancel, submitting }: {
           {MATERIALS.map((m) => <option key={m} value={m}>{MATERIAL_LABELS[m]}</option>)}
         </select>
       </Field>
+      <Field label="Latitude"><input type="number" step="any" className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} placeholder="e.g. 37.7749" /></Field>
+      <Field label="Longitude"><input type="number" step="any" className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} placeholder="e.g. -122.4194" /></Field>
+      <div className="md:col-span-2 -mt-2">
+        <button type="button" onClick={useMyLocation} disabled={locating} className="text-xs text-primary hover:underline disabled:opacity-60">
+          {locating ? "Locating…" : "Use my current location"}
+        </button>
+        <p className="mt-1 text-xs text-muted-foreground">Coordinates are required to show this building on the map.</p>
+      </div>
       <div className="md:col-span-2 flex items-center justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">Cancel</button>
         <button type="submit" disabled={submitting} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
