@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EarthquakesRouteImport } from './routes/earthquakes'
 import { Route as BuildingsRouteImport } from './routes/buildings'
 import { Route as IndexRouteImport } from './routes/index'
 
+const EarthquakesRoute = EarthquakesRouteImport.update({
+  id: '/earthquakes',
+  path: '/earthquakes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BuildingsRoute = BuildingsRouteImport.update({
   id: '/buildings',
   path: '/buildings',
@@ -26,31 +32,42 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buildings': typeof BuildingsRoute
+  '/earthquakes': typeof EarthquakesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buildings': typeof BuildingsRoute
+  '/earthquakes': typeof EarthquakesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/buildings': typeof BuildingsRoute
+  '/earthquakes': typeof EarthquakesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/buildings'
+  fullPaths: '/' | '/buildings' | '/earthquakes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/buildings'
-  id: '__root__' | '/' | '/buildings'
+  to: '/' | '/buildings' | '/earthquakes'
+  id: '__root__' | '/' | '/buildings' | '/earthquakes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuildingsRoute: typeof BuildingsRoute
+  EarthquakesRoute: typeof EarthquakesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/earthquakes': {
+      id: '/earthquakes'
+      path: '/earthquakes'
+      fullPath: '/earthquakes'
+      preLoaderRoute: typeof EarthquakesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/buildings': {
       id: '/buildings'
       path: '/buildings'
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuildingsRoute: BuildingsRoute,
+  EarthquakesRoute: EarthquakesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
