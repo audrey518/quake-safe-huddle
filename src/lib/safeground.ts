@@ -39,7 +39,7 @@ export const HAZARD_LABELS: Record<HazardType, string> = {
 
 export interface RiskResult {
   score: number; // 0-100
-  category: "Low" | "Moderate" | "High" | "Very High";
+  category: "Low" | "Moderate" | "High";
   explanation: string;
   factors: { label: string; impact: string }[];
 }
@@ -48,67 +48,63 @@ export function assessRisk(b: Pick<Building, "yearBuilt" | "floors" | "material"
   const currentYear = new Date().getFullYear();
   const age = Math.max(0, currentYear - b.yearBuilt);
 
-  // Age factor: older = riskier
-  const ageScore = Math.min(40, age * 0.5);
-
-  // Material factor
+  // Baseline material risk
   const materialScores: Record<BuildingMaterial, number> = {
     steel: 5,
-    "reinforced-concrete": 10,
-    wood: 18,
-    masonry: 28,
-    adobe: 38,
+    "reinforced-concrete": 5,
+    wood: 12,
+    masonry: 15,
+    adobe: 30,
   };
-  const materialScore = materialScores[b.material];
 
-  // Floors factor: very low or very tall = more risk
-  let floorScore = 0;
-  if (b.floors >= 8) floorScore = 22;
-  else if (b.floors >= 5) floorScore = 14;
-  else if (b.floors >= 3) floorScore = 8;
-  else floorScore = 4;
+  let score = materialScores[b.material];
+  if (age > 30) score += 20;
+  if (b.floors > 5) score += 15;
 
-  const score = Math.round(Math.min(100, ageScore + materialScore + floorScore));
+  score = Math.round(Math.min(100, score));
 
   let category: RiskResult["category"];
-  if (score < 25) category = "Low";
-  else if (score < 50) category = "Moderate";
-  else if (score < 75) category = "High";
-  else category = "Very High";
+  if (score < 35) category = "Low";
+  else if (score < 65) category = "Moderate";
+  else category = "High";
 
   const factors = [
     {
       label: `Age — ${age} year${age === 1 ? "" : "s"} old`,
-      impact: age < 15 ? "Modern code likely applied" : age < 40 ? "May predate recent seismic codes" : "Likely built before modern seismic standards",
+      impact: age > 30 ? "Built before many modern seismic standards were common" : "Relatively modern construction",
     },
     {
       label: `Material — ${MATERIAL_LABELS[b.material]}`,
       impact:
-        b.material === "adobe" || b.material === "masonry"
+        b.material === "masonry" || b.material === "adobe"
           ? "Brittle under shaking — higher vulnerability"
           : b.material === "wood"
-            ? "Flexible but susceptible at connections"
+            ? "Flexible but can be vulnerable at connections"
             : "Generally good seismic performance",
     },
     {
       label: `Height — ${b.floors} floor${b.floors === 1 ? "" : "s"}`,
-      impact:
-        b.floors >= 8
-          ? "Taller buildings sway more — design quality matters"
-          : b.floors >= 3
-            ? "Mid-rise — performance depends on structure"
-            : "Low-rise tends to perform better",
+      impact: b.floors > 5 ? "Taller buildings experience stronger sway forces" : "Low-to-mid rise tends to perform better",
     },
   ];
 
-  const explanation =
-    category === "Low"
-      ? "This building appears to have favorable basic characteristics for earthquake shaking. This is a rough community-level estimate — not an engineering assessment."
-      : category === "Moderate"
-        ? "Some characteristics suggest moderate vulnerability. Consider learning about your local seismic code and consulting a professional for a proper inspection."
-        : category === "High"
-          ? "Several characteristics increase earthquake vulnerability. A qualified structural engineer should evaluate this building."
-          : "Multiple high-risk factors are present. Seek a professional structural assessment as soon as possible.";
+  const contributors: string[] = [];
+  if (age > 30) contributors.push("it is over 30 years old");
+  if (b.material === "masonry") contributors.push("it is constructed primarily from brick materials");
+  else if (b.material === "adobe") contributors.push("it is built from adobe/mud brick");
+  else if (b.material === "wood") contributors.push("it uses a wood frame");
+  if (b.floors > 5) contributors.push("it has more than 5 floors");
+
+  let explanation: string;
+  if (contributors.length === 0) {
+    explanation = "Your building shows low earthquake vulnerability because it is relatively modern, built with resilient materials, and has a modest number of floors.";
+  } else {
+    const joined =
+      contributors.length === 1
+        ? contributors[0]
+        : `${contributors.slice(0, -1).join(", ")} and ${contributors[contributors.length - 1]}`;
+    explanation = `Your building shows ${category.toLowerCase()} earthquake vulnerability because ${joined}.`;
+  }
 
   return { score, category, explanation, factors };
 }
