@@ -34,30 +34,34 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
+  --color-risk-low: var(--risk-low);
+  --color-risk-moderate: var(--risk-moderate);
+  --color-risk-high: var(--risk-high);
+  --color-risk-very-high: var(--risk-very-high);
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
   --radius: 0.75rem;
-  /* Warm off-white "field notebook" background, deep slate ink */
-  --background: oklch(0.985 0.005 95);
-  --foreground: oklch(0.22 0.03 250);
+  /* Earth + aqua minimalism */
+  --background: oklch(0.985 0.006 195);
+  --foreground: oklch(0.22 0.03 220);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 250);
+  --card-foreground: oklch(0.22 0.03 220);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 250);
-  /* Deep teal — calm, trustworthy, "safe ground" */
-  --primary: oklch(0.45 0.09 200);
-  --primary-foreground: oklch(0.98 0.01 95);
-  --secondary: oklch(0.95 0.015 95);
-  --secondary-foreground: oklch(0.28 0.04 250);
-  --muted: oklch(0.95 0.01 95);
-  --muted-foreground: oklch(0.5 0.02 250);
-  --accent: oklch(0.93 0.04 80);
-  --accent-foreground: oklch(0.3 0.05 60);
-  /* Seismic amber for warnings */
-  --warning: oklch(0.78 0.16 75);
+  --popover-foreground: oklch(0.22 0.03 220);
+  /* Aqua primary */
+  --primary: oklch(0.52 0.10 200);
+  --primary-foreground: oklch(0.99 0.005 200);
+  /* Sandy secondary */
+  --secondary: oklch(0.95 0.018 95);
+  --secondary-foreground: oklch(0.28 0.04 220);
+  --muted: oklch(0.955 0.012 200);
+  --muted-foreground: oklch(0.5 0.02 220);
+  --accent: oklch(0.92 0.04 175);
+  --accent-foreground: oklch(0.28 0.05 200);
+  --warning: oklch(0.82 0.15 80);
   --warning-foreground: oklch(0.25 0.05 60);
   --success: oklch(0.68 0.13 155);
   --success-foreground: oklch(0.18 0.04 155);
@@ -65,26 +69,31 @@
   --danger-foreground: oklch(0.98 0.01 95);
   --destructive: oklch(0.58 0.21 28);
   --destructive-foreground: oklch(0.98 0.01 95);
-  --border: oklch(0.9 0.01 95);
-  --input: oklch(0.92 0.01 95);
-  --ring: oklch(0.45 0.09 200);
+  --border: oklch(0.9 0.012 200);
+  --input: oklch(0.92 0.012 200);
+  --ring: oklch(0.52 0.10 200);
+  /* Risk scale: green → yellow → orange → red */
+  --risk-low: oklch(0.7 0.14 155);
+  --risk-moderate: oklch(0.82 0.16 95);
+  --risk-high: oklch(0.72 0.17 55);
+  --risk-very-high: oklch(0.6 0.21 28);
 }
 
 .dark {
-  --background: oklch(0.18 0.02 240);
+  --background: oklch(0.18 0.02 220);
   --foreground: oklch(0.96 0.01 95);
-  --card: oklch(0.22 0.025 240);
+  --card: oklch(0.22 0.025 220);
   --card-foreground: oklch(0.96 0.01 95);
-  --popover: oklch(0.22 0.025 240);
+  --popover: oklch(0.22 0.025 220);
   --popover-foreground: oklch(0.96 0.01 95);
   --primary: oklch(0.72 0.11 195);
   --primary-foreground: oklch(0.15 0.02 240);
-  --secondary: oklch(0.28 0.03 240);
+  --secondary: oklch(0.28 0.03 220);
   --secondary-foreground: oklch(0.96 0.01 95);
-  --muted: oklch(0.28 0.03 240);
-  --muted-foreground: oklch(0.7 0.02 240);
-  --accent: oklch(0.3 0.04 80);
-  --accent-foreground: oklch(0.95 0.02 80);
+  --muted: oklch(0.28 0.03 220);
+  --muted-foreground: oklch(0.7 0.02 220);
+  --accent: oklch(0.3 0.04 175);
+  --accent-foreground: oklch(0.95 0.02 200);
   --warning: oklch(0.78 0.16 75);
   --warning-foreground: oklch(0.2 0.05 60);
   --success: oklch(0.7 0.14 155);
@@ -96,6 +105,10 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.72 0.11 195);
+  --risk-low: oklch(0.7 0.14 155);
+  --risk-moderate: oklch(0.82 0.16 95);
+  --risk-high: oklch(0.72 0.17 55);
+  --risk-very-high: oklch(0.65 0.22 28);
 }
 
 @layer base {
@@ -121,7 +134,7 @@
   background-color: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px oklch(0.2 0.02 250 / 0.04), 0 8px 24px -16px oklch(0.2 0.02 250 / 0.12);
+  box-shadow: 0 1px 2px oklch(0.2 0.02 220 / 0.04), 0 8px 24px -16px oklch(0.2 0.02 220 / 0.10);
 }
 
 @utility chip {
@@ -136,8 +149,15 @@
   color: var(--color-muted-foreground);
 }
 
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 oklch(0.58 0.21 28 / 0.5); }
-  70% { box-shadow: 0 0 0 12px oklch(0.58 0.21 28 / 0); }
-  100% { box-shadow: 0 0 0 0 oklch(0.58 0.21 28 / 0); }
+@utility input-base {
+  width: 100%;
+  border: 1px solid var(--color-input);
+  background: var(--color-background);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
 }
+
+/* Leaflet container baseline */
+.leaflet-container { background: var(--color-muted); border-radius: var(--radius-lg); }
