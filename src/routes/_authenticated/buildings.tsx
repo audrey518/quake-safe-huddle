@@ -31,7 +31,7 @@ function BuildingsPage() {
   });
 
   const create = useMutation({
-    mutationFn: async (payload: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial }) => {
+    mutationFn: async (payload: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null }) => {
       const r = assessRisk({ yearBuilt: payload.year_built, floors: payload.floors, material: payload.material });
       const { error } = await supabase.from("buildings").insert({
         user_id: user!.id,
