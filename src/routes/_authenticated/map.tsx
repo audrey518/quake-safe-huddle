@@ -47,7 +47,7 @@ function MapPage() {
     if (enabled.buildings) for (const b of buildings.data ?? []) {
       if (b.latitude == null || b.longitude == null) continue;
       const risk = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
-      const materialLabel = (await import("@/lib/safeground"), b.material);
+      const materialLabel = MATERIAL_LABELS[b.material as BuildingMaterial] ?? b.material;
       m.push({ id: `b-${b.id}`, lat: b.latitude, lng: b.longitude, color: riskCategoryColor(risk.category), title: b.name,
         popupHtml: `<div style="min-width:200px"><strong>${escape(b.name)}</strong><br/><span style="color:#666">${escape(b.address)}</span><hr style="margin:6px 0;border:none;border-top:1px solid #eee"/><div style="display:grid;grid-template-columns:auto auto;gap:2px 8px;font-size:12px"><span style="color:#888">Built</span><span>${b.year_built}</span><span style="color:#888">Floors</span><span>${b.floors}</span><span style="color:#888">Material</span><span>${escape(materialLabel)}</span><span style="color:#888">Risk</span><span><strong>${risk.category}</strong> (${risk.score}/100)</span></div><p style="margin:6px 0 0;font-size:11px;color:#555">${escape(risk.explanation)}</p></div>` });
     }
