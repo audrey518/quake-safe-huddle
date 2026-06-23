@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as EarthquakesRouteImport } from './routes/earthquakes'
 import { Route as BuildingsRouteImport } from './routes/buildings'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EarthquakesRoute = EarthquakesRouteImport.update({
   id: '/earthquakes',
   path: '/earthquakes',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/buildings': typeof BuildingsRoute
   '/earthquakes': typeof EarthquakesRoute
+  '/reports': typeof ReportsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buildings': typeof BuildingsRoute
   '/earthquakes': typeof EarthquakesRoute
+  '/reports': typeof ReportsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/buildings': typeof BuildingsRoute
   '/earthquakes': typeof EarthquakesRoute
+  '/reports': typeof ReportsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/buildings' | '/earthquakes'
+  fullPaths: '/' | '/buildings' | '/earthquakes' | '/reports'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/buildings' | '/earthquakes'
-  id: '__root__' | '/' | '/buildings' | '/earthquakes'
+  to: '/' | '/buildings' | '/earthquakes' | '/reports'
+  id: '__root__' | '/' | '/buildings' | '/earthquakes' | '/reports'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuildingsRoute: typeof BuildingsRoute
   EarthquakesRoute: typeof EarthquakesRoute
+  ReportsRoute: typeof ReportsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/earthquakes': {
       id: '/earthquakes'
       path: '/earthquakes'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuildingsRoute: BuildingsRoute,
   EarthquakesRoute: EarthquakesRoute,
+  ReportsRoute: ReportsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
