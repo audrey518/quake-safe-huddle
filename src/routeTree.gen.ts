@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RiskRouteImport } from './routes/risk'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as EarthquakesRouteImport } from './routes/earthquakes'
 import { Route as BuildingsRouteImport } from './routes/buildings'
 import { Route as IndexRouteImport } from './routes/index'
 
+const RiskRoute = RiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/buildings': typeof BuildingsRoute
   '/earthquakes': typeof EarthquakesRoute
   '/reports': typeof ReportsRoute
+  '/risk': typeof RiskRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/buildings': typeof BuildingsRoute
   '/earthquakes': typeof EarthquakesRoute
   '/reports': typeof ReportsRoute
+  '/risk': typeof RiskRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/buildings': typeof BuildingsRoute
   '/earthquakes': typeof EarthquakesRoute
   '/reports': typeof ReportsRoute
+  '/risk': typeof RiskRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/buildings' | '/earthquakes' | '/reports'
+  fullPaths: '/' | '/buildings' | '/earthquakes' | '/reports' | '/risk'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/buildings' | '/earthquakes' | '/reports'
-  id: '__root__' | '/' | '/buildings' | '/earthquakes' | '/reports'
+  to: '/' | '/buildings' | '/earthquakes' | '/reports' | '/risk'
+  id: '__root__' | '/' | '/buildings' | '/earthquakes' | '/reports' | '/risk'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   BuildingsRoute: typeof BuildingsRoute
   EarthquakesRoute: typeof EarthquakesRoute
   ReportsRoute: typeof ReportsRoute
+  RiskRoute: typeof RiskRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/risk': {
+      id: '/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof RiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuildingsRoute: BuildingsRoute,
   EarthquakesRoute: EarthquakesRoute,
   ReportsRoute: ReportsRoute,
+  RiskRoute: RiskRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
