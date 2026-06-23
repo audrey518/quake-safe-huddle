@@ -11,6 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedWellsRouteImport } from './routes/_authenticated/wells'
+import { Route as AuthenticatedSoilRouteImport } from './routes/_authenticated/soil'
+import { Route as AuthenticatedRiskRouteImport } from './routes/_authenticated/risk'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
+import { Route as AuthenticatedEarthquakesRouteImport } from './routes/_authenticated/earthquakes'
+import { Route as AuthenticatedBuildingsRouteImport } from './routes/_authenticated/buildings'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -21,30 +29,122 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWellsRoute = AuthenticatedWellsRouteImport.update({
+  id: '/wells',
+  path: '/wells',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSoilRoute = AuthenticatedSoilRouteImport.update({
+  id: '/soil',
+  path: '/soil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRiskRoute = AuthenticatedRiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEarthquakesRoute =
+  AuthenticatedEarthquakesRouteImport.update({
+    id: '/earthquakes',
+    path: '/earthquakes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBuildingsRoute = AuthenticatedBuildingsRouteImport.update({
+  id: '/buildings',
+  path: '/buildings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedRouteRoute
+  '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/buildings': typeof AuthenticatedBuildingsRoute
+  '/earthquakes': typeof AuthenticatedEarthquakesRoute
+  '/map': typeof AuthenticatedMapRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/risk': typeof AuthenticatedRiskRoute
+  '/soil': typeof AuthenticatedSoilRoute
+  '/wells': typeof AuthenticatedWellsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof AuthenticatedRouteRoute
   '/auth': typeof AuthRoute
+  '/buildings': typeof AuthenticatedBuildingsRoute
+  '/earthquakes': typeof AuthenticatedEarthquakesRoute
+  '/map': typeof AuthenticatedMapRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/risk': typeof AuthenticatedRiskRoute
+  '/soil': typeof AuthenticatedSoilRoute
+  '/wells': typeof AuthenticatedWellsRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_authenticated': typeof AuthenticatedRouteRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/buildings': typeof AuthenticatedBuildingsRoute
+  '/_authenticated/earthquakes': typeof AuthenticatedEarthquakesRoute
+  '/_authenticated/map': typeof AuthenticatedMapRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/risk': typeof AuthenticatedRiskRoute
+  '/_authenticated/soil': typeof AuthenticatedSoilRoute
+  '/_authenticated/wells': typeof AuthenticatedWellsRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/buildings'
+    | '/earthquakes'
+    | '/map'
+    | '/reports'
+    | '/risk'
+    | '/soil'
+    | '/wells'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth'
-  id: '__root__' | '/_authenticated' | '/auth'
+  to:
+    | '/auth'
+    | '/buildings'
+    | '/earthquakes'
+    | '/map'
+    | '/reports'
+    | '/risk'
+    | '/soil'
+    | '/wells'
+    | '/'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/buildings'
+    | '/_authenticated/earthquakes'
+    | '/_authenticated/map'
+    | '/_authenticated/reports'
+    | '/_authenticated/risk'
+    | '/_authenticated/soil'
+    | '/_authenticated/wells'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
 }
 
@@ -64,11 +164,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/wells': {
+      id: '/_authenticated/wells'
+      path: '/wells'
+      fullPath: '/wells'
+      preLoaderRoute: typeof AuthenticatedWellsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/soil': {
+      id: '/_authenticated/soil'
+      path: '/soil'
+      fullPath: '/soil'
+      preLoaderRoute: typeof AuthenticatedSoilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/risk': {
+      id: '/_authenticated/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof AuthenticatedRiskRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/map': {
+      id: '/_authenticated/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AuthenticatedMapRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/earthquakes': {
+      id: '/_authenticated/earthquakes'
+      path: '/earthquakes'
+      fullPath: '/earthquakes'
+      preLoaderRoute: typeof AuthenticatedEarthquakesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/buildings': {
+      id: '/_authenticated/buildings'
+      path: '/buildings'
+      fullPath: '/buildings'
+      preLoaderRoute: typeof AuthenticatedBuildingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBuildingsRoute: typeof AuthenticatedBuildingsRoute
+  AuthenticatedEarthquakesRoute: typeof AuthenticatedEarthquakesRoute
+  AuthenticatedMapRoute: typeof AuthenticatedMapRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedRiskRoute: typeof AuthenticatedRiskRoute
+  AuthenticatedSoilRoute: typeof AuthenticatedSoilRoute
+  AuthenticatedWellsRoute: typeof AuthenticatedWellsRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBuildingsRoute: AuthenticatedBuildingsRoute,
+  AuthenticatedEarthquakesRoute: AuthenticatedEarthquakesRoute,
+  AuthenticatedMapRoute: AuthenticatedMapRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedRiskRoute: AuthenticatedRiskRoute,
+  AuthenticatedSoilRoute: AuthenticatedSoilRoute,
+  AuthenticatedWellsRoute: AuthenticatedWellsRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedRouteRoute: AuthenticatedRouteRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
