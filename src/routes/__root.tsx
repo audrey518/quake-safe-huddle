@@ -77,15 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SafeGround — Community earthquake preparedness" },
+      { name: "description", content: "SafeGround helps residents understand earthquake risk around their homes using public data, community reports, and simple building info." },
+      { name: "author", content: "SafeGround" },
+      { property: "og:title", content: "SafeGround — Community earthquake preparedness" },
+      { property: "og:description", content: "Understand earthquake risk around your home with USGS data, community hazard reports, and quick building risk assessments." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-    ],
     links: [
       {
         rel: "stylesheet",
