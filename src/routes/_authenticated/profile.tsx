@@ -130,7 +130,7 @@ function ProfilePage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!displayName.trim()) return;
-                saveProfile.mutate({ name: displayName.trim().slice(0, 80), chatId: telegramChatId.trim() });
+                saveProfile.mutate({ name: displayName.trim().slice(0, 80) });
               }}
             >
               <Field label="Display name">
@@ -142,30 +142,7 @@ function ProfilePage() {
               <Field label="Role">
                 <input className={inputClass("opacity-70")} value={isProfessional ? "Professional" : "Local resident"} disabled />
               </Field>
-              <Field label="Telegram chat ID (for notifications)">
-                <div className="flex gap-2">
-                  <input
-                    className={inputClass()}
-                    value={telegramChatId}
-                    onChange={(e) => setTelegramChatId(e.target.value)}
-                    placeholder="e.g. 123456789"
-                    inputMode="numeric"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => ping.mutate()}
-                    disabled={ping.isPending || !profileQ.data?.telegram_chat_id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-secondary disabled:opacity-50"
-                    title={profileQ.data?.telegram_chat_id ? "Send a test message" : "Save your chat ID first"}
-                  >
-                    <Send className="h-3.5 w-3.5" /> Test
-                  </button>
-                </div>
-                <span className="mt-1.5 flex items-start gap-1.5 text-[11px] text-muted-foreground">
-                  <MessageCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                  Open Telegram → search <b className="mx-1">@userinfobot</b> → it replies with your numeric chat ID. Paste it here to receive purchase & appointment alerts.
-                </span>
-              </Field>
+
               <div className="flex items-center justify-between gap-2 flex-wrap pt-2">
                 <button
                   type="button"
