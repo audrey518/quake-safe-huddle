@@ -156,10 +156,11 @@ function ItemRow({ item, provider, category, onDone }: { item: ProviderItem; pro
     mutationFn: () => purchaseFn({ data: {
       category, provider_name: provider.name, item_name: item.name, price: item.price,
     } }),
-    onSuccess: (res) => {
-      toast.success(`Purchased — ${res.telegramSent ? "Telegram notified" : "link Telegram in Profile to get notifications"}`);
+    onSuccess: () => {
+      toast.success("Purchase recorded");
       onDone();
     },
+
     onError: (e) => toast.error(e instanceof Error ? e.message : "Purchase failed"),
   });
 
