@@ -207,9 +207,9 @@ function StatCard({ icon, label, value, hint }: { icon: React.ReactNode; label: 
   );
 }
 
-function ActionCard({ to, icon, title, description }: { to: string; icon: React.ReactNode; title: string; description: string }) {
+function ActionCard({ to, search, icon, title, description }: { to: string; search?: Record<string, string>; icon: React.ReactNode; title: string; description: string }) {
   return (
-    <Link to={to} className="group flex items-start gap-4 rounded-lg border border-border bg-background p-4 transition-colors hover:bg-secondary/60">
+    <Link to={to} search={search as never} className="group flex items-start gap-4 rounded-lg border border-border bg-background p-4 transition-colors hover:bg-secondary/60">
       <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{icon}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 font-medium">{title}<ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" /></div>
