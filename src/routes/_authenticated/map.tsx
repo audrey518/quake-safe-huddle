@@ -54,7 +54,7 @@ function MapHub() {
       <div className="container-app py-6">
         <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Map</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">InfoHub</h1>
             <p className="text-sm text-muted-foreground mt-1">Browse one category at a time and contribute new data.</p>
           </div>
         </div>
