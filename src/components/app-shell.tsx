@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { Home, LogOut, Map, ShieldCheck, UserCircle2 } from "lucide-react";
+import { GraduationCap, Home, LogOut, Map, ShieldCheck, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,6 +9,7 @@ import { GeoSafeLogo } from "@/components/geosafe-logo";
 const NAV = [
   { to: "/", label: "Home", icon: Home },
   { to: "/map", label: "InfoHub\n", icon: Map },
+  { to: "/learn", label: "Learn", icon: GraduationCap },
   { to: "/profile", label: "Profile", icon: UserCircle2 },
 ] as const;
 
