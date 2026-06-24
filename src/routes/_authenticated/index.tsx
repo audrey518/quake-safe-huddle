@@ -181,7 +181,7 @@ function Dashboard() {
                 <div className="mt-3"><RiskPill category={topRisk.r.category} score={topRisk.r.score} /></div>
                 <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{topRisk.r.explanation}</p>
                 <Link to="/map" className="mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                  Open map <ArrowRight className="h-4 w-4" />
+                  Open InfoHub <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             )}
