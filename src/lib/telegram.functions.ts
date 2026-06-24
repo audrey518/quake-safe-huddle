@@ -149,5 +149,10 @@ export const bookAppointment = createServerFn({ method: "POST" })
     await broadcastToAdmins(
       `📅 <b>New appointment</b>\n<b>${data.service_name}</b>\nProvider: ${data.provider_name}\nDate: ${data.appointment_date}${time}\nCategory: ${data.category}\n\n<b>Booked by</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
     );
+    await sendBuyerEmail(
+      buyer.email,
+      `Appointment confirmed: ${data.service_name}`,
+      `Hi ${buyer.name},\n\nYour appointment is booked.\n\nService: ${data.service_name}\nProvider: ${data.provider_name}\nDate: ${data.appointment_date}${time}\nCategory: ${data.category}${data.contact_phone ? `\nContact: ${data.contact_phone}` : ""}${data.notes ? `\nNotes: ${data.notes}` : ""}\n\n— GeoSafe AI`,
+    );
     return { appointment: row, buyerEmail: buyer.email };
   });
