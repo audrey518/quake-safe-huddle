@@ -7,10 +7,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRole } from "@/hooks/use-role";
 import { useTrustBadge } from "@/hooks/use-trust-badge";
 import { Field, inputClass } from "@/components/safeground/ui";
-import { Building2, Droplets, LogOut, Megaphone, MessageCircle, Mountain, Receipt, Send, Settings, ShieldCheck, UserCircle2 } from "lucide-react";
+import { Building2, Droplets, LogOut, Megaphone, Mountain, Receipt, Settings, ShieldCheck, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { sendTestPing } from "@/lib/telegram.functions";
+
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — GeoSafe AI" }] }),
