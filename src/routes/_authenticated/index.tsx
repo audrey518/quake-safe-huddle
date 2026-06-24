@@ -107,7 +107,7 @@ function Dashboard() {
                   <h2 className="text-lg font-semibold font-display">Latest earthquakes</h2>
                 </div>
                 <Link to="/map" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
-                  Open map <ArrowRight className="h-4 w-4" />
+                  Open InfoHub <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
               <ul className="mt-4 divide-y divide-border">
