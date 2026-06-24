@@ -399,6 +399,7 @@ function WellsPanel() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{w.name}</div>
                   <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
+                  <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
                 </div>
                 {w.user_id === user?.id && (
                   <button onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
