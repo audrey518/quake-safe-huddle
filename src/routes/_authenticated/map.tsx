@@ -520,6 +520,7 @@ function ReportsPanel() {
                 <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
                 <div className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</div>
                 <div className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(r.created_at).getTime())} ago</div>
+                <div className="mt-1"><AuthorBadge userId={r.user_id} /></div>
               </div>
               {r.user_id === user?.id && (
                 <button onClick={() => remove.mutate(r.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
