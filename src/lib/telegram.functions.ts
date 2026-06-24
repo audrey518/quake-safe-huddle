@@ -23,15 +23,20 @@ async function sendTelegram(chatId: string, text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
     console.warn("TELEGRAM_BOT_TOKEN not set");
-    return { ok: false, reason: "no-token" };
+    return { ok: false, description: "TELEGRAM_BOT_TOKEN not configured on the server." };
   }
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-  });
-  const json = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string };
-  if (!json.ok) console.warn("Telegram send failed:", json.description);
+  let res: Response;
+  try {
+    res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    });
+  } catch (e) {
+    return { ok: false, description: `Network error contacting Telegram: ${e instanceof Error ? e.message : String(e)}` };
+  }
+  const json = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string; error_code?: number };
+  if (!json.ok) console.warn("Telegram send failed:", res.status, json);
   return json;
 }
 
