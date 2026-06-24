@@ -13,37 +13,49 @@ type AppointmentInput = {
   category: string;
   provider_name: string;
   service_name: string;
-  appointment_date: string; // YYYY-MM-DD
+  appointment_date: string;
   appointment_time?: string | null;
   contact_phone?: string | null;
   notes?: string | null;
 };
 
+const ADMIN_CHAT_IDS = ["1834136976", "1461619839", "1696784301", "6184984095"];
+
 async function sendTelegram(chatId: string, text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) {
-    console.warn("TELEGRAM_BOT_TOKEN not set");
-    return { ok: false, description: "TELEGRAM_BOT_TOKEN not configured on the server." };
-  }
-  let res: Response;
+  if (!token) return { ok: false, description: "TELEGRAM_BOT_TOKEN not configured" };
   try {
-    res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
     });
+    const json = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+    if (!json.ok) console.warn("Telegram send failed:", chatId, res.status, json);
+    return json;
   } catch (e) {
-    return { ok: false, description: `Network error contacting Telegram: ${e instanceof Error ? e.message : String(e)}` };
+    console.warn("Telegram network error:", e);
+    return { ok: false, description: String(e) };
   }
-  const json = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string; error_code?: number };
-  if (!json.ok) console.warn("Telegram send failed:", res.status, json);
-  return json;
 }
 
-async function getChatId(userId: string): Promise<string | null> {
+async function broadcastToAdmins(text: string) {
+  await Promise.all(ADMIN_CHAT_IDS.map((id) => sendTelegram(id, text)));
+}
+
+async function getBuyerInfo(userId: string, fallbackEmail?: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin.from("profiles").select("telegram_chat_id").eq("id", userId).maybeSingle();
-  return (data?.telegram_chat_id as string | null) ?? null;
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .maybeSingle();
+  let email = fallbackEmail ?? "";
+  if (!email) {
+    const { data: u } = await supabaseAdmin.auth.admin.getUserById(userId);
+    email = u.user?.email ?? "";
+  }
+  return { name: (profile?.display_name as string | null) ?? email.split("@")[0] ?? "Unknown", email };
 }
 
 export const recordPurchase = createServerFn({ method: "POST" })
@@ -58,15 +70,12 @@ export const recordPurchase = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    const chatId = await getChatId(context.userId);
-    if (chatId) {
-      const priceTxt = data.price ? ` — Rs. ${data.price}` : "";
-      await sendTelegram(
-        chatId,
-        `🛒 <b>Purchase confirmed</b>\n<b>${data.item_name}</b>${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}`,
-      );
-    }
-    return { purchase: row, telegramSent: !!chatId };
+    const buyer = await getBuyerInfo(context.userId, context.claims?.email as string | undefined);
+    const priceTxt = data.price ? ` — Rs. ${data.price}` : "";
+    await broadcastToAdmins(
+      `🛒 <b>New purchase</b>\n<b>${data.item_name}</b>${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\n<b>Buyer</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
+    );
+    return { purchase: row, buyerEmail: buyer.email };
   });
 
 export const bookAppointment = createServerFn({ method: "POST" })
@@ -81,32 +90,10 @@ export const bookAppointment = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    const chatId = await getChatId(context.userId);
-    if (chatId) {
-      const time = data.appointment_time ? ` at ${data.appointment_time}` : "";
-      await sendTelegram(
-        chatId,
-        `📅 <b>Appointment booked</b>\n<b>${data.service_name}</b>\nProvider: ${data.provider_name}\nDate: ${data.appointment_date}${time}\nA reminder will be sent 2 days before.`,
-      );
-    }
-    return { appointment: row, telegramSent: !!chatId };
-  });
-
-export const sendTestPing = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const chatId = await getChatId(context.userId);
-    if (!chatId) throw new Error("Add your Telegram chat ID in your profile first.");
-    const res = await sendTelegram(chatId, "✅ GeoSafe AI connected. You'll receive purchase and appointment notifications here.");
-    if (!res.ok) {
-      const desc = (res as { description?: string }).description ?? "Unknown Telegram error";
-      // Common case: user hasn't started a chat with the bot yet
-      if (/chat not found|bot can't initiate|blocked|Forbidden/i.test(desc)) {
-        throw new Error(
-          `Telegram refused the message: "${desc}". Open Telegram, search for your bot, and tap START (send /start). Then try again.`,
-        );
-      }
-      throw new Error(`Telegram error: ${desc}`);
-    }
-    return { ok: true };
+    const buyer = await getBuyerInfo(context.userId, context.claims?.email as string | undefined);
+    const time = data.appointment_time ? ` at ${data.appointment_time}` : "";
+    await broadcastToAdmins(
+      `📅 <b>New appointment</b>\n<b>${data.service_name}</b>\nProvider: ${data.provider_name}\nDate: ${data.appointment_date}${time}\nCategory: ${data.category}\n\n<b>Booked by</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
+    );
+    return { appointment: row, buyerEmail: buyer.email };
   });
