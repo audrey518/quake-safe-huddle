@@ -248,6 +248,7 @@ function BuildingsPanel() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{b.name}</div>
                   <div className="text-[11px] text-muted-foreground truncate">{b.address}</div>
+                  <div className="mt-1"><AuthorBadge userId={b.user_id} /></div>
                 </div>
                 <RiskPill category={r.category} score={r.score} />
                 {b.user_id === user?.id && (
