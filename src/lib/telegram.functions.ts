@@ -123,8 +123,14 @@ export const recordPurchase = createServerFn({ method: "POST" })
     await broadcastToAdmins(
       `🛒 <b>New purchase</b>\n<b>${data.item_name}</b>${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\n<b>Buyer</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
     );
+    await sendBuyerEmail(
+      buyer.email,
+      `Your purchase: ${data.item_name}`,
+      `Hi ${buyer.name},\n\nThanks for your purchase on GeoSafe AI.\n\nItem: ${data.item_name}${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\nWe'll be in touch with next steps.\n\n— GeoSafe AI`,
+    );
     return { purchase: row, buyerEmail: buyer.email };
   });
+
 
 export const bookAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
