@@ -635,6 +635,7 @@ function SoilPanel() {
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">{s.soil_type}</div>
                 <div className="text-[11px] text-muted-foreground">Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
+                <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
               </div>
               {s.user_id === user?.id && (
                 <button onClick={() => remove.mutate(s.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
