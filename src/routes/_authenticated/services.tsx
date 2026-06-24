@@ -156,10 +156,11 @@ function ItemRow({ item, provider, category, onDone }: { item: ProviderItem; pro
     mutationFn: () => purchaseFn({ data: {
       category, provider_name: provider.name, item_name: item.name, price: item.price,
     } }),
-    onSuccess: (res) => {
-      toast.success(`Purchased — ${res.telegramSent ? "Telegram notified" : "link Telegram in Profile to get notifications"}`);
+    onSuccess: () => {
+      toast.success("Purchase recorded");
       onDone();
     },
+
     onError: (e) => toast.error(e instanceof Error ? e.message : "Purchase failed"),
   });
 
@@ -204,10 +205,11 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: Provi
       appointment_date: date, appointment_time: time || null,
       contact_phone: provider.phone, notes: notes || null,
     } }),
-    onSuccess: (res) => {
-      toast.success(`Appointment booked${res.telegramSent ? " — Telegram notified" : ""}. Reminder 2 days before.`);
+    onSuccess: () => {
+      toast.success("Appointment booked. Reminder 2 days before.");
       onDone();
     },
+
     onError: (e) => toast.error(e instanceof Error ? e.message : "Booking failed"),
   });
 
