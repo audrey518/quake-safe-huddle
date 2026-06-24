@@ -21,6 +21,7 @@ import {
 import { formatDistanceToNow } from "@/lib/format";
 import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
 import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Send, Sparkles, Trash2 } from "lucide-react";
+import { AuthorBadge } from "@/components/safeground/author-badge";
 import { toast } from "sonner";
 
 type CategoryKey = "earthquakes" | "buildings" | "wells" | "reports" | "soil";
@@ -247,6 +248,7 @@ function BuildingsPanel() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{b.name}</div>
                   <div className="text-[11px] text-muted-foreground truncate">{b.address}</div>
+                  <div className="mt-1"><AuthorBadge userId={b.user_id} /></div>
                 </div>
                 <RiskPill category={r.category} score={r.score} />
                 {b.user_id === user?.id && (
@@ -285,6 +287,7 @@ function BuildingDetail({ item }: { item: any }) {
           <div className="text-xs uppercase tracking-wider text-muted-foreground">Building report</div>
           <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
           <div className="text-xs text-muted-foreground">{item.address} · {MATERIAL_LABELS[item.material as BuildingMaterial]} · {item.floors} floors · built {item.year_built}</div>
+          <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
         </div>
         <RiskPill category={r.category} score={r.score} />
       </div>
@@ -396,6 +399,7 @@ function WellsPanel() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{w.name}</div>
                   <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
+                  <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
                 </div>
                 {w.user_id === user?.id && (
                   <button onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
@@ -431,6 +435,7 @@ function WellDetail({ item }: { item: any }) {
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Well report</div>
         <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
         <div className="text-xs text-muted-foreground">{item.well_type} · depth {item.total_depth_m ?? "—"} m · level {item.current_level_m ?? "—"} m</div>
+        <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
       </div>
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="well" targetId={item.id} />
@@ -515,6 +520,7 @@ function ReportsPanel() {
                 <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
                 <div className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</div>
                 <div className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(r.created_at).getTime())} ago</div>
+                <div className="mt-1"><AuthorBadge userId={r.user_id} /></div>
               </div>
               {r.user_id === user?.id && (
                 <button onClick={() => remove.mutate(r.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
@@ -629,6 +635,7 @@ function SoilPanel() {
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">{s.soil_type}</div>
                 <div className="text-[11px] text-muted-foreground">Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
+                <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
               </div>
               {s.user_id === user?.id && (
                 <button onClick={() => remove.mutate(s.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
