@@ -205,10 +205,11 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: Provi
       appointment_date: date, appointment_time: time || null,
       contact_phone: provider.phone, notes: notes || null,
     } }),
-    onSuccess: (res) => {
-      toast.success(`Appointment booked${res.telegramSent ? " — Telegram notified" : ""}. Reminder 2 days before.`);
+    onSuccess: () => {
+      toast.success("Appointment booked. Reminder 2 days before.");
       onDone();
     },
+
     onError: (e) => toast.error(e instanceof Error ? e.message : "Booking failed"),
   });
 
