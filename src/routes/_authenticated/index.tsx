@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ArrowRight, Building2, ClipboardList, Droplets, FileText, Map, Megaphone, ShieldAlert, TrendingUp, Waves } from "lucide-react";
+import { Activity, ArrowRight, Building2, ClipboardList, Droplets, FileText, Map, Megaphone, TrendingUp, UserCircle2, Waves } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { assessRisk, HAZARD_LABELS, type BuildingMaterial, type HazardType } from "@/lib/safeground";
@@ -106,8 +106,8 @@ function Dashboard() {
                   <Activity className="h-5 w-5 text-primary" />
                   <h2 className="text-lg font-semibold font-display">Latest earthquakes</h2>
                 </div>
-                <Link to="/earthquakes" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
-                  View all <ArrowRight className="h-4 w-4" />
+                <Link to="/map" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
+                  Open map <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
               <ul className="mt-4 divide-y divide-border">
@@ -134,8 +134,8 @@ function Dashboard() {
                   <ClipboardList className="h-5 w-5 text-[var(--color-risk-high)]" />
                   <h2 className="text-lg font-semibold font-display">Latest hazard reports</h2>
                 </div>
-                <Link to="/reports" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
-                  View all <ArrowRight className="h-4 w-4" />
+                <Link to="/map" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
+                  Open map <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
               {reports.length === 0 ? (
@@ -166,10 +166,10 @@ function Dashboard() {
                 <h2 className="text-lg font-semibold font-display">Quick actions</h2>
               </div>
               <div className="mt-4 space-y-3">
-                <ActionCard to="/map" icon={<Map className="h-5 w-5" />} title="Open Map" description="See all data on an interactive map." />
-                <ActionCard to="/buildings" icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace." />
-                <ActionCard to="/reports" icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
-                <ActionCard to="/risk" icon={<ShieldAlert className="h-5 w-5" />} title="Risk assessment" description="Quick score for any building." />
+                <ActionCard to="/map" icon={<Map className="h-5 w-5" />} title="Open Map" description="Browse data and contribute by category." />
+                <ActionCard to="/map" icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace and get a risk report." />
+                <ActionCard to="/map" icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
+                <ActionCard to="/profile" icon={<UserCircle2 className="h-5 w-5" />} title="Your profile" description="Trust badge, history and settings." />
               </div>
             </div>
 
@@ -179,8 +179,8 @@ function Dashboard() {
                 <div className="mt-1 font-display text-xl font-semibold">{topRisk.b.name}</div>
                 <div className="mt-3"><RiskPill category={topRisk.r.category} score={topRisk.r.score} /></div>
                 <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{topRisk.r.explanation}</p>
-                <Link to="/risk" className="mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                  Open assessment <ArrowRight className="h-4 w-4" />
+                <Link to="/map" className="mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                  Open map <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             )}
