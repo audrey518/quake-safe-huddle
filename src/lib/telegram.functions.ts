@@ -43,6 +43,54 @@ async function broadcastToAdmins(text: string) {
   await Promise.all(ADMIN_CHAT_IDS.map((id) => sendTelegram(id, text)));
 }
 
+const FROM_EMAIL = "levivalorant122@gmail.com";
+
+function encodeRawEmail(to: string, subject: string, body: string) {
+  const msg = [
+    `From: GeoSafe AI <${FROM_EMAIL}>`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset="UTF-8"',
+    '',
+    body,
+  ].join('\r\n');
+  // base64url
+  return Buffer.from(msg, 'utf-8').toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function sendBuyerEmail(to: string, subject: string, body: string) {
+  if (!to) return;
+  const lovableKey = process.env.LOVABLE_API_KEY;
+  const gmailKey = process.env.GOOGLE_MAIL_API_KEY;
+  if (!lovableKey || !gmailKey) {
+    console.warn("Gmail connector not configured");
+    return;
+  }
+  try {
+    const res = await fetch(
+      "https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/me/messages/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${lovableKey}`,
+          "X-Connection-Api-Key": gmailKey,
+        },
+        body: JSON.stringify({ raw: encodeRawEmail(to, subject, body) }),
+      },
+    );
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      console.warn("Gmail send failed:", res.status, txt);
+    }
+  } catch (e) {
+    console.warn("Gmail network error:", e);
+  }
+}
+
+
 async function getBuyerInfo(userId: string, fallbackEmail?: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: profile } = await supabaseAdmin
@@ -75,8 +123,14 @@ export const recordPurchase = createServerFn({ method: "POST" })
     await broadcastToAdmins(
       `🛒 <b>New purchase</b>\n<b>${data.item_name}</b>${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\n<b>Buyer</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
     );
+    await sendBuyerEmail(
+      buyer.email,
+      `Your purchase: ${data.item_name}`,
+      `Hi ${buyer.name},\n\nThanks for your purchase on GeoSafe AI.\n\nItem: ${data.item_name}${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\nWe'll be in touch with next steps.\n\n— GeoSafe AI`,
+    );
     return { purchase: row, buyerEmail: buyer.email };
   });
+
 
 export const bookAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -94,6 +148,11 @@ export const bookAppointment = createServerFn({ method: "POST" })
     const time = data.appointment_time ? ` at ${data.appointment_time}` : "";
     await broadcastToAdmins(
       `📅 <b>New appointment</b>\n<b>${data.service_name}</b>\nProvider: ${data.provider_name}\nDate: ${data.appointment_date}${time}\nCategory: ${data.category}\n\n<b>Booked by</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
+    );
+    await sendBuyerEmail(
+      buyer.email,
+      `Appointment confirmed: ${data.service_name}`,
+      `Hi ${buyer.name},\n\nYour appointment is booked.\n\nService: ${data.service_name}\nProvider: ${data.provider_name}\nDate: ${data.appointment_date}${time}\nCategory: ${data.category}${data.contact_phone ? `\nContact: ${data.contact_phone}` : ""}${data.notes ? `\nNotes: ${data.notes}` : ""}\n\n— GeoSafe AI`,
     );
     return { appointment: row, buyerEmail: buyer.email };
   });
