@@ -98,5 +98,15 @@ export const sendTestPing = createServerFn({ method: "POST" })
     const chatId = await getChatId(context.userId);
     if (!chatId) throw new Error("Add your Telegram chat ID in your profile first.");
     const res = await sendTelegram(chatId, "✅ GeoSafe AI connected. You'll receive purchase and appointment notifications here.");
-    return { ok: res.ok ?? false };
+    if (!res.ok) {
+      const desc = (res as { description?: string }).description ?? "Unknown Telegram error";
+      // Common case: user hasn't started a chat with the bot yet
+      if (/chat not found|bot can't initiate|blocked|Forbidden/i.test(desc)) {
+        throw new Error(
+          `Telegram refused the message: "${desc}". Open Telegram, search for your bot, and tap START (send /start). Then try again.`,
+        );
+      }
+      throw new Error(`Telegram error: ${desc}`);
+    }
+    return { ok: true };
   });
