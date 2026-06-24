@@ -21,6 +21,7 @@ import {
 import { formatDistanceToNow } from "@/lib/format";
 import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
 import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Send, Sparkles, Trash2 } from "lucide-react";
+import { AuthorBadge } from "@/components/safeground/author-badge";
 import { toast } from "sonner";
 
 type CategoryKey = "earthquakes" | "buildings" | "wells" | "reports" | "soil";
