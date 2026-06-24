@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { MapView, type MapMarker } from "@/components/safeground/map-view";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchRecentEarthquakes, type UsgsFeed } from "@/lib/usgs";
 import { useAuth } from "@/hooks/use-auth";
 import { useRole } from "@/hooks/use-role";
+import { generateBrief } from "@/lib/ai.functions";
 import {
   assessRisk,
   HAZARD_LABELS,
@@ -18,15 +20,20 @@ import {
 } from "@/lib/safeground";
 import { formatDistanceToNow } from "@/lib/format";
 import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
-import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, Mountain, Plus, Trash2 } from "lucide-react";
+import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Send, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+
+type CategoryKey = "earthquakes" | "buildings" | "wells" | "reports" | "soil";
+const CATS: CategoryKey[] = ["earthquakes", "buildings", "wells", "reports", "soil"];
 
 export const Route = createFileRoute("/_authenticated/map")({
   head: () => ({ meta: [{ title: "Map — GeoSafe AI" }] }),
+  validateSearch: (s: Record<string, unknown>): { cat?: CategoryKey } => {
+    const c = s.cat;
+    return { cat: typeof c === "string" && (CATS as string[]).includes(c) ? (c as CategoryKey) : undefined };
+  },
   component: MapHub,
 });
-
-type CategoryKey = "earthquakes" | "buildings" | "wells" | "reports" | "soil";
 
 const CATEGORIES: { key: CategoryKey; label: string; icon: React.ComponentType<{ className?: string }>; color: string }[] = [
   { key: "earthquakes", label: "Earthquakes", icon: Activity, color: "var(--color-risk-very-high)" },
@@ -37,7 +44,10 @@ const CATEGORIES: { key: CategoryKey; label: string; icon: React.ComponentType<{
 ];
 
 function MapHub() {
-  const [category, setCategory] = useState<CategoryKey>("earthquakes");
+  const { cat } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const category: CategoryKey = cat ?? "earthquakes";
+  const setCategory = (k: CategoryKey) => navigate({ search: { cat: k }, replace: true });
 
   return (
     <AppShell>
@@ -68,30 +78,29 @@ function MapHub() {
           })}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-5">
-          {category === "earthquakes" && <EarthquakesPanel />}
-          {category === "buildings" && <BuildingsPanel />}
-          {category === "wells" && <WellsPanel />}
-          {category === "reports" && <ReportsPanel />}
-          {category === "soil" && <SoilPanel />}
-        </div>
+        {category === "earthquakes" && <EarthquakesPanel />}
+        {category === "buildings" && <BuildingsPanel />}
+        {category === "wells" && <WellsPanel />}
+        {category === "reports" && <ReportsPanel />}
+        {category === "soil" && <SoilPanel />}
       </div>
     </AppShell>
   );
 }
 
-function SplitLayout({ markers, children }: { markers: MapMarker[]; children: React.ReactNode }) {
+/** Stack layout: form/info above, map below. */
+function StackLayout({ markers, children }: { markers: MapMarker[]; children: React.ReactNode }) {
   const center: [number, number] = useMemo(() => {
     const f = markers[0];
     return f ? [f.lat, f.lng] : [20, 0];
   }, [markers]);
   return (
-    <>
-      <div className="lg:col-span-3 card-soft p-2">
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">{children}</div>
+      <div className="card-soft p-2">
         <MapView markers={markers} center={center} zoom={markers.length ? 4 : 2} height={520} />
       </div>
-      <div className="lg:col-span-2 space-y-4">{children}</div>
-    </>
+    </div>
   );
 }
 
@@ -105,6 +114,21 @@ function PanelHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: 
       </div>
     </div>
   );
+}
+
+/** Subscribe to realtime changes on a table and invalidate a query key. */
+function useRealtime(table: string, queryKey: unknown[]) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const ch = supabase
+      .channel(`rt-${table}`)
+      .on("postgres_changes", { event: "*", schema: "public", table }, () => {
+        qc.invalidateQueries({ queryKey });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [table]);
 }
 
 /* ------------------------------ EARTHQUAKES ------------------------------ */
@@ -130,7 +154,7 @@ function EarthquakesPanel() {
   }));
 
   return (
-    <SplitLayout markers={markers}>
+    <StackLayout markers={markers}>
       <div className="card-soft p-5">
         <PanelHeader icon={<Activity className="h-5 w-5" />} title="Live earthquakes" subtitle="Real-time USGS feed (read-only)." />
         <div className="mt-4 flex flex-wrap gap-1.5">
@@ -157,7 +181,7 @@ function EarthquakesPanel() {
           {quakes.length === 0 && !isLoading && <li className="p-6 text-center text-sm text-muted-foreground">No earthquakes in this feed.</li>}
         </ul>
       </div>
-    </SplitLayout>
+    </StackLayout>
   );
 }
 
@@ -168,25 +192,27 @@ const MATERIALS: BuildingMaterial[] = ["reinforced-concrete", "masonry", "wood",
 function BuildingsPanel() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  useRealtime("buildings", ["buildings"]);
   const q = useQuery({
     queryKey: ["buildings"],
     queryFn: async () => (await supabase.from("buildings").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
-  const [lastRisk, setLastRisk] = useState<{ name: string; score: number; category: string; explanation: string } | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = items.find((b) => b.id === selectedId) ?? null;
 
   const create = useMutation({
     mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null }) => {
       const r = assessRisk({ yearBuilt: p.year_built, floors: p.floors, material: p.material });
-      const { error } = await supabase.from("buildings").insert({ user_id: user!.id, ...p, risk_score: r.score });
+      const { data, error } = await supabase.from("buildings").insert({ user_id: user!.id, ...p, risk_score: r.score }).select("id").single();
       if (error) throw error;
-      return { ...r, name: p.name };
+      return { id: data!.id as string };
     },
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ["buildings"] });
       qc.invalidateQueries({ queryKey: ["trust-badge"] });
-      setLastRisk({ name: r.name, score: r.score, category: r.category, explanation: r.explanation });
-      toast.success("Building saved — risk report generated");
+      setSelectedId(r.id);
+      toast.success("Building saved");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
@@ -201,37 +227,30 @@ function BuildingsPanel() {
     const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
     return [{
       id: `b-${b.id}`, lat: b.latitude, lng: b.longitude, color: riskCategoryColor(r.category), title: b.name,
-      popupHtml: `<strong>${esc(b.name)}</strong><br/><span style="color:#666">${esc(b.address)}</span><br/>${r.category} (${r.score}/100)`,
+      popupHtml: `<strong>${esc(b.name)}</strong><br/><span style="color:#666">${esc(b.address)}</span><br/>${r.category} (${r.score}/100) · ${MATERIAL_LABELS[b.material as BuildingMaterial]}`,
     }];
   });
 
   return (
-    <SplitLayout markers={markers}>
+    <StackLayout markers={markers}>
       <div className="card-soft p-5">
         <PanelHeader icon={<Building2 className="h-5 w-5" />} title="Add a building" subtitle="Submit details to generate a risk report." />
         <BuildingForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
       </div>
-      {lastRisk && (
-        <div className="card-soft p-5 border-l-4" style={{ borderLeftColor: riskCategoryColor(lastRisk.category as "Low" | "Moderate" | "High" | "Very High") }}>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Latest report</div>
-          <div className="mt-1 font-display text-lg font-semibold">{lastRisk.name}</div>
-          <div className="mt-2"><RiskPill category={lastRisk.category as "Low" | "Moderate" | "High" | "Very High"} score={lastRisk.score} /></div>
-          <p className="mt-2 text-sm text-muted-foreground">{lastRisk.explanation}</p>
-        </div>
-      )}
-      <div className="card-soft p-2 max-h-[300px] overflow-auto">
+      <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((b) => {
             const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
+            const active = b.id === selectedId;
             return (
-              <li key={b.id} className="p-3 flex items-center gap-3">
+              <li key={b.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(b.id)}>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{b.name}</div>
                   <div className="text-[11px] text-muted-foreground truncate">{b.address}</div>
                 </div>
                 <RiskPill category={r.category} score={r.score} />
                 {b.user_id === user?.id && (
-                  <button onClick={() => remove.mutate(b.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
+                  <button onClick={(e) => { e.stopPropagation(); remove.mutate(b.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 )}
@@ -241,7 +260,38 @@ function BuildingsPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No buildings yet.</li>}
         </ul>
       </div>
-    </SplitLayout>
+      {selected && (
+        <div className="md:col-span-2">
+          <BuildingDetail item={selected} />
+        </div>
+      )}
+    </StackLayout>
+  );
+}
+
+function BuildingDetail({ item }: { item: any }) {
+  const qc = useQueryClient();
+  const gen = useServerFn(generateBrief);
+  const r = assessRisk({ yearBuilt: item.year_built, floors: item.floors, material: item.material as BuildingMaterial });
+  const ai = useMutation({
+    mutationFn: async () => gen({ data: { kind: "building", id: item.id, name: item.name, address: item.address, year_built: item.year_built, floors: item.floors, material: MATERIAL_LABELS[item.material as BuildingMaterial], risk_score: r.score, risk_category: r.category } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["buildings"] }),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "AI failed"),
+  });
+  return (
+    <div className="card-soft p-5 space-y-4 border-l-4" style={{ borderLeftColor: riskCategoryColor(r.category) }}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Building report</div>
+          <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
+          <div className="text-xs text-muted-foreground">{item.address} · {MATERIAL_LABELS[item.material as BuildingMaterial]} · {item.floors} floors · built {item.year_built}</div>
+        </div>
+        <RiskPill category={r.category} score={r.score} />
+      </div>
+      <p className="text-sm text-muted-foreground">{r.explanation}</p>
+      <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
+      <Comments targetType="building" targetId={item.id} />
+    </div>
   );
 }
 
@@ -301,11 +351,14 @@ const WELL_TYPES = ["Domestic", "Irrigation", "Monitoring", "Industrial"];
 function WellsPanel() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  useRealtime("wells", ["wells"]);
   const q = useQuery({
     queryKey: ["wells"],
     queryFn: async () => (await supabase.from("wells").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = items.find((w) => w.id === selectedId) ?? null;
 
   const create = useMutation({
     mutationFn: async (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number }) => {
@@ -313,8 +366,9 @@ function WellsPanel() {
       const { data, error } = await supabase.from("wells").insert({ user_id: user!.id, ...p, measured_at: now }).select("id").single();
       if (error) throw error;
       await supabase.from("well_readings").insert({ well_id: data!.id, user_id: user!.id, level_m: p.current_level_m, measured_at: now });
+      return { id: data!.id as string };
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); toast.success("Well registered"); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Well registered"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
   const remove = useMutation({
@@ -328,30 +382,59 @@ function WellsPanel() {
   }));
 
   return (
-    <SplitLayout markers={markers}>
+    <StackLayout markers={markers}>
       <div className="card-soft p-5">
         <PanelHeader icon={<Droplets className="h-5 w-5" />} title="Register a well" subtitle="Track groundwater levels in your area." />
         <WellForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
       </div>
-      <div className="card-soft p-2 max-h-[300px] overflow-auto">
+      <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((w) => (
-            <li key={w.id} className="p-3 flex items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{w.name}</div>
-                <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
-              </div>
-              {w.user_id === user?.id && (
-                <button onClick={() => remove.mutate(w.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </li>
-          ))}
+          {items.map((w) => {
+            const active = w.id === selectedId;
+            return (
+              <li key={w.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(w.id)}>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{w.name}</div>
+                  <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
+                </div>
+                {w.user_id === user?.id && (
+                  <button onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </li>
+            );
+          })}
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No wells yet.</li>}
         </ul>
       </div>
-    </SplitLayout>
+      {selected && (
+        <div className="md:col-span-2">
+          <WellDetail item={selected} />
+        </div>
+      )}
+    </StackLayout>
+  );
+}
+
+function WellDetail({ item }: { item: any }) {
+  const qc = useQueryClient();
+  const gen = useServerFn(generateBrief);
+  const ai = useMutation({
+    mutationFn: async () => gen({ data: { kind: "well", id: item.id, name: item.name, well_type: item.well_type, total_depth_m: Number(item.total_depth_m ?? 0), current_level_m: Number(item.current_level_m ?? 0) } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["wells"] }),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "AI failed"),
+  });
+  return (
+    <div className="card-soft p-5 space-y-4 border-l-4" style={{ borderLeftColor: "oklch(0.6 0.12 230)" }}>
+      <div>
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Well report</div>
+        <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
+        <div className="text-xs text-muted-foreground">{item.well_type} · depth {item.total_depth_m ?? "—"} m · level {item.current_level_m ?? "—"} m</div>
+      </div>
+      <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
+      <Comments targetType="well" targetId={item.id} />
+    </div>
   );
 }
 
@@ -393,6 +476,7 @@ const HAZARD_TYPES: HazardType[] = ["earthquake-damage", "flooding", "landslide"
 function ReportsPanel() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  useRealtime("hazard_reports", ["hazard_reports"]);
   const q = useQuery({
     queryKey: ["hazard_reports"],
     queryFn: async () => (await supabase.from("hazard_reports").select("*").order("created_at", { ascending: false })).data ?? [],
@@ -418,12 +502,12 @@ function ReportsPanel() {
   }));
 
   return (
-    <SplitLayout markers={markers}>
+    <StackLayout markers={markers}>
       <div className="card-soft p-5">
         <PanelHeader icon={<Megaphone className="h-5 w-5" />} title="Submit a hazard report" subtitle="Tell the community what you're seeing." />
         <ReportForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
       </div>
-      <div className="card-soft p-2 max-h-[300px] overflow-auto">
+      <div className="card-soft p-2 max-h-[400px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((r) => (
             <li key={r.id} className="p-3 flex items-start gap-3">
@@ -442,7 +526,7 @@ function ReportsPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No reports yet.</li>}
         </ul>
       </div>
-    </SplitLayout>
+    </StackLayout>
   );
 }
 
@@ -501,6 +585,7 @@ function SoilPanel() {
   const { user } = useAuth();
   const { isProfessional } = useRole();
   const qc = useQueryClient();
+  useRealtime("soil_data", ["soil_data"]);
   const q = useQuery({
     queryKey: ["soil_data"],
     queryFn: async () => (await supabase.from("soil_data").select("*").order("created_at", { ascending: false })).data ?? [],
@@ -526,7 +611,7 @@ function SoilPanel() {
   }));
 
   return (
-    <SplitLayout markers={markers}>
+    <StackLayout markers={markers}>
       <div className="card-soft p-5">
         <PanelHeader icon={<Mountain className="h-5 w-5" />} title="Soil data" subtitle="Submitted by professional contributors." />
         {isProfessional ? (
@@ -537,7 +622,7 @@ function SoilPanel() {
           </div>
         )}
       </div>
-      <div className="card-soft p-2 max-h-[300px] overflow-auto">
+      <div className="card-soft p-2 max-h-[400px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((s) => (
             <li key={s.id} className="p-3 flex items-center gap-3">
@@ -555,7 +640,7 @@ function SoilPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No soil data yet.</li>}
         </ul>
       </div>
-    </SplitLayout>
+    </StackLayout>
   );
 }
 
@@ -590,6 +675,87 @@ function SoilForm({ onSubmit, submitting }: { onSubmit: (p: { latitude: number; 
         </button>
       </div>
     </form>
+  );
+}
+
+/* ------------------------------ AI brief + Comments ------------------------------ */
+
+function AiBriefBlock({ brief, pending, onGenerate }: { brief: string | null | undefined; pending: boolean; onGenerate: () => void }) {
+  return (
+    <div className="rounded-md border border-border bg-secondary/30 p-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5 text-primary" /> AI brief
+        </div>
+        <button onClick={onGenerate} disabled={pending}
+          className="rounded-md border border-input bg-background px-2.5 py-1 text-xs hover:bg-secondary disabled:opacity-60 inline-flex items-center gap-1">
+          <Sparkles className="h-3 w-3" /> {pending ? "Generating…" : brief ? "Regenerate" : "Generate"}
+        </button>
+      </div>
+      {brief ? (
+        <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">{brief}</p>
+      ) : (
+        <p className="mt-2 text-xs text-muted-foreground">No AI brief yet. Generate one to summarise this record in plain language.</p>
+      )}
+    </div>
+  );
+}
+
+function Comments({ targetType, targetId }: { targetType: "building" | "well"; targetId: string }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const key = ["comments", targetType, targetId];
+  useRealtime("comments", key);
+  const q = useQuery({
+    queryKey: key,
+    queryFn: async () =>
+      (await supabase.from("comments").select("*").eq("target_type", targetType).eq("target_id", targetId).order("created_at", { ascending: false })).data ?? [],
+  });
+  const items = q.data ?? [];
+  const [body, setBody] = useState("");
+  const post = useMutation({
+    mutationFn: async () => {
+      const text = body.trim().slice(0, 1000);
+      if (!text) throw new Error("Empty comment");
+      const { error } = await supabase.from("comments").insert({ user_id: user!.id, target_type: targetType, target_id: targetId, body: text });
+      if (error) throw error;
+    },
+    onSuccess: () => { setBody(""); qc.invalidateQueries({ queryKey: key }); },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
+  });
+  const remove = useMutation({
+    mutationFn: async (id: string) => { const { error } = await supabase.from("comments").delete().eq("id", id); if (error) throw error; },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+  return (
+    <div className="rounded-md border border-border bg-background p-3">
+      <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <MessageSquare className="h-3.5 w-3.5" /> Community comments ({items.length})
+      </div>
+      <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); post.mutate(); }}>
+        <input className={inputClass()} placeholder="Add a comment…" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} />
+        <button type="submit" disabled={post.isPending || !body.trim()}
+          className="rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center gap-1">
+          <Send className="h-3.5 w-3.5" />
+        </button>
+      </form>
+      <ul className="mt-3 space-y-2 max-h-56 overflow-auto">
+        {items.map((c) => (
+          <li key={c.id} className="rounded-md border border-border bg-secondary/30 p-2">
+            <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+              <span>{formatDistanceToNow(new Date(c.created_at).getTime())} ago</span>
+              {c.user_id === user?.id && (
+                <button onClick={() => remove.mutate(c.id)} className="hover:text-[var(--color-risk-very-high)]">
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+            <div className="mt-1 text-sm whitespace-pre-line">{c.body}</div>
+          </li>
+        ))}
+        {items.length === 0 && <li className="text-xs text-muted-foreground">No comments yet. Be the first.</li>}
+      </ul>
+    </div>
   );
 }
 

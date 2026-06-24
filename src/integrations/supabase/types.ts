@@ -17,6 +17,7 @@ export type Database = {
       buildings: {
         Row: {
           address: string
+          ai_brief: string | null
           created_at: string
           floors: number
           id: string
@@ -30,6 +31,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          ai_brief?: string | null
           created_at?: string
           floors: number
           id?: string
@@ -43,6 +45,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          ai_brief?: string | null
           created_at?: string
           floors?: number
           id?: string
@@ -53,6 +56,33 @@ export type Database = {
           risk_score?: number | null
           user_id?: string
           year_built?: number
+        }
+        Relationships: []
+      }
+      comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          target_id?: string
+          target_type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -204,6 +234,7 @@ export type Database = {
       }
       wells: {
         Row: {
+          ai_brief: string | null
           created_at: string
           current_level_m: number | null
           id: string
@@ -217,6 +248,7 @@ export type Database = {
           well_type: string
         }
         Insert: {
+          ai_brief?: string | null
           created_at?: string
           current_level_m?: number | null
           id?: string
@@ -230,6 +262,7 @@ export type Database = {
           well_type: string
         }
         Update: {
+          ai_brief?: string | null
           created_at?: string
           current_level_m?: number | null
           id?: string

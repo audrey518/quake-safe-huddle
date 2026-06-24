@@ -166,9 +166,10 @@ function Dashboard() {
                 <h2 className="text-lg font-semibold font-display">Quick actions</h2>
               </div>
               <div className="mt-4 space-y-3">
-                <ActionCard to="/map" icon={<Map className="h-5 w-5" />} title="Open Map" description="Browse data and contribute by category." />
-                <ActionCard to="/map" icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace and get a risk report." />
-                <ActionCard to="/map" icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
+                <ActionCard to="/map" search={{ cat: "earthquakes" }} icon={<Map className="h-5 w-5" />} title="Open Map" description="Browse data and contribute by category." />
+                <ActionCard to="/map" search={{ cat: "buildings" }} icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace and get a risk report." />
+                <ActionCard to="/map" search={{ cat: "wells" }} icon={<Droplets className="h-5 w-5" />} title="Register Well" description="Track groundwater levels nearby." />
+                <ActionCard to="/map" search={{ cat: "reports" }} icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
                 <ActionCard to="/profile" icon={<UserCircle2 className="h-5 w-5" />} title="Your profile" description="Trust badge, history and settings." />
               </div>
             </div>
@@ -206,9 +207,9 @@ function StatCard({ icon, label, value, hint }: { icon: React.ReactNode; label: 
   );
 }
 
-function ActionCard({ to, icon, title, description }: { to: string; icon: React.ReactNode; title: string; description: string }) {
+function ActionCard({ to, search, icon, title, description }: { to: string; search?: Record<string, string>; icon: React.ReactNode; title: string; description: string }) {
   return (
-    <Link to={to} className="group flex items-start gap-4 rounded-lg border border-border bg-background p-4 transition-colors hover:bg-secondary/60">
+    <Link to={to} search={search as never} className="group flex items-start gap-4 rounded-lg border border-border bg-background p-4 transition-colors hover:bg-secondary/60">
       <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{icon}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 font-medium">{title}<ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" /></div>
