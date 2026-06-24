@@ -8,7 +8,7 @@ import { GeoSafeLogo } from "@/components/geosafe-logo";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/map", label: "Map", icon: Map },
+  { to: "/map", label: "InfoHub\n", icon: Map },
   { to: "/profile", label: "Profile", icon: UserCircle2 },
 ] as const;
 

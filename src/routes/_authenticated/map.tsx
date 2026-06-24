@@ -27,7 +27,7 @@ type CategoryKey = "earthquakes" | "buildings" | "wells" | "reports" | "soil";
 const CATS: CategoryKey[] = ["earthquakes", "buildings", "wells", "reports", "soil"];
 
 export const Route = createFileRoute("/_authenticated/map")({
-  head: () => ({ meta: [{ title: "Map — GeoSafe AI" }] }),
+  head: () => ({ meta: [{ title: "InfoHub — GeoSafe AI" }] }),
   validateSearch: (s: Record<string, unknown>): { cat?: CategoryKey } => {
     const c = s.cat;
     return { cat: typeof c === "string" && (CATS as string[]).includes(c) ? (c as CategoryKey) : undefined };
@@ -54,7 +54,7 @@ function MapHub() {
       <div className="container-app py-6">
         <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Map</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">InfoHub</h1>
             <p className="text-sm text-muted-foreground mt-1">Browse one category at a time and contribute new data.</p>
           </div>
         </div>

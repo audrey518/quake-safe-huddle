@@ -107,7 +107,7 @@ function Dashboard() {
                   <h2 className="text-lg font-semibold font-display">Latest earthquakes</h2>
                 </div>
                 <Link to="/map" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
-                  Open map <ArrowRight className="h-4 w-4" />
+                  Open InfoHub <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
               <ul className="mt-4 divide-y divide-border">
@@ -135,7 +135,7 @@ function Dashboard() {
                   <h2 className="text-lg font-semibold font-display">Latest hazard reports</h2>
                 </div>
                 <Link to="/map" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
-                  Open map <ArrowRight className="h-4 w-4" />
+                  Open InfoHub <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
               {reports.length === 0 ? (
@@ -166,7 +166,7 @@ function Dashboard() {
                 <h2 className="text-lg font-semibold font-display">Quick actions</h2>
               </div>
               <div className="mt-4 space-y-3">
-                <ActionCard to="/map" search={{ cat: "earthquakes" }} icon={<Map className="h-5 w-5" />} title="Open Map" description="Browse data and contribute by category." />
+                <ActionCard to="/map" search={{ cat: "earthquakes" }} icon={<Map className="h-5 w-5" />} title="Open InfoHub" description="Browse data and contribute by category." />
                 <ActionCard to="/map" search={{ cat: "buildings" }} icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace and get a risk report." />
                 <ActionCard to="/map" search={{ cat: "wells" }} icon={<Droplets className="h-5 w-5" />} title="Register Well" description="Track groundwater levels nearby." />
                 <ActionCard to="/map" search={{ cat: "reports" }} icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
@@ -181,7 +181,7 @@ function Dashboard() {
                 <div className="mt-3"><RiskPill category={topRisk.r.category} score={topRisk.r.score} /></div>
                 <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{topRisk.r.explanation}</p>
                 <Link to="/map" className="mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                  Open map <ArrowRight className="h-4 w-4" />
+                  Open InfoHub <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             )}
