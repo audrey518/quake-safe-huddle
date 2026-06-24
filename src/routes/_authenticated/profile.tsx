@@ -35,19 +35,30 @@ function ProfilePage() {
   });
 
   const [displayName, setDisplayName] = useState("");
+  const [telegramChatId, setTelegramChatId] = useState("");
   useEffect(() => {
     if (profileQ.data?.display_name) setDisplayName(profileQ.data.display_name);
-  }, [profileQ.data?.display_name]);
+    if (profileQ.data?.telegram_chat_id) setTelegramChatId(profileQ.data.telegram_chat_id);
+  }, [profileQ.data?.display_name, profileQ.data?.telegram_chat_id]);
 
-  const saveName = useMutation({
-    mutationFn: async (name: string) => {
-      const { error } = await supabase.from("profiles").update({ display_name: name }).eq("id", user!.id);
+  const saveProfile = useMutation({
+    mutationFn: async (input: { name: string; chatId: string }) => {
+      const { error } = await supabase.from("profiles")
+        .update({ display_name: input.name, telegram_chat_id: input.chatId || null })
+        .eq("id", user!.id);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["profile", user?.id] });
       toast.success("Profile updated");
     },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
+  });
+
+  const pingFn = useServerFn(sendTestPing);
+  const ping = useMutation({
+    mutationFn: () => pingFn({ data: undefined as never }),
+    onSuccess: () => toast.success("Test message sent to Telegram"),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
