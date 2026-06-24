@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
-import { findPost, LEARN_CATEGORIES } from "@/lib/learn-content";
+import { findPost, LEARN_CATEGORIES, type LearnCategory, type LearnPost } from "@/lib/learn-content";
 import { ArrowLeft, CheckCircle2, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/learn/$category/$post")({
