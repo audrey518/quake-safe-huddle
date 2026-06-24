@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const { user } = useAuth();
-  const { role, isProfessional } = useRole();
+  const { isProfessional } = useRole();
   const badge = useTrustBadge(user?.id);
   const qc = useQueryClient();
   const router = useRouter();
@@ -78,7 +78,7 @@ function ProfilePage() {
               >
                 <ShieldCheck className="h-3.5 w-3.5" /> {b?.tier ?? "—"} contributor
               </span>
-              <span className="chip">{isProfessional ? "Professional" : "Local"}{role ? "" : ""}</span>
+              <span className="chip">{isProfessional ? "Professional" : "Local"}</span>
             </div>
           </div>
         </header>
