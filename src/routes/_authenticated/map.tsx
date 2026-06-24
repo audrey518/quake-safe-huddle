@@ -435,6 +435,7 @@ function WellDetail({ item }: { item: any }) {
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Well report</div>
         <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
         <div className="text-xs text-muted-foreground">{item.well_type} · depth {item.total_depth_m ?? "—"} m · level {item.current_level_m ?? "—"} m</div>
+        <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
       </div>
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="well" targetId={item.id} />
