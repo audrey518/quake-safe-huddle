@@ -287,6 +287,7 @@ function BuildingDetail({ item }: { item: any }) {
           <div className="text-xs uppercase tracking-wider text-muted-foreground">Building report</div>
           <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
           <div className="text-xs text-muted-foreground">{item.address} · {MATERIAL_LABELS[item.material as BuildingMaterial]} · {item.floors} floors · built {item.year_built}</div>
+          <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
         </div>
         <RiskPill category={r.category} score={r.score} />
       </div>
