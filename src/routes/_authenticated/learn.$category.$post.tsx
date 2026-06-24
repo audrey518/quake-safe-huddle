@@ -45,8 +45,8 @@ export const Route = createFileRoute("/_authenticated/learn/$category/$post")({
 });
 
 function PostPage() {
-  const { category, post } = Route.useLoaderData() as ReturnType<typeof findPost> & {};
-  const related = category.posts.filter((p: typeof post) => p.slug !== post.slug);
+  const { category, post } = Route.useLoaderData() as { category: LearnCategory; post: LearnPost };
+  const related = category.posts.filter((p) => p.slug !== post.slug);
   const otherCategories = LEARN_CATEGORIES.filter((c) => c.slug !== category.slug);
 
   return (
