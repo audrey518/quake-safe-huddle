@@ -1,29 +1,23 @@
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { Activity, Building2, Droplets, Home, LogOut, Map, Megaphone, Mountain, ShieldAlert } from "lucide-react";
+import { Home, LogOut, Map, ShieldCheck, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { useRole } from "@/hooks/use-role";
 import { useAuth } from "@/hooks/use-auth";
+import { useTrustBadge } from "@/hooks/use-trust-badge";
 import { GeoSafeLogo } from "@/components/geosafe-logo";
 
-const BASE_NAV = [
+const NAV = [
   { to: "/", label: "Home", icon: Home },
   { to: "/map", label: "Map", icon: Map },
-  { to: "/earthquakes", label: "Quakes", icon: Activity },
-  { to: "/buildings", label: "Buildings", icon: Building2 },
-  { to: "/wells", label: "Wells", icon: Droplets },
-  { to: "/reports", label: "Reports", icon: Megaphone },
-  { to: "/soil", label: "Soil", icon: Mountain },
-  { to: "/risk", label: "Risk", icon: ShieldAlert },
+  { to: "/profile", label: "Profile", icon: UserCircle2 },
 ] as const;
 
 export function AppShell({ children }: { children?: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const router = useRouter();
   const { user } = useAuth();
-  const { isProfessional } = useRole();
-
-  const NAV = BASE_NAV; // soil view is open to all; submission gated inside
+  const badge = useTrustBadge(user?.id);
+  const accountName = user?.email?.split("@")[0] ?? "Account";
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -43,7 +37,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
               </div>
             </div>
           </Link>
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
             {NAV.map((item) => {
               const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
               return (
@@ -64,9 +58,22 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
           </nav>
           <div className="flex items-center gap-2">
             {user && (
-              <span className="hidden md:inline-flex chip">
-                {isProfessional ? "Professional" : "Local"}
-              </span>
+              <Link
+                to="/profile"
+                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border bg-background px-2 py-1 text-xs hover:bg-secondary"
+                title={badge.data ? `${badge.data.tier} — ${badge.data.contributions} contributions` : "Profile"}
+              >
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                  style={{
+                    background: `color-mix(in oklab, ${badge.data?.color ?? "var(--color-muted-foreground)"} 18%, transparent)`,
+                    color: badge.data?.color ?? "var(--color-muted-foreground)",
+                  }}
+                >
+                  <ShieldCheck className="h-3 w-3" /> {badge.data?.tier ?? "—"}
+                </span>
+                <span className="text-foreground/80 max-w-[120px] truncate">{accountName}</span>
+              </Link>
             )}
             {user && (
               <button
@@ -82,10 +89,10 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 pb-20 lg:pb-0">{children ?? <Outlet />}</main>
+      <main className="flex-1 pb-20 md:pb-0">{children ?? <Outlet />}</main>
 
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
-        <div className="grid grid-cols-8">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
+        <div className="grid grid-cols-3">
           {NAV.map((item) => {
             const Icon = item.icon;
             const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
@@ -106,7 +113,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </div>
       </nav>
 
-      <footer className="hidden lg:block border-t border-border bg-background">
+      <footer className="hidden md:block border-t border-border bg-background">
         <div className="container-app py-6 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
           <span>GeoSafe AI MVP — community awareness, not engineering advice.</span>
           <span>
