@@ -16,6 +16,7 @@ import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedLearnIndexRouteImport } from './routes/_authenticated/learn.index'
+import { Route as ApiPublicHooksAppointmentRemindersRouteImport } from './routes/api/public/hooks/appointment-reminders'
 import { Route as AuthenticatedLearnCategoryPostRouteImport } from './routes/_authenticated/learn.$category.$post'
 
 const AuthRoute = AuthRouteImport.update({
@@ -52,6 +53,12 @@ const AuthenticatedLearnIndexRoute = AuthenticatedLearnIndexRouteImport.update({
   path: '/learn/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksAppointmentRemindersRoute =
+  ApiPublicHooksAppointmentRemindersRouteImport.update({
+    id: '/api/public/hooks/appointment-reminders',
+    path: '/api/public/hooks/appointment-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedLearnCategoryPostRoute =
   AuthenticatedLearnCategoryPostRouteImport.update({
     id: '/learn/$category/$post',
@@ -67,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof AuthenticatedServicesRoute
   '/learn/': typeof AuthenticatedLearnIndexRoute
   '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
+  '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -76,6 +84,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/learn': typeof AuthenticatedLearnIndexRoute
   '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
+  '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,6 +96,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/learn/': typeof AuthenticatedLearnIndexRoute
   '/_authenticated/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
+  '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,8 +108,17 @@ export interface FileRouteTypes {
     | '/services'
     | '/learn/'
     | '/learn/$category/$post'
+    | '/api/public/hooks/appointment-reminders'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/map' | '/profile' | '/services' | '/' | '/learn' | '/learn/$category/$post'
+  to:
+    | '/auth'
+    | '/map'
+    | '/profile'
+    | '/services'
+    | '/'
+    | '/learn'
+    | '/learn/$category/$post'
+    | '/api/public/hooks/appointment-reminders'
   id:
     | '__root__'
     | '/_authenticated'
@@ -110,11 +129,13 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/learn/'
     | '/_authenticated/learn/$category/$post'
+    | '/api/public/hooks/appointment-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHooksAppointmentRemindersRoute: typeof ApiPublicHooksAppointmentRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -168,6 +189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLearnIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/appointment-reminders': {
+      id: '/api/public/hooks/appointment-reminders'
+      path: '/api/public/hooks/appointment-reminders'
+      fullPath: '/api/public/hooks/appointment-reminders'
+      preLoaderRoute: typeof ApiPublicHooksAppointmentRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/learn/$category/$post': {
       id: '/_authenticated/learn/$category/$post'
       path: '/learn/$category/$post'
@@ -202,6 +230,8 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHooksAppointmentRemindersRoute:
+    ApiPublicHooksAppointmentRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
