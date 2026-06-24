@@ -166,9 +166,10 @@ function Dashboard() {
                 <h2 className="text-lg font-semibold font-display">Quick actions</h2>
               </div>
               <div className="mt-4 space-y-3">
-                <ActionCard to="/map" icon={<Map className="h-5 w-5" />} title="Open Map" description="Browse data and contribute by category." />
-                <ActionCard to="/map" icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace and get a risk report." />
-                <ActionCard to="/map" icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
+                <ActionCard to="/map" search={{ cat: "earthquakes" }} icon={<Map className="h-5 w-5" />} title="Open Map" description="Browse data and contribute by category." />
+                <ActionCard to="/map" search={{ cat: "buildings" }} icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace and get a risk report." />
+                <ActionCard to="/map" search={{ cat: "wells" }} icon={<Droplets className="h-5 w-5" />} title="Register Well" description="Track groundwater levels nearby." />
+                <ActionCard to="/map" search={{ cat: "reports" }} icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
                 <ActionCard to="/profile" icon={<UserCircle2 className="h-5 w-5" />} title="Your profile" description="Trust badge, history and settings." />
               </div>
             </div>
