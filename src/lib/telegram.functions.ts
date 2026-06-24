@@ -23,15 +23,20 @@ async function sendTelegram(chatId: string, text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
     console.warn("TELEGRAM_BOT_TOKEN not set");
-    return { ok: false, reason: "no-token" };
+    return { ok: false, description: "TELEGRAM_BOT_TOKEN not configured on the server." };
   }
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-  });
-  const json = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string };
-  if (!json.ok) console.warn("Telegram send failed:", json.description);
+  let res: Response;
+  try {
+    res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    });
+  } catch (e) {
+    return { ok: false, description: `Network error contacting Telegram: ${e instanceof Error ? e.message : String(e)}` };
+  }
+  const json = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string; error_code?: number };
+  if (!json.ok) console.warn("Telegram send failed:", res.status, json);
   return json;
 }
 
@@ -93,5 +98,15 @@ export const sendTestPing = createServerFn({ method: "POST" })
     const chatId = await getChatId(context.userId);
     if (!chatId) throw new Error("Add your Telegram chat ID in your profile first.");
     const res = await sendTelegram(chatId, "✅ GeoSafe AI connected. You'll receive purchase and appointment notifications here.");
-    return { ok: res.ok ?? false };
+    if (!res.ok) {
+      const desc = (res as { description?: string }).description ?? "Unknown Telegram error";
+      // Common case: user hasn't started a chat with the bot yet
+      if (/chat not found|bot can't initiate|blocked|Forbidden/i.test(desc)) {
+        throw new Error(
+          `Telegram refused the message: "${desc}". Open Telegram, search for your bot, and tap START (send /start). Then try again.`,
+        );
+      }
+      throw new Error(`Telegram error: ${desc}`);
+    }
+    return { ok: true };
   });
