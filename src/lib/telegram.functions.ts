@@ -43,6 +43,54 @@ async function broadcastToAdmins(text: string) {
   await Promise.all(ADMIN_CHAT_IDS.map((id) => sendTelegram(id, text)));
 }
 
+const FROM_EMAIL = "levivalorant122@gmail.com";
+
+function encodeRawEmail(to: string, subject: string, body: string) {
+  const msg = [
+    `From: GeoSafe AI <${FROM_EMAIL}>`,
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset="UTF-8"',
+    '',
+    body,
+  ].join('\r\n');
+  // base64url
+  return Buffer.from(msg, 'utf-8').toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function sendBuyerEmail(to: string, subject: string, body: string) {
+  if (!to) return;
+  const lovableKey = process.env.LOVABLE_API_KEY;
+  const gmailKey = process.env.GOOGLE_MAIL_API_KEY;
+  if (!lovableKey || !gmailKey) {
+    console.warn("Gmail connector not configured");
+    return;
+  }
+  try {
+    const res = await fetch(
+      "https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/me/messages/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${lovableKey}`,
+          "X-Connection-Api-Key": gmailKey,
+        },
+        body: JSON.stringify({ raw: encodeRawEmail(to, subject, body) }),
+      },
+    );
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      console.warn("Gmail send failed:", res.status, txt);
+    }
+  } catch (e) {
+    console.warn("Gmail network error:", e);
+  }
+}
+
+
 async function getBuyerInfo(userId: string, fallbackEmail?: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: profile } = await supabaseAdmin
