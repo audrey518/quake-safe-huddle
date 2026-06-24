@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
+import { Route as AuthenticatedLearnIndexRouteImport } from './routes/_authenticated/learn.index'
+import { Route as AuthenticatedLearnCategoryPostRouteImport } from './routes/_authenticated/learn.$category.$post'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -39,18 +41,33 @@ const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
   path: '/map',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLearnIndexRoute = AuthenticatedLearnIndexRouteImport.update({
+  id: '/learn/',
+  path: '/learn/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLearnCategoryPostRoute =
+  AuthenticatedLearnCategoryPostRouteImport.update({
+    id: '/learn/$category/$post',
+    path: '/learn/$category/$post',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/map': typeof AuthenticatedMapRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/learn/': typeof AuthenticatedLearnIndexRoute
+  '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/map': typeof AuthenticatedMapRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/': typeof AuthenticatedIndexRoute
+  '/learn': typeof AuthenticatedLearnIndexRoute
+  '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +76,20 @@ export interface FileRoutesById {
   '/_authenticated/map': typeof AuthenticatedMapRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/learn/': typeof AuthenticatedLearnIndexRoute
+  '/_authenticated/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/map' | '/profile'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/map'
+    | '/profile'
+    | '/learn/'
+    | '/learn/$category/$post'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/map' | '/profile' | '/'
+  to: '/auth' | '/map' | '/profile' | '/' | '/learn' | '/learn/$category/$post'
   id:
     | '__root__'
     | '/_authenticated'
@@ -72,6 +97,8 @@ export interface FileRouteTypes {
     | '/_authenticated/map'
     | '/_authenticated/profile'
     | '/_authenticated/'
+    | '/_authenticated/learn/'
+    | '/_authenticated/learn/$category/$post'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,6 +143,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/learn/': {
+      id: '/_authenticated/learn/'
+      path: '/learn'
+      fullPath: '/learn/'
+      preLoaderRoute: typeof AuthenticatedLearnIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/learn/$category/$post': {
+      id: '/_authenticated/learn/$category/$post'
+      path: '/learn/$category/$post'
+      fullPath: '/learn/$category/$post'
+      preLoaderRoute: typeof AuthenticatedLearnCategoryPostRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -123,12 +164,16 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedLearnIndexRoute: typeof AuthenticatedLearnIndexRoute
+  AuthenticatedLearnCategoryPostRoute: typeof AuthenticatedLearnCategoryPostRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedLearnIndexRoute: AuthenticatedLearnIndexRoute,
+  AuthenticatedLearnCategoryPostRoute: AuthenticatedLearnCategoryPostRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
