@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string | null
+          category: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          provider_name: string
+          reminder_sent: boolean
+          service_name: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time?: string | null
+          category: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          provider_name: string
+          reminder_sent?: boolean
+          service_name: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string | null
+          category?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          provider_name?: string
+          reminder_sent?: boolean
+          service_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       buildings: {
         Row: {
           address: string
@@ -127,16 +169,52 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          telegram_chat_id: string | null
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
+          telegram_chat_id?: string | null
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
+          telegram_chat_id?: string | null
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          item_name: string
+          notes: string | null
+          price: number | null
+          provider_name: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          item_name: string
+          notes?: string | null
+          price?: number | null
+          provider_name: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_name?: string
+          notes?: string | null
+          price?: number | null
+          provider_name?: string
+          user_id?: string
         }
         Relationships: []
       }

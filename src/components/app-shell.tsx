@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { GraduationCap, Home, LogOut, Map, ShieldCheck, UserCircle2 } from "lucide-react";
+import { GraduationCap, Home, LogOut, Map, ShieldCheck, Store, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,6 +9,7 @@ import { GeoSafeLogo } from "@/components/geosafe-logo";
 const NAV = [
   { to: "/", label: "Home", icon: Home },
   { to: "/map", label: "InfoHub\n", icon: Map },
+  { to: "/services", label: "Services/Products", icon: Store },
   { to: "/learn", label: "Learn", icon: GraduationCap },
   { to: "/profile", label: "Profile", icon: UserCircle2 },
 ] as const;
@@ -93,7 +94,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <main className="flex-1 pb-20 md:pb-0">{children ?? <Outlet />}</main>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {NAV.map((item) => {
             const Icon = item.icon;
             const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
