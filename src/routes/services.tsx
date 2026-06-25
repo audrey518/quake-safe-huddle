@@ -256,7 +256,7 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{item.name}</div>
           <div className="text-xs text-muted-foreground">
-            Rs. {item.price}{item.unit ? ` / ${item.unit}` : ""}
+            MMK {Number(item.price).toLocaleString()}{item.unit ? ` / ${item.unit}` : ""}
             {item.appointment ? " · by appointment" : ` · ${item.stock > 0 ? `${item.stock} in stock` : "out of stock"}`}
           </div>
         </div>
