@@ -44,7 +44,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
             </div>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            {NAV.map((item) => {
+            {navItems.map((item) => {
               const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
               return (
                 <Link
