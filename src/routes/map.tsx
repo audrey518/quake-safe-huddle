@@ -418,9 +418,9 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
 }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [yearBuilt, setYearBuilt] = useState(2000);
-  const [floors, setFloors] = useState(2);
-  const [material, setMaterial] = useState<BuildingMaterial>("reinforced-concrete");
+  const [yearBuilt, setYearBuilt] = useState("");
+  const [floors, setFloors] = useState("");
+  const [material, setMaterial] = useState("");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   // local
