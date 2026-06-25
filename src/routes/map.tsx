@@ -62,7 +62,7 @@ function MapHub() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1 mb-4">
           {CATEGORIES.map((c) => {
             const Icon = c.icon;
             const active = category === c.key;
