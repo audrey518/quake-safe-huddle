@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { findPost, LEARN_CATEGORIES, type LearnCategory, type LearnPost } from "@/lib/learn-content";
 import { ArrowLeft, CheckCircle2, Clock } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/learn/$category/$post")({
+export const Route = createFileRoute("/learn/$category/$post")({
   head: ({ params }) => {
     const found = findPost(params.category, params.post);
     if (!found) return { meta: [{ title: "Post not found — GeoSafe AI" }] };

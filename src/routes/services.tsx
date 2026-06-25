@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 const searchSchema = z.object({ cat: z.enum(["materials", "engineering", "water", "insurance"]).optional() });
 
-export const Route = createFileRoute("/_authenticated/services")({
+export const Route = createFileRoute("/services")({
   head: () => ({ meta: [{ title: "Services & Products — GeoSafe AI" }] }),
   validateSearch: searchSchema,
   component: ServicesPage,

@@ -9,7 +9,7 @@ import { formatDistanceToNow } from "@/lib/format";
 import { MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
 import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Dashboard — GeoSafe AI" }] }),
   component: Dashboard,
 });
