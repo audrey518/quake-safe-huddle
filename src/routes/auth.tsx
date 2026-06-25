@@ -182,20 +182,27 @@ function AuthPage() {
 
             {mode === "signup" && (
               <>
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-3 gap-2 pt-1">
                   <RoleCard
                     active={role === "local"}
                     onClick={() => setRole("local")}
                     icon={<ShieldCheck className="h-4 w-4" />}
-                    label="Local resident"
-                    hint="View, report, register wells"
+                    label="Local"
+                    hint="Report & register"
                   />
                   <RoleCard
                     active={role === "professional"}
                     onClick={() => setRole("professional")}
                     icon={<Briefcase className="h-4 w-4" />}
                     label="Professional"
-                    hint="Submit soil assessments"
+                    hint="Soil assessments"
+                  />
+                  <RoleCard
+                    active={role === "provider"}
+                    onClick={() => setRole("provider")}
+                    icon={<Store className="h-4 w-4" />}
+                    label="Provider"
+                    hint="Sell goods/services"
                   />
                 </div>
                 {role === "professional" && (
@@ -206,6 +213,34 @@ function AuthPage() {
                     onChange={setLicenseNumber}
                     required
                   />
+                )}
+                {role === "provider" && (
+                  <div className="space-y-2 rounded-md border border-border bg-secondary/30 p-3">
+                    <p className="text-[11px] text-muted-foreground">Tell us about your business. Your account will be active immediately, listings appear after admin approval.</p>
+                    <Input icon={<Store className="h-4 w-4" />} placeholder="Business name *" value={businessName} onChange={setBusinessName} required />
+                    <select
+                      value={providerCategory}
+                      onChange={(e) => setProviderCategory(e.target.value as typeof providerCategory)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
+                    >
+                      <option value="materials">Building Materials</option>
+                      <option value="engineering">Engineering Firm</option>
+                      <option value="water">Water Purification</option>
+                      <option value="insurance">Insurance</option>
+                    </select>
+                    <Input icon={<Mail className="h-4 w-4" />} placeholder="Location (city)" value={providerLocation} onChange={setProviderLocation} />
+                    <Input icon={<Mail className="h-4 w-4" />} placeholder="Phone" value={providerPhone} onChange={setProviderPhone} />
+                    <textarea
+                      placeholder="Short description (optional)"
+                      value={providerBlurb}
+                      onChange={(e) => setProviderBlurb(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
+                      rows={2}
+                    />
+                    {providerCategory === "engineering" && (
+                      <Input icon={<IdCard className="h-4 w-4" />} placeholder="Engineering licence number *" value={licenseNumber} onChange={setLicenseNumber} required />
+                    )}
+                  </div>
                 )}
               </>
             )}
