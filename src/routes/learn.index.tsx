@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { LEARN_CATEGORIES } from "@/lib/learn-content";
 import { AlertTriangle, Building2, Droplets, GraduationCap, Hammer, Mountain } from "lucide-react";
+import heroImg from "@/assets/hero-geosafe.jpg";
 
 export const Route = createFileRoute("/learn/")({
   head: () => ({
