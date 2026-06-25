@@ -67,15 +67,16 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
 
           <div className="flex items-center gap-2">
             {isProvider && (
-              <Link to="/provider" className="hidden md:inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs hover:bg-secondary" title="Provider dashboard">
-                <Briefcase className="h-3.5 w-3.5" /> Dashboard
+              <Link to="/provider" className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs hover:bg-secondary" title="Provider dashboard">
+                <Briefcase className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Dashboard</span>
               </Link>
             )}
             {isAdmin && (
-              <Link to="/admin/providers" className="hidden md:inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs hover:bg-secondary" title="Admin">
-                <Settings2 className="h-3.5 w-3.5" /> Admin
+              <Link to="/admin/providers" className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs hover:bg-secondary" title="Admin">
+                <Settings2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
+
             {user ? (
               <>
                 <Link
