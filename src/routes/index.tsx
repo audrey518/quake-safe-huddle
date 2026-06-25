@@ -63,25 +63,109 @@ function Dashboard() {
   const recentMajor = quakes.find((q) => q.magnitude >= 4.5 && Date.now() - q.time < 60 * 60 * 1000);
   const greeting = user?.email?.split("@")[0] ?? "there";
 
+  // Featured Learn posts: pick first post from first 3 categories
+  const featuredPosts = LEARN_CATEGORIES.slice(0, 3).map((c) => ({
+    category: c,
+    post: c.posts[0],
+  }));
+
+  // Collaborated providers — pick top 4 across categories
+  const featuredProviders = SERVICE_CATEGORIES.flatMap((c) =>
+    (PROVIDERS[c.id] ?? []).slice(0, 1).map((p) => ({ category: c, provider: p })),
+  ).slice(0, 4);
+
   return (
     <AppShell>
-      <section className="border-b border-border bg-gradient-to-b from-accent/40 via-background to-background">
-        <div className="container-app py-10 md:py-14">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-            </span>
-            Live monitoring
+      {/* HERO */}
+      <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-accent/40 via-background to-background">
+        <div className="container-app py-12 md:py-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] items-center">
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              <span className="relative inline-flex h-2 w-2">
+                <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
+              {user ? `Welcome back, ${greeting}` : "Live earthquake monitoring"}
+            </div>
+            <h1 className="mt-4 text-4xl md:text-6xl font-semibold tracking-tight font-display leading-[1.05]">
+              Understand earthquake risk <span className="text-primary">around your home</span> — no engineering degree needed.
+            </h1>
+            <p className="mt-5 max-w-xl text-base md:text-lg text-muted-foreground">
+              GeoSafe AI turns live seismic data, community hazard reports and simple building details into clear, plain-language risk for everyday residents.
+            </p>
+            <ul className="mt-6 space-y-2 text-sm">
+              {[
+                "Real-time quakes from USGS, mapped to your area",
+                "Plain-language risk score for any building",
+                "Crowd-sourced hazard reports from your neighbors",
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link to="/map" className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 shadow">
+                <Compass className="h-4 w-4" /> Explore the InfoHub
+              </Link>
+              <Link to="/learn" className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-5 py-2.5 text-sm font-medium hover:bg-secondary">
+                <BookOpen className="h-4 w-4" /> Learn the basics
+              </Link>
+            </div>
+            {!user && (
+              <p className="mt-4 text-xs text-muted-foreground">
+                Browse freely as a guest. <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to add buildings and submit reports.
+              </p>
+            )}
           </div>
-          <h1 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight font-display">
-            Hello, {greeting}.
-          </h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Live earthquake activity, community hazard reports, and groundwater observations from across your region.
-          </p>
+
+          <div className="relative">
+            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border">
+              <img
+                src={heroImage}
+                alt="Aerial neighborhood with seismic wave visualization"
+                width={1536}
+                height={1024}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-tr from-background/40 via-transparent to-transparent" />
+            </div>
+            <div className="hidden md:block absolute -bottom-6 -left-6 w-40 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+              <img src={heroCard1} alt="Risk map on phone" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
+            </div>
+            <div className="hidden md:block absolute -top-6 -right-6 w-36 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+              <img src={heroCard2} alt="Engineer inspecting a home" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* HOW IT WORKS */}
+      <section className="border-b border-border bg-secondary/30">
+        <div className="container-app py-12 md:py-16">
+          <div className="max-w-2xl">
+            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">How it works</div>
+            <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Three simple steps to get prepared</h2>
+            <p className="mt-3 text-muted-foreground">No jargon, no engineering background required.</p>
+          </div>
+          <ol className="mt-8 grid gap-5 md:grid-cols-3">
+            {[
+              { n: "01", icon: <Compass className="h-5 w-5" />, title: "Explore", text: "Open the InfoHub map and see live quakes, hazard reports, wells and buildings in your area." },
+              { n: "02", icon: <Building2 className="h-5 w-5" />, title: "Check your home", text: "Add a building — name, year built, floors, material — and get an instant plain-language risk score." },
+              { n: "03", icon: <ShieldCheck className="h-5 w-5" />, title: "Stay informed", text: "Follow community reports, learn what to do in the first 60 seconds, and connect with trusted providers." },
+            ].map((s) => (
+              <li key={s.n} className="card-soft p-6 relative">
+                <div className="absolute right-5 top-5 text-5xl font-display font-semibold text-primary/10 leading-none">{s.n}</div>
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">{s.icon}</span>
+                <div className="mt-4 font-display text-xl font-semibold">{s.title}</div>
+                <p className="mt-1.5 text-sm text-muted-foreground">{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
 
       <div className="container-app py-8 space-y-8">
         {recentMajor && (
