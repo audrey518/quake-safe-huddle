@@ -69,6 +69,7 @@ export type Database = {
           material: string
           name: string
           photo_url: string | null
+          professional_notes: string | null
           risk_score: number | null
           user_id: string
           year_built: number
@@ -85,6 +86,7 @@ export type Database = {
           material: string
           name: string
           photo_url?: string | null
+          professional_notes?: string | null
           risk_score?: number | null
           user_id: string
           year_built: number
@@ -101,6 +103,7 @@ export type Database = {
           material?: string
           name?: string
           photo_url?: string | null
+          professional_notes?: string | null
           risk_score?: number | null
           user_id?: string
           year_built?: number
@@ -229,6 +232,7 @@ export type Database = {
       }
       soil_data: {
         Row: {
+          address: string | null
           ai_brief: string | null
           created_at: string
           depth_m: number
@@ -237,12 +241,14 @@ export type Database = {
           latitude: number
           layers: Json | null
           longitude: number
+          name: string | null
           notes: string | null
           photo_url: string | null
           soil_type: string
           user_id: string
         }
         Insert: {
+          address?: string | null
           ai_brief?: string | null
           created_at?: string
           depth_m: number
@@ -251,12 +257,14 @@ export type Database = {
           latitude: number
           layers?: Json | null
           longitude: number
+          name?: string | null
           notes?: string | null
           photo_url?: string | null
           soil_type: string
           user_id: string
         }
         Update: {
+          address?: string | null
           ai_brief?: string | null
           created_at?: string
           depth_m?: number
@@ -265,6 +273,7 @@ export type Database = {
           latitude?: number
           layers?: Json | null
           longitude?: number
+          name?: string | null
           notes?: string | null
           photo_url?: string | null
           soil_type?: string
@@ -330,6 +339,7 @@ export type Database = {
       }
       wells: {
         Row: {
+          address: string | null
           ai_brief: string | null
           created_at: string
           current_level_m: number | null
@@ -340,11 +350,13 @@ export type Database = {
           measured_at: string | null
           name: string
           photo_url: string | null
+          professional_notes: string | null
           total_depth_m: number
           user_id: string
           well_type: string
         }
         Insert: {
+          address?: string | null
           ai_brief?: string | null
           created_at?: string
           current_level_m?: number | null
@@ -355,11 +367,13 @@ export type Database = {
           measured_at?: string | null
           name: string
           photo_url?: string | null
+          professional_notes?: string | null
           total_depth_m: number
           user_id: string
           well_type: string
         }
         Update: {
+          address?: string | null
           ai_brief?: string | null
           created_at?: string
           current_level_m?: number | null
@@ -370,6 +384,7 @@ export type Database = {
           measured_at?: string | null
           name?: string
           photo_url?: string | null
+          professional_notes?: string | null
           total_depth_m?: number
           user_id?: string
           well_type?: string

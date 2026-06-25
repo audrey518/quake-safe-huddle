@@ -204,7 +204,7 @@ function BuildingsPanel() {
   const selected = items.find((b) => b.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown> }) => {
+    mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
       const r = assessRisk({ yearBuilt: p.year_built, floors: p.floors, material: p.material });
       const { data, error } = await supabase.from("buildings").insert({ user_id: user!.id, ...p, risk_score: r.score } as any).select("id").single();
       if (error) throw error;
@@ -218,6 +218,7 @@ function BuildingsPanel() {
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
+
 
   const remove = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("buildings").delete().eq("id", id); if (error) throw error; },
@@ -294,14 +295,16 @@ function BuildingDetail({ item }: { item: any }) {
       </div>
       <p className="text-sm text-muted-foreground">{r.explanation}</p>
       <ExtrasBlock extras={item.extras} photoUrl={item.photo_url} />
+      <ProfessionalNotesBlock notes={item.professional_notes} />
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="building" targetId={item.id} />
     </div>
   );
 }
 
+
 function BuildingForm({ onSubmit, submitting, isProfessional }: {
-  onSubmit: (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown> }) => void;
+  onSubmit: (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => void;
   submitting: boolean;
   isProfessional: boolean;
 }) {
@@ -320,6 +323,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
   const [foundation, setFoundation] = useState("");
   const [inspection, setInspection] = useState("");
   const [loadCapacity, setLoadCapacity] = useState("");
+  const [proNotes, setProNotes] = useState("");
 
   return (
     <form
@@ -339,6 +343,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           material, latitude: latN, longitude: lngN,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null,
           extras,
+          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
         });
       }}
     >
@@ -377,6 +382,9 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           </Field>
           <Field label="Load capacity (kN/m²)"><input type="number" step="0.1" className={inputClass()} value={loadCapacity} onChange={(e) => setLoadCapacity(e.target.value)} /></Field>
           <Field label="Last inspection date" className="sm:col-span-2"><input type="date" className={inputClass()} value={inspection} onChange={(e) => setInspection(e.target.value)} /></Field>
+          <Field label="Professional notes" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
+          </Field>
         </>
       ) : (
         <>
@@ -398,6 +406,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
 }
 
 
+
 /* ------------------------------ WELLS ------------------------------ */
 
 const WELL_TYPES = ["Domestic", "Irrigation", "Monitoring", "Industrial"];
@@ -416,7 +425,7 @@ function WellsPanel() {
   const selected = items.find((w) => w.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown> }) => {
+    mutationFn: async (p: { name: string; address: string | null; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
       const now = new Date().toISOString();
       const { data, error } = await supabase.from("wells").insert({ user_id: user!.id, ...p, measured_at: now } as any).select("id").single();
       if (error) throw error;
@@ -430,6 +439,7 @@ function WellsPanel() {
     mutationFn: async (id: string) => { const { error } = await supabase.from("wells").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
+
 
   const markers: MapMarker[] = items.map((w) => ({
     id: `w-${w.id}`, lat: w.latitude, lng: w.longitude, color: "oklch(0.6 0.12 230)", title: w.name,
@@ -450,9 +460,11 @@ function WellsPanel() {
               <li key={w.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(w.id)}>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{w.name}</div>
+                  {w.address && <div className="text-[11px] text-muted-foreground truncate">{w.address}</div>}
                   <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
                   <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
                 </div>
+
                 {w.user_id === user?.id && (
                   <button onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
                     <Trash2 className="h-3.5 w-3.5" />
@@ -486,18 +498,22 @@ function WellDetail({ item }: { item: any }) {
       <div>
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Well report</div>
         <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
+        {item.address && <div className="text-xs text-muted-foreground">{item.address}</div>}
         <div className="text-xs text-muted-foreground">{item.well_type} · depth {item.total_depth_m ?? "—"} m · level {item.current_level_m ?? "—"} m</div>
         <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
       </div>
       <ExtrasBlock extras={item.extras} photoUrl={item.photo_url} />
+      <ProfessionalNotesBlock notes={item.professional_notes} />
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="well" targetId={item.id} />
     </div>
   );
 }
 
-function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
+
+function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string; address: string | null; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => void; submitting: boolean; isProfessional: boolean }) {
   const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [type, setType] = useState("Domestic");
   const [depth, setDepth] = useState(20); const [level, setLevel] = useState(5);
@@ -509,6 +525,7 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
   const [yieldLpm, setYieldLpm] = useState("");
   const [drilling, setDrilling] = useState("");
   const [casingDiameter, setCasingDiameter] = useState("");
+  const [proNotes, setProNotes] = useState("");
   return (
     <form className="mt-4 grid gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
@@ -518,12 +535,19 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         const extras: Record<string, unknown> = isProfessional
           ? { water_ph: ph ? Number(ph) : null, yield_lpm: yieldLpm ? Number(yieldLpm) : null, drilling_method: drilling || null, casing_diameter_mm: casingDiameter ? Number(casingDiameter) : null }
           : { visible_issues: issues || null };
-        onSubmit({ name: name.trim().slice(0, 80), latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level, photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras });
+        onSubmit({
+          name: name.trim().slice(0, 80),
+          address: address.trim() ? address.trim().slice(0, 200) : null,
+          latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level,
+          photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
+          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+        });
       }}>
       <Field label="Name"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
       <Field label="Type">
         <select className={inputClass()} value={type} onChange={(e) => setType(e.target.value)}>{WELL_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
       </Field>
+      <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Street, city, area…" /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
       <Field label="Total depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
@@ -543,6 +567,9 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
             </select>
           </Field>
           <Field label="Casing diameter (mm)"><input type="number" step="1" className={inputClass()} value={casingDiameter} onChange={(e) => setCasingDiameter(e.target.value)} /></Field>
+          <Field label="Professional notes" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
+          </Field>
         </>
       ) : (
         <>
@@ -562,6 +589,7 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
     </form>
   );
 }
+
 
 
 /* ------------------------------ REPORTS ------------------------------ */
@@ -692,14 +720,15 @@ function SoilPanel() {
   const selected = items.find((s) => s.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => {
-      const { data, error } = await supabase.from("soil_data").insert({ user_id: user!.id, latitude: p.latitude, longitude: p.longitude, soil_type: p.soil_type, depth_m: p.depth_m, layers: [], notes: p.notes || null, photo_url: p.photo_url, extras: p.extras } as any).select("id").single();
+    mutationFn: async (p: { name: string | null; address: string | null; latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => {
+      const { data, error } = await supabase.from("soil_data").insert({ user_id: user!.id, name: p.name, address: p.address, latitude: p.latitude, longitude: p.longitude, soil_type: p.soil_type, depth_m: p.depth_m, layers: [], notes: p.notes || null, photo_url: p.photo_url, extras: p.extras } as any).select("id").single();
       if (error) throw error;
       return { id: data!.id as string };
     },
     onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Soil record added"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
+
   const remove = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("soil_data").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
@@ -723,10 +752,12 @@ function SoilPanel() {
             return (
               <li key={s.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(s.id)}>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">{s.soil_type}</div>
-                  <div className="text-[11px] text-muted-foreground">Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
+                  <div className="text-sm font-medium">{s.name || s.soil_type}</div>
+                  {s.address && <div className="text-[11px] text-muted-foreground truncate">{s.address}</div>}
+                  <div className="text-[11px] text-muted-foreground">{s.soil_type} · Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
                   <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
                 </div>
+
                 {s.user_id === user?.id && (
                   <button onClick={(e) => { e.stopPropagation(); remove.mutate(s.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
                     <Trash2 className="h-3.5 w-3.5" />
@@ -759,10 +790,12 @@ function SoilDetail({ item }: { item: any }) {
     <div className="card-soft p-5 space-y-4 border-l-4" style={{ borderLeftColor: "oklch(0.5 0.06 80)" }}>
       <div>
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Soil report</div>
-        <div className="mt-1 font-display text-lg font-semibold">{item.soil_type}</div>
-        <div className="text-xs text-muted-foreground">Depth {Number(item.depth_m).toFixed(1)} m</div>
+        <div className="mt-1 font-display text-lg font-semibold">{item.name || item.soil_type}</div>
+        {item.address && <div className="text-xs text-muted-foreground">{item.address}</div>}
+        <div className="text-xs text-muted-foreground">{item.soil_type} · Depth {Number(item.depth_m).toFixed(1)} m</div>
         <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
       </div>
+
       {item.notes && (
         <div className="rounded-md border border-border bg-background p-3">
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Notes</div>
@@ -775,7 +808,9 @@ function SoilDetail({ item }: { item: any }) {
   );
 }
 
-function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
+function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string | null; address: string | null; latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
   const [soilType, setSoilType] = useState("Clay");
   const [depth, setDepth] = useState(5);
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
@@ -797,8 +832,15 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { la
         const extras: Record<string, unknown> = isProfessional
           ? { bearing_capacity_kpa: bearing ? Number(bearing) : null, moisture_pct: moisture ? Number(moisture) : null, permeability_cm_s: permeability ? Number(permeability) : null, spt_n_value: spt ? Number(spt) : null }
           : { visible_condition: visible || null };
-        onSubmit({ latitude: la, longitude: lo, soil_type: soilType, depth_m: depth, notes: notes.slice(0, 1000), photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras });
+        onSubmit({
+          name: name.trim() ? name.trim().slice(0, 80) : null,
+          address: address.trim() ? address.trim().slice(0, 200) : null,
+          latitude: la, longitude: lo, soil_type: soilType, depth_m: depth, notes: notes.slice(0, 1000),
+          photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
+        });
       }}>
+      <Field label="Name (site / location)" className="sm:col-span-2"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="e.g. North field borehole #2" /></Field>
+      <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Street, city, area…" /></Field>
       <Field label="Soil type">
         <select className={inputClass()} value={soilType} onChange={(e) => setSoilType(e.target.value)}>
           {SOIL_TYPES.map((t) => <option key={t}>{t}</option>)}
@@ -807,6 +849,7 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { la
       <Field label="Depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
+
 
       {isProfessional ? (
         <>
@@ -843,7 +886,20 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { la
 
 /* ------------------------------ AI brief + Comments ------------------------------ */
 
+function ProfessionalNotesBlock({ notes }: { notes: string | null | undefined }) {
+  if (!notes) return null;
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+      <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-primary">
+        <MessageSquare className="h-3.5 w-3.5" /> Professional notes
+      </div>
+      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">{notes}</p>
+    </div>
+  );
+}
+
 function AiBriefBlock({ brief, pending, onGenerate }: { brief: string | null | undefined; pending: boolean; onGenerate: () => void }) {
+
   return (
     <div className="rounded-md border border-border bg-secondary/30 p-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
