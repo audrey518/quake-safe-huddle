@@ -4,6 +4,7 @@ import { Mail, Lock, User, ShieldCheck, Briefcase, IdCard, Store } from "lucide-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GeoSafeLogo } from "@/components/geosafe-logo";
+import { selectOnFocus } from "@/components/safeground/ui";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -179,7 +180,7 @@ function AuthPage() {
               : "Enter your email and we'll send you a link to set a new password."}
           </p>
 
-          <form className="mt-6 space-y-3" onSubmit={onSubmit}>
+          <form onFocusCapture={selectOnFocus} className="mt-6 space-y-3" onSubmit={onSubmit}>
             {mode === "signup" && (
               <Input icon={<User className="h-4 w-4" />} placeholder="Display name" value={displayName} onChange={setDisplayName} />
             )}

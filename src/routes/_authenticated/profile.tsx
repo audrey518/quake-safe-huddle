@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRole } from "@/hooks/use-role";
 import { useTrustBadge } from "@/hooks/use-trust-badge";
 import { Field, inputClass } from "@/components/safeground/ui";
+import { selectOnFocus } from "@/components/safeground/ui";
 import { Building2, CalendarClock, Droplets, LogOut, Megaphone, Mountain, Receipt, Settings, ShieldCheck, ShoppingCart, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -184,7 +185,7 @@ function ProfilePage() {
               <Settings className="h-5 w-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Account settings</h2>
             </div>
-            <form
+            <form onFocusCapture={selectOnFocus}
               className="mt-4 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();

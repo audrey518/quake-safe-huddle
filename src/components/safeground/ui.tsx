@@ -39,3 +39,17 @@ export function Field({ label, children, className = "" }: { label: string; chil
 export function inputClass(extra = "") {
   return `w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20 ${extra}`;
 }
+
+// Clears prefilled values when a user focuses an input/textarea so they can
+// type immediately without manually deleting the existing text.
+export const selectOnFocus: React.FocusEventHandler<HTMLElement> = (e) => {
+  const t = e.target as HTMLElement;
+  if (t instanceof HTMLInputElement) {
+    const skip = ["date", "time", "datetime-local", "checkbox", "radio", "file", "color", "range"];
+    if (!skip.includes(t.type)) {
+      try { t.select(); } catch { /* noop */ }
+    }
+  } else if (t instanceof HTMLTextAreaElement) {
+    try { t.select(); } catch { /* noop */ }
+  }
+};

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
-import { Field, inputClass } from "@/components/safeground/ui";
+import { Field, inputClass, selectOnFocus } from "@/components/safeground/ui";
 import { CATEGORIES, type ServiceCategoryId } from "@/lib/services-data";
 import { bookAppointment, recordPurchase, cancelPurchase, cancelAppointment } from "@/lib/telegram.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -452,7 +452,7 @@ function CheckoutModal({
         )}
 
         {step === 2 && (
-          <form
+          <form onFocusCapture={selectOnFocus}
             onSubmit={(e) => { e.preventDefault(); if (canPay) buy.mutate(); }}
             className="space-y-3"
           >
@@ -554,7 +554,7 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: DbPro
   });
 
   return (
-    <form
+    <form onFocusCapture={selectOnFocus}
       onSubmit={(e) => { e.preventDefault(); if (date) book.mutate(); }}
       className="mt-3 grid gap-2 sm:grid-cols-3 border-t border-border/60 pt-3"
     >

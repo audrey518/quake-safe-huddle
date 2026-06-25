@@ -19,7 +19,7 @@ import {
   type HazardType,
 } from "@/lib/safeground";
 import { formatDistanceToNow } from "@/lib/format";
-import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
+import { Field, inputClass, MagnitudeBadge, RiskPill, selectOnFocus } from "@/components/safeground/ui";
 import { Activity, Building2, ChevronDown, Droplets, Globe, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Search, Send, Sparkles, Trash2 } from "lucide-react";
 import heroImg from "@/assets/hero-map.jpg";
 import { AuthorBadge } from "@/components/safeground/author-badge";
@@ -434,7 +434,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
   const [proNotes, setProNotes] = useState("");
 
   return (
-    <form
+    <form onFocusCapture={selectOnFocus}
       className="mt-4 grid gap-3 sm:grid-cols-2 [&_input]:min-w-0 [&_select]:min-w-0 [&_textarea]:min-w-0"
       onSubmit={(e) => {
         e.preventDefault();
@@ -687,7 +687,7 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
   const [casingDiameter, setCasingDiameter] = useState("");
   const [proNotes, setProNotes] = useState("");
   return (
-    <form className="mt-4 grid gap-3 sm:grid-cols-2"
+    <form onFocusCapture={selectOnFocus} className="mt-4 grid gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
@@ -902,7 +902,7 @@ function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   return (
-    <form className="mt-4 grid gap-3 sm:grid-cols-2"
+    <form onFocusCapture={selectOnFocus} className="mt-4 grid gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
@@ -1109,7 +1109,7 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
   const [permeability, setPermeability] = useState("");
   const [spt, setSpt] = useState("");
   return (
-    <form className="mt-4 grid gap-3 sm:grid-cols-2"
+    <form onFocusCapture={selectOnFocus} className="mt-4 grid gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
@@ -1245,7 +1245,7 @@ function Comments({ targetType, targetId }: { targetType: "building" | "well"; t
           Service providers can read community feedback but cannot post professional comments here.
         </div>
       ) : (
-        <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); post.mutate(); }}>
+        <form onFocusCapture={selectOnFocus} className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); post.mutate(); }}>
           <input className={inputClass()} placeholder="Add a comment…" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} />
           <button type="submit" disabled={post.isPending || !body.trim()}
             className="rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center gap-1">
