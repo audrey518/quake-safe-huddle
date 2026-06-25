@@ -76,16 +76,19 @@ function Dashboard() {
 
   return (
     <AppShell>
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-accent/40 via-background to-background">
+      {/* HERO — warm peach → blush → aqua wash */}
+      <section className="relative overflow-hidden border-b border-border" style={{ background: "linear-gradient(135deg, #fef3ec 0%, #fdf2f8 45%, #ecfeff 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-60" style={{ background: "radial-gradient(circle, #fbcfe8 0%, transparent 70%)" }} />
+        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, #bae6fd 0%, transparent 70%)" }} />
+
         {/* Mobile background image behind text */}
         <div className="absolute inset-0 md:hidden">
           <img
             src={heroImage}
             alt=""
-            className="h-full w-full object-cover opacity-15"
+            className="h-full w-full object-cover opacity-40"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/55 via-background/45 to-background/85" />
         </div>
 
         <div className="container-app relative z-10 py-12 md:py-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] items-center">
@@ -141,35 +144,38 @@ function Dashboard() {
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-background/40 via-transparent to-transparent" />
             </div>
-            <div className="hidden md:block absolute -bottom-6 -left-6 w-40 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+            <div className="hidden md:block absolute -bottom-6 -left-6 w-40 rounded-xl overflow-hidden shadow-xl ring-4" style={{ borderColor: "#fbcfe8" }}>
               <img src={heroCard1} alt="Risk map on phone" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
             </div>
-            <div className="hidden md:block absolute -top-6 -right-6 w-36 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+            <div className="hidden md:block absolute -top-6 -right-6 w-36 rounded-xl overflow-hidden shadow-xl ring-4" style={{ borderColor: "#bae6fd" }}>
               <img src={heroCard2} alt="Engineer inspecting a home" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="border-b border-border bg-secondary/30">
+      {/* HOW IT WORKS — mint wash with color-coded steps */}
+      <section className="relative border-b border-border overflow-hidden" style={{ background: "linear-gradient(180deg, #ecfdf5 0%, #f0fdfa 100%)" }}>
         <div className="container-app py-12 md:py-16">
           <div className="max-w-2xl">
-            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">How it works</div>
-            <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Three simple steps to get prepared</h2>
+            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#d1fae5", color: "#065f46" }}>
+              <Sparkles className="h-3.5 w-3.5" /> How it works
+            </div>
+            <h2 className="mt-3 font-display text-3xl md:text-4xl font-semibold tracking-tight">Three simple steps to get prepared</h2>
             <p className="mt-3 text-muted-foreground">No jargon, no engineering background required.</p>
           </div>
           <ol className="mt-8 grid gap-5 md:grid-cols-3">
             {[
-              { n: "01", icon: <Compass className="h-5 w-5" />, title: "Explore", text: "Open the InfoHub map and see live quakes, hazard reports, wells and buildings in your area." },
-              { n: "02", icon: <Building2 className="h-5 w-5" />, title: "Check your home", text: "Add a building — name, year built, floors, material — and get an instant plain-language risk score." },
-              { n: "03", icon: <ShieldCheck className="h-5 w-5" />, title: "Stay informed", text: "Follow community reports, learn what to do in the first 60 seconds, and connect with trusted providers." },
+              { n: "01", icon: <Compass className="h-5 w-5" />, title: "Explore", text: "Open the InfoHub map and see live quakes, hazard reports, wells and buildings in your area.", tint: "#dbeafe", ink: "#1e40af" },
+              { n: "02", icon: <Building2 className="h-5 w-5" />, title: "Check your home", text: "Add a building — name, year built, floors, material — and get an instant plain-language risk score.", tint: "#fce7f3", ink: "#9d174d" },
+              { n: "03", icon: <ShieldCheck className="h-5 w-5" />, title: "Stay informed", text: "Follow community reports, learn what to do in the first 60 seconds, and connect with trusted providers.", tint: "#fef3c7", ink: "#92400e" },
             ].map((s) => (
-              <li key={s.n} className="card-soft p-6 relative">
-                <div className="absolute right-5 top-5 text-5xl font-display font-semibold text-primary/10 leading-none">{s.n}</div>
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">{s.icon}</span>
-                <div className="mt-4 font-display text-xl font-semibold">{s.title}</div>
-                <p className="mt-1.5 text-sm text-muted-foreground">{s.text}</p>
+              <li key={s.n} className="card-soft p-6 relative overflow-hidden">
+                <div aria-hidden className="absolute -right-8 -top-8 h-28 w-28 rounded-full" style={{ background: s.tint, opacity: 0.7 }} />
+                <div className="absolute right-5 top-5 text-5xl font-display font-semibold leading-none" style={{ color: s.ink, opacity: 0.2 }}>{s.n}</div>
+                <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: s.tint, color: s.ink }}>{s.icon}</span>
+                <div className="relative mt-4 font-display text-xl font-semibold">{s.title}</div>
+                <p className="relative mt-1.5 text-sm text-muted-foreground">{s.text}</p>
               </li>
             ))}
           </ol>
@@ -177,7 +183,7 @@ function Dashboard() {
       </section>
 
 
-      <div className="container-app py-8 space-y-8">
+      <div className="container-app py-10 space-y-8" style={{ background: "transparent" }}>
         {recentMajor && (
           <div className="card-soft border-l-4 border-l-[var(--color-risk-very-high)] p-4 flex items-start gap-3">
             <Activity className="h-5 w-5 text-[var(--color-risk-very-high)] mt-0.5" />
@@ -191,11 +197,12 @@ function Dashboard() {
         )}
 
         <section className="grid gap-4 md:grid-cols-4">
-          <StatCard icon={<Building2 className="h-5 w-5" />} label="Buildings" value={String(buildings.length)} hint={topRisk ? `Top risk: ${topRisk.b.name}` : "Add a building"} />
-          <StatCard icon={<Droplets className="h-5 w-5" />} label="Wells tracked" value={String(wellsCountQ.data ?? 0)} hint="Groundwater monitoring" />
-          <StatCard icon={<FileText className="h-5 w-5" />} label="Hazard reports" value={String(reports.length)} hint={reports[0] ? HAZARD_LABELS[reports[0].kind as HazardType] ?? "Recent reports" : "No reports yet"} />
-          <StatCard icon={<Activity className="h-5 w-5" />} label="Quakes (24h)" value={quakesQ.isLoading ? "—" : String(quakes.length)} hint="M2.5+ worldwide" />
+          <StatCard icon={<Building2 className="h-5 w-5" />} label="Buildings" value={String(buildings.length)} hint={topRisk ? `Top risk: ${topRisk.b.name}` : "Add a building"} tint="#fce7f3" ink="#9d174d" />
+          <StatCard icon={<Droplets className="h-5 w-5" />} label="Wells tracked" value={String(wellsCountQ.data ?? 0)} hint="Groundwater monitoring" tint="#dbeafe" ink="#1e40af" />
+          <StatCard icon={<FileText className="h-5 w-5" />} label="Hazard reports" value={String(reports.length)} hint={reports[0] ? HAZARD_LABELS[reports[0].kind as HazardType] ?? "Recent reports" : "No reports yet"} tint="#fed7aa" ink="#9a3412" />
+          <StatCard icon={<Activity className="h-5 w-5" />} label="Quakes (24h)" value={quakesQ.isLoading ? "—" : String(quakes.length)} hint="M2.5+ worldwide" tint="#d1fae5" ink="#065f46" />
         </section>
+
 
         <div className="flex flex-col gap-8 lg:grid lg:grid-cols-3">
           <section className="lg:col-span-2 space-y-6">
@@ -293,13 +300,16 @@ function Dashboard() {
       </div>
 
 
-      {/* FEATURED LEARN */}
-      <section className="border-t border-border bg-secondary/30">
-        <div className="container-app py-12 md:py-16">
+      {/* FEATURED LEARN — lavender wash */}
+      <section className="border-t border-border relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f5f3ff 0%, #faf5ff 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute top-10 right-0 h-64 w-64 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #ddd6fe 0%, transparent 70%)" }} />
+        <div className="container-app relative py-12 md:py-16">
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div className="max-w-2xl">
-              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Learn</div>
-              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Start with the essentials</h2>
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#ede9fe", color: "#5b21b6" }}>
+                <BookOpen className="h-3.5 w-3.5" /> Learn
+              </div>
+              <h2 className="mt-3 font-display text-3xl md:text-4xl font-semibold tracking-tight">Start with the essentials</h2>
               <p className="mt-3 text-muted-foreground">Plain-language guides written for residents — no engineering background needed.</p>
             </div>
             <Link to="/learn" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
@@ -307,37 +317,54 @@ function Dashboard() {
             </Link>
           </div>
           <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {featuredPosts.map(({ category, post }) => (
-              <Link
-                key={post.slug}
-                to="/learn/$category/$post"
-                params={{ category: category.slug, post: post.slug }}
-                className="group card-soft p-6 hover:border-primary/40 transition-colors flex flex-col"
-              >
-                <div className="text-[11px] uppercase tracking-wider font-medium" style={{ color: category.accent }}>
-                  {category.shortTitle}
-                </div>
-                <div className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
-                  {post.title}
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
-                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{post.readTime}</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </Link>
-            ))}
+            {featuredPosts.map(({ category, post }, i) => {
+              const tints = [
+                { bg: "#fee2e2", ink: "#991b1b" },
+                { bg: "#e0e7ff", ink: "#3730a3" },
+                { bg: "#fef3c7", ink: "#92400e" },
+              ][i];
+              return (
+                <Link
+                  key={post.slug}
+                  to="/learn/$category/$post"
+                  params={{ category: category.slug, post: post.slug }}
+                  className="group card-soft overflow-hidden hover:border-primary/40 transition-colors flex flex-col"
+                >
+                  <div className="h-24 relative" style={{ background: `linear-gradient(135deg, ${tints.bg} 0%, white 100%)` }}>
+                    <div className="absolute inset-0 flex items-center justify-between px-5">
+                      <span className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: tints.ink }}>
+                        {category.shortTitle}
+                      </span>
+                      <BookOpen className="h-10 w-10" style={{ color: tints.ink, opacity: 0.35 }} />
+                    </div>
+                  </div>
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                      {post.title}
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
+                    <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{post.readTime}</span>
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* COLLABORATED PROVIDERS */}
-      <section className="border-t border-border bg-background">
-        <div className="container-app py-12 md:py-16">
+      {/* COLLABORATED PROVIDERS — sky wash */}
+      <section className="border-t border-border relative overflow-hidden" style={{ background: "linear-gradient(180deg, #eff6ff 0%, #ecfeff 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute -bottom-20 left-1/3 h-72 w-72 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #bae6fd 0%, transparent 70%)" }} />
+        <div className="container-app relative py-12 md:py-16">
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div className="max-w-2xl">
-              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Our partners</div>
-              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Collaborated service providers</h2>
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#dbeafe", color: "#1e40af" }}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Our partners
+              </div>
+              <h2 className="mt-3 font-display text-3xl md:text-4xl font-semibold tracking-tight">Collaborated service providers</h2>
               <p className="mt-3 text-muted-foreground">Vetted local materials suppliers, engineers, water specialists and insurers — booking and purchase available inside the app.</p>
             </div>
             <Link to="/services" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
@@ -345,31 +372,41 @@ function Dashboard() {
             </Link>
           </div>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProviders.map(({ category, provider }) => (
-              <Link
-                key={provider.id}
-                to="/services"
-                className="group card-soft p-5 hover:border-primary/40 transition-colors flex flex-col"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground">{category.label}</span>
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                </div>
-                <div className="mt-3 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
-                  {provider.name}
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{provider.blurb}</p>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" /> {provider.location}
-                </div>
-              </Link>
-            ))}
+            {featuredProviders.map(({ category, provider }, i) => {
+              const tints = [
+                { bg: "#cffafe", ink: "#155e75" },
+                { bg: "#fce7f3", ink: "#9d174d" },
+                { bg: "#fef3c7", ink: "#92400e" },
+                { bg: "#dcfce7", ink: "#166534" },
+              ][i % 4];
+              return (
+                <Link
+                  key={provider.id}
+                  to="/services"
+                  className="group card-soft overflow-hidden hover:border-primary/40 transition-all hover:-translate-y-0.5 flex flex-col"
+                >
+                  <div className="h-2" style={{ background: tints.ink }} />
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5" style={{ background: tints.bg, color: tints.ink }}>{category.label}</span>
+                      <ShieldCheck className="h-4 w-4" style={{ color: tints.ink }} />
+                    </div>
+                    <div className="mt-3 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                      {provider.name}
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{provider.blurb}</p>
+                    <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" /> {provider.location}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ABOUT + CONTACT */}
-      <section className="border-t border-border bg-gradient-to-b from-secondary/40 to-background">
+      <section className="border-t border-border" style={{ background: "linear-gradient(180deg, #fffbeb 0%, #fef3ec 60%, #fdf2f8 100%)" }}>
         <div className="container-app py-14 md:py-20 grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">About GeoSafe AI</div>
@@ -439,17 +476,18 @@ function Dashboard() {
   );
 }
 
-function StatCard({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint: string }) {
+function StatCard({ icon, label, value, hint, tint, ink }: { icon: React.ReactNode; label: string; value: string; hint: string; tint?: string; ink?: string }) {
   return (
-    <div className="card-soft p-5">
-      <div className="flex items-center gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</span>
+    <div className="card-soft p-5 relative overflow-hidden">
+      {tint && <div aria-hidden className="absolute -right-6 -top-6 h-20 w-20 rounded-full" style={{ background: tint, opacity: 0.55 }} />}
+      <div className="relative flex items-center gap-3">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: tint ?? "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: ink ?? "var(--color-primary)" }}>{icon}</span>
         <div>
           <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
           <div className="font-display text-3xl font-semibold tracking-tight">{value}</div>
         </div>
       </div>
-      <div className="mt-3 text-xs text-muted-foreground line-clamp-1">{hint}</div>
+      <div className="relative mt-3 text-xs text-muted-foreground line-clamp-1">{hint}</div>
     </div>
   );
 }
