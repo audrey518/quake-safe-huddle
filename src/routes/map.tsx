@@ -883,10 +883,11 @@ function SoilPanel() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
 
-  const markers: MapMarker[] = items.map((s) => ({
+  const markers: MapMarker[] = filtered.map((s) => ({
     id: `s-${s.id}`, lat: s.latitude, lng: s.longitude, color: "oklch(0.5 0.06 80)", title: s.soil_type,
     popupHtml: `<strong>Soil: ${esc(s.soil_type)}</strong><br/>Depth: ${s.depth_m} m`,
   }));
+
 
   const handleAdd = () => {
     if (!user) { toast.info("Please sign in to add soil data."); navigate({ to: "/auth" }); return; }
