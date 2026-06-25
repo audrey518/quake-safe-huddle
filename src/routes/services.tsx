@@ -216,10 +216,10 @@ function ServicesPage() {
 function ProviderCard({ provider, category, onDone }: { provider: DbProvider; category: ServiceCategoryId; onDone: () => void }) {
   return (
     <div className="card-soft p-5 space-y-3">
-      <div>
-        <h3 className="font-display text-lg font-semibold">{provider.name}</h3>
-        <p className="text-xs text-muted-foreground">{provider.location ?? ""}{provider.phone ? ` · ${provider.phone}` : ""}</p>
-        {provider.blurb && <p className="text-sm mt-1.5 text-foreground/80">{provider.blurb}</p>}
+      <div className="min-w-0">
+        <h3 className="font-display text-lg font-semibold truncate">{provider.name}</h3>
+        <p className="text-xs text-muted-foreground truncate">{provider.location ?? ""}{provider.phone ? ` · ${provider.phone}` : ""}</p>
+        {provider.blurb && <p className="text-sm mt-1.5 text-foreground/80 line-clamp-2">{provider.blurb}</p>}
       </div>
       <ul className="space-y-2">
         {provider.items.length === 0 && (
