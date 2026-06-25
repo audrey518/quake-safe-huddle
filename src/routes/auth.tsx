@@ -66,7 +66,7 @@ function AuthPage() {
             setBusy(false); return;
           }
         }
-        const signupRole = role === "provider" ? "local" : role; // base role; provider role granted server-side
+        const signupRole = role; // record the chosen role directly (local | professional | provider)
         const { data, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,

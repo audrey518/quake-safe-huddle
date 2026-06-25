@@ -19,12 +19,17 @@ export function useRole() {
     },
   });
   const roles = q.data ?? [];
+  const isProfessional = roles.includes("professional");
+  const isProvider = roles.includes("provider");
+  const isAdmin = roles.includes("admin");
   return {
     roles,
-    isProfessional: roles.includes("professional"),
-    isProvider: roles.includes("provider"),
-    isAdmin: roles.includes("admin"),
-    isLocal: roles.includes("local") || roles.length === 0,
+    isProfessional,
+    isProvider,
+    isAdmin,
+    // Only treat as "local" when no elevated role is present, so navigation
+    // and gating don't mix categories after sign-in.
+    isLocal: !isProfessional && !isProvider && !isAdmin,
     loading: q.isLoading,
   };
 }
