@@ -343,7 +343,8 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           material, latitude: latN, longitude: lngN,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null,
           extras,
-          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+          professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+
         });
       }}
     >
@@ -382,9 +383,6 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           </Field>
           <Field label="Load capacity (kN/m²)"><input type="number" step="0.1" className={inputClass()} value={loadCapacity} onChange={(e) => setLoadCapacity(e.target.value)} /></Field>
           <Field label="Last inspection date" className="sm:col-span-2"><input type="date" className={inputClass()} value={inspection} onChange={(e) => setInspection(e.target.value)} /></Field>
-          <Field label="Professional notes" className="sm:col-span-2">
-            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
-          </Field>
         </>
       ) : (
         <>
@@ -394,6 +392,11 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           <Field label="Photo URL of damaged area" className="sm:col-span-2"><input className={inputClass()} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" maxLength={500} /></Field>
         </>
       )}
+
+      <Field label={isProfessional ? "Professional notes" : "Notes from a professional (optional)"} className="sm:col-span-2">
+        <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
+      </Field>
+
 
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
         <LocationButton onLocate={(la, lo) => { setLat(la); setLng(lo); }} />
@@ -540,7 +543,7 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
           address: address.trim() ? address.trim().slice(0, 200) : null,
           latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
-          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+          professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
         });
       }}>
       <Field label="Name"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
@@ -567,9 +570,6 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
             </select>
           </Field>
           <Field label="Casing diameter (mm)"><input type="number" step="1" className={inputClass()} value={casingDiameter} onChange={(e) => setCasingDiameter(e.target.value)} /></Field>
-          <Field label="Professional notes" className="sm:col-span-2">
-            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
-          </Field>
         </>
       ) : (
         <>
@@ -579,6 +579,11 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
           <Field label="Photo URL of damaged area" className="sm:col-span-2"><input className={inputClass()} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" maxLength={500} /></Field>
         </>
       )}
+
+      <Field label={isProfessional ? "Professional notes" : "Notes from a professional (optional)"} className="sm:col-span-2">
+        <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
+      </Field>
+
 
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
         <LocationButton onLocate={(la, lo) => { setLat(la); setLng(lo); }} />
@@ -828,19 +833,21 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
+        if (!name.trim() || !address.trim()) { toast.error("Name and address required"); return; }
         if (Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Coordinates required"); return; }
         const extras: Record<string, unknown> = isProfessional
           ? { bearing_capacity_kpa: bearing ? Number(bearing) : null, moisture_pct: moisture ? Number(moisture) : null, permeability_cm_s: permeability ? Number(permeability) : null, spt_n_value: spt ? Number(spt) : null }
           : { visible_condition: visible || null };
         onSubmit({
-          name: name.trim() ? name.trim().slice(0, 80) : null,
-          address: address.trim() ? address.trim().slice(0, 200) : null,
+          name: name.trim().slice(0, 80),
+          address: address.trim().slice(0, 200),
           latitude: la, longitude: lo, soil_type: soilType, depth_m: depth, notes: notes.slice(0, 1000),
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
         });
       }}>
-      <Field label="Name (site / location)" className="sm:col-span-2"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="e.g. North field borehole #2" /></Field>
-      <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Street, city, area…" /></Field>
+      <Field label="Name" className="sm:col-span-2"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} placeholder="e.g. North field borehole #2" /></Field>
+      <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={200} placeholder="Street, city, area…" /></Field>
+
       <Field label="Soil type">
         <select className={inputClass()} value={soilType} onChange={(e) => setSoilType(e.target.value)}>
           {SOIL_TYPES.map((t) => <option key={t}>{t}</option>)}
