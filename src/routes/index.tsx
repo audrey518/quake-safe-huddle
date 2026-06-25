@@ -76,16 +76,19 @@ function Dashboard() {
 
   return (
     <AppShell>
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-accent/40 via-background to-background">
+      {/* HERO — warm peach → blush → aqua wash */}
+      <section className="relative overflow-hidden border-b border-border" style={{ background: "linear-gradient(135deg, #fef3ec 0%, #fdf2f8 45%, #ecfeff 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-60" style={{ background: "radial-gradient(circle, #fbcfe8 0%, transparent 70%)" }} />
+        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, #bae6fd 0%, transparent 70%)" }} />
+
         {/* Mobile background image behind text */}
         <div className="absolute inset-0 md:hidden">
           <img
             src={heroImage}
             alt=""
-            className="h-full w-full object-cover opacity-15"
+            className="h-full w-full object-cover opacity-40"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/55 via-background/45 to-background/85" />
         </div>
 
         <div className="container-app relative z-10 py-12 md:py-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] items-center">
@@ -141,35 +144,38 @@ function Dashboard() {
               />
               <div className="absolute inset-0 bg-gradient-to-tr from-background/40 via-transparent to-transparent" />
             </div>
-            <div className="hidden md:block absolute -bottom-6 -left-6 w-40 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+            <div className="hidden md:block absolute -bottom-6 -left-6 w-40 rounded-xl overflow-hidden shadow-xl ring-4" style={{ borderColor: "#fbcfe8" }}>
               <img src={heroCard1} alt="Risk map on phone" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
             </div>
-            <div className="hidden md:block absolute -top-6 -right-6 w-36 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+            <div className="hidden md:block absolute -top-6 -right-6 w-36 rounded-xl overflow-hidden shadow-xl ring-4" style={{ borderColor: "#bae6fd" }}>
               <img src={heroCard2} alt="Engineer inspecting a home" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="border-b border-border bg-secondary/30">
+      {/* HOW IT WORKS — mint wash with color-coded steps */}
+      <section className="relative border-b border-border overflow-hidden" style={{ background: "linear-gradient(180deg, #ecfdf5 0%, #f0fdfa 100%)" }}>
         <div className="container-app py-12 md:py-16">
           <div className="max-w-2xl">
-            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">How it works</div>
-            <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Three simple steps to get prepared</h2>
+            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#d1fae5", color: "#065f46" }}>
+              <Sparkles className="h-3.5 w-3.5" /> How it works
+            </div>
+            <h2 className="mt-3 font-display text-3xl md:text-4xl font-semibold tracking-tight">Three simple steps to get prepared</h2>
             <p className="mt-3 text-muted-foreground">No jargon, no engineering background required.</p>
           </div>
           <ol className="mt-8 grid gap-5 md:grid-cols-3">
             {[
-              { n: "01", icon: <Compass className="h-5 w-5" />, title: "Explore", text: "Open the InfoHub map and see live quakes, hazard reports, wells and buildings in your area." },
-              { n: "02", icon: <Building2 className="h-5 w-5" />, title: "Check your home", text: "Add a building — name, year built, floors, material — and get an instant plain-language risk score." },
-              { n: "03", icon: <ShieldCheck className="h-5 w-5" />, title: "Stay informed", text: "Follow community reports, learn what to do in the first 60 seconds, and connect with trusted providers." },
+              { n: "01", icon: <Compass className="h-5 w-5" />, title: "Explore", text: "Open the InfoHub map and see live quakes, hazard reports, wells and buildings in your area.", tint: "#dbeafe", ink: "#1e40af" },
+              { n: "02", icon: <Building2 className="h-5 w-5" />, title: "Check your home", text: "Add a building — name, year built, floors, material — and get an instant plain-language risk score.", tint: "#fce7f3", ink: "#9d174d" },
+              { n: "03", icon: <ShieldCheck className="h-5 w-5" />, title: "Stay informed", text: "Follow community reports, learn what to do in the first 60 seconds, and connect with trusted providers.", tint: "#fef3c7", ink: "#92400e" },
             ].map((s) => (
-              <li key={s.n} className="card-soft p-6 relative">
-                <div className="absolute right-5 top-5 text-5xl font-display font-semibold text-primary/10 leading-none">{s.n}</div>
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">{s.icon}</span>
-                <div className="mt-4 font-display text-xl font-semibold">{s.title}</div>
-                <p className="mt-1.5 text-sm text-muted-foreground">{s.text}</p>
+              <li key={s.n} className="card-soft p-6 relative overflow-hidden">
+                <div aria-hidden className="absolute -right-8 -top-8 h-28 w-28 rounded-full" style={{ background: s.tint, opacity: 0.7 }} />
+                <div className="absolute right-5 top-5 text-5xl font-display font-semibold leading-none" style={{ color: s.ink, opacity: 0.2 }}>{s.n}</div>
+                <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: s.tint, color: s.ink }}>{s.icon}</span>
+                <div className="relative mt-4 font-display text-xl font-semibold">{s.title}</div>
+                <p className="relative mt-1.5 text-sm text-muted-foreground">{s.text}</p>
               </li>
             ))}
           </ol>
@@ -177,7 +183,7 @@ function Dashboard() {
       </section>
 
 
-      <div className="container-app py-8 space-y-8">
+      <div className="container-app py-10 space-y-8" style={{ background: "transparent" }}>
         {recentMajor && (
           <div className="card-soft border-l-4 border-l-[var(--color-risk-very-high)] p-4 flex items-start gap-3">
             <Activity className="h-5 w-5 text-[var(--color-risk-very-high)] mt-0.5" />
@@ -191,11 +197,12 @@ function Dashboard() {
         )}
 
         <section className="grid gap-4 md:grid-cols-4">
-          <StatCard icon={<Building2 className="h-5 w-5" />} label="Buildings" value={String(buildings.length)} hint={topRisk ? `Top risk: ${topRisk.b.name}` : "Add a building"} />
-          <StatCard icon={<Droplets className="h-5 w-5" />} label="Wells tracked" value={String(wellsCountQ.data ?? 0)} hint="Groundwater monitoring" />
-          <StatCard icon={<FileText className="h-5 w-5" />} label="Hazard reports" value={String(reports.length)} hint={reports[0] ? HAZARD_LABELS[reports[0].kind as HazardType] ?? "Recent reports" : "No reports yet"} />
-          <StatCard icon={<Activity className="h-5 w-5" />} label="Quakes (24h)" value={quakesQ.isLoading ? "—" : String(quakes.length)} hint="M2.5+ worldwide" />
+          <StatCard icon={<Building2 className="h-5 w-5" />} label="Buildings" value={String(buildings.length)} hint={topRisk ? `Top risk: ${topRisk.b.name}` : "Add a building"} tint="#fce7f3" ink="#9d174d" />
+          <StatCard icon={<Droplets className="h-5 w-5" />} label="Wells tracked" value={String(wellsCountQ.data ?? 0)} hint="Groundwater monitoring" tint="#dbeafe" ink="#1e40af" />
+          <StatCard icon={<FileText className="h-5 w-5" />} label="Hazard reports" value={String(reports.length)} hint={reports[0] ? HAZARD_LABELS[reports[0].kind as HazardType] ?? "Recent reports" : "No reports yet"} tint="#fed7aa" ink="#9a3412" />
+          <StatCard icon={<Activity className="h-5 w-5" />} label="Quakes (24h)" value={quakesQ.isLoading ? "—" : String(quakes.length)} hint="M2.5+ worldwide" tint="#d1fae5" ink="#065f46" />
         </section>
+
 
         <div className="flex flex-col gap-8 lg:grid lg:grid-cols-3">
           <section className="lg:col-span-2 space-y-6">
