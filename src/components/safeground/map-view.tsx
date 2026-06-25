@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
-import L from "leaflet";
+import type * as LeafletNS from "leaflet";
 
 export type MapMarker = {
   id: string;
   lat: number;
   lng: number;
-  color: string; // CSS color
+  color: string;
   title: string;
   popupHtml?: string;
 };
@@ -22,20 +22,32 @@ export function MapView({
   height?: number | string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const layerRef = useRef<L.LayerGroup | null>(null);
+  const mapRef = useRef<LeafletNS.Map | null>(null);
+  const layerRef = useRef<LeafletNS.LayerGroup | null>(null);
+  const LRef = useRef<typeof LeafletNS | null>(null);
+  const markersRef = useRef<MapMarker[]>(markers);
+  markersRef.current = markers;
 
   useEffect(() => {
-    if (!ref.current || mapRef.current) return;
-    const map = L.map(ref.current, { zoomControl: true, scrollWheelZoom: true }).setView(center, zoom);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; OpenStreetMap',
-      maxZoom: 19,
-    }).addTo(map);
-    layerRef.current = L.layerGroup().addTo(map);
-    mapRef.current = map;
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    (async () => {
+      const mod = await import("leaflet");
+      const L = (mod.default ?? mod) as typeof LeafletNS;
+      if (cancelled || !ref.current || mapRef.current) return;
+      LRef.current = L;
+      const map = L.map(ref.current, { zoomControl: true, scrollWheelZoom: true }).setView(center, zoom);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap",
+        maxZoom: 19,
+      }).addTo(map);
+      layerRef.current = L.layerGroup().addTo(map);
+      mapRef.current = map;
+      renderMarkers(L, layerRef.current, markersRef.current);
+    })();
     return () => {
-      map.remove();
+      cancelled = true;
+      mapRef.current?.remove();
       mapRef.current = null;
       layerRef.current = null;
     };
@@ -43,23 +55,27 @@ export function MapView({
   }, []);
 
   useEffect(() => {
-    if (!layerRef.current) return;
-    layerRef.current.clearLayers();
-    for (const m of markers) {
-      const marker = L.circleMarker([m.lat, m.lng], {
-        radius: 8,
-        color: m.color,
-        fillColor: m.color,
-        fillOpacity: 0.7,
-        weight: 2,
-      });
-      const html = m.popupHtml ?? `<strong>${escapeHtml(m.title)}</strong>`;
-      marker.bindPopup(html);
-      marker.addTo(layerRef.current);
-    }
+    if (!LRef.current || !layerRef.current) return;
+    renderMarkers(LRef.current, layerRef.current, markers);
   }, [markers]);
 
   return <div ref={ref} style={{ height, width: "100%" }} className="rounded-lg overflow-hidden border border-border" />;
+}
+
+function renderMarkers(L: typeof LeafletNS, layer: LeafletNS.LayerGroup, markers: MapMarker[]) {
+  layer.clearLayers();
+  for (const m of markers) {
+    const marker = L.circleMarker([m.lat, m.lng], {
+      radius: 8,
+      color: m.color,
+      fillColor: m.color,
+      fillOpacity: 0.7,
+      weight: 2,
+    });
+    const html = m.popupHtml ?? `<strong>${escapeHtml(m.title)}</strong>`;
+    marker.bindPopup(html);
+    marker.addTo(layer);
+  }
 }
 
 function escapeHtml(s: string) {
