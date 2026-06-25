@@ -134,6 +134,22 @@ function AddBar({ icon, title, subtitle, addLabel, onAdd, isGuest }: { icon: Rea
   );
 }
 
+function SearchBar({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+      <input
+        type="search"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={inputClass("pl-9")}
+      />
+    </div>
+  );
+}
+
+
 
 /** Subscribe to realtime changes on a table and invalidate a query key. */
 function useRealtime(table: string, queryKey: unknown[]) {
