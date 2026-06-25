@@ -898,8 +898,8 @@ function ReportDetail({ item }: { item: any }) {
 
 
 function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType; severity: string; latitude: number; longitude: number; description: string; image_url?: string }) => void; submitting: boolean }) {
-  const [kind, setKind] = useState<HazardType>("earthquake-damage");
-  const [severity, setSeverity] = useState("moderate");
+  const [kind, setKind] = useState<HazardType | "">("");
+  const [severity, setSeverity] = useState("");
   const [description, setDescription] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -908,10 +908,12 @@ function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
+        if (!kind) { toast.error("Please select a hazard type"); return; }
+        if (!severity) { toast.error("Please select a severity"); return; }
         if (!description.trim() || Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Description and coordinates required"); return; }
         let safe: string | undefined;
         if (imageUrl.trim()) { try { const u = new URL(imageUrl.trim()); if (u.protocol.startsWith("http")) safe = u.toString(); } catch {} }
-        onSubmit({ kind, severity, description: description.trim().slice(0, 1000), latitude: la, longitude: lo, image_url: safe });
+        onSubmit({ kind: kind as HazardType, severity, description: description.trim().slice(0, 1000), latitude: la, longitude: lo, image_url: safe });
       }}>
       <Field label="Type" className="sm:col-span-2">
         <div className="grid grid-cols-2 gap-2">
@@ -925,6 +927,7 @@ function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType
       </Field>
       <Field label="Severity">
         <select className={inputClass()} value={severity} onChange={(e) => setSeverity(e.target.value)}>
+          <option value="">Select…</option>
           <option value="minor">Minor</option><option value="moderate">Moderate</option><option value="severe">Severe</option>
         </select>
       </Field>
