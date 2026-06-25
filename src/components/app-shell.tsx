@@ -52,7 +52,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors",
+                    "inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors",
                     active
                       ? "bg-secondary text-secondary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
