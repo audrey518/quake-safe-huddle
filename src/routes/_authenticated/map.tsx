@@ -425,7 +425,7 @@ function WellsPanel() {
   const selected = items.find((w) => w.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown> }) => {
+    mutationFn: async (p: { name: string; address: string | null; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
       const now = new Date().toISOString();
       const { data, error } = await supabase.from("wells").insert({ user_id: user!.id, ...p, measured_at: now } as any).select("id").single();
       if (error) throw error;
@@ -439,6 +439,7 @@ function WellsPanel() {
     mutationFn: async (id: string) => { const { error } = await supabase.from("wells").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
+
 
   const markers: MapMarker[] = items.map((w) => ({
     id: `w-${w.id}`, lat: w.latitude, lng: w.longitude, color: "oklch(0.6 0.12 230)", title: w.name,
