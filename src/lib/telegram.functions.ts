@@ -8,7 +8,9 @@ type PurchaseInput = {
   price?: number | null;
   notes?: string | null;
   provider_item_id?: string | null;
+  quantity?: number | null;
 };
+
 
 type AppointmentInput = {
   category: string;
