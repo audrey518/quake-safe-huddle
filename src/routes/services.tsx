@@ -33,7 +33,6 @@ type DbProvider = {
   name: string;
   blurb: string | null;
   location: string | null;
-  phone: string | null;
   items: DbItem[];
 };
 type DbItem = {
@@ -57,20 +56,20 @@ function ServicesPage() {
     queryKey: ["providers-public", cat],
     queryFn: async (): Promise<DbProvider[]> => {
       const { data: providers, error } = await supabase
-        .from("providers")
-        .select("id,name,blurb,location,phone")
-        .eq("status", "approved")
+        .from("providers_public")
+        .select("id,name,blurb,location")
         .eq("category", cat)
         .order("name");
       if (error) throw error;
-      const ids = (providers ?? []).map((p) => p.id);
+      const rows = (providers ?? []).filter((p): p is { id: string; name: string; blurb: string | null; location: string | null } => !!p.id && !!p.name);
+      const ids = rows.map((p) => p.id);
       if (!ids.length) return [];
       const { data: items } = await supabase
         .from("provider_items")
         .select("id,provider_id,name,price,unit,appointment,active,stock")
         .in("provider_id", ids)
         .eq("active", true);
-      return (providers ?? []).map((p) => ({
+      return rows.map((p) => ({
         ...p,
         items: ((items ?? []) as Array<{provider_id:string;id:string;name:string;price:number;unit:string|null;appointment:boolean;stock:number}>)
           .filter((i) => i.provider_id === p.id)
@@ -266,7 +265,7 @@ function ProviderCard({ provider, category, onDone }: { provider: DbProvider; ca
     <div className="card-soft p-5 space-y-3">
       <div className="min-w-0">
         <h3 className="font-display text-lg font-semibold truncate">{provider.name}</h3>
-        <p className="text-xs text-muted-foreground truncate">{provider.location ?? ""}{provider.phone ? ` · ${provider.phone}` : ""}</p>
+        <p className="text-xs text-muted-foreground truncate">{provider.location ?? ""}</p>
         {provider.blurb && <p className="text-sm mt-1.5 text-foreground/80 line-clamp-2">{provider.blurb}</p>}
       </div>
       <ul className="space-y-2">
@@ -543,7 +542,7 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: DbPro
     mutationFn: () => bookFn({ data: {
       category, provider_name: provider.name, service_name: item.name,
       appointment_date: date, appointment_time: time || null,
-      contact_phone: provider.phone ?? null, notes: notes || null,
+      contact_phone: null, notes: notes || null,
       provider_item_id: item.id,
     } }),
     onSuccess: () => {
