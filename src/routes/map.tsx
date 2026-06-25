@@ -439,6 +439,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
       onSubmit={(e) => {
         e.preventDefault();
         if (!name.trim() || !address.trim()) return;
+        if (!yearBuilt.trim() || !floors.trim() || !material) { toast.error("Year built, floors and material are required"); return; }
         const latN = lat.trim() ? Number(lat) : null;
         const lngN = lng.trim() ? Number(lng) : null;
         const extras: Record<string, unknown> = isProfessional
@@ -446,22 +447,22 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           : { visible_damage: damage || null };
         onSubmit({
           name: name.trim().slice(0, 80), address: address.trim().slice(0, 200),
-          year_built: Math.min(new Date().getFullYear(), Math.max(1800, yearBuilt)),
-          floors: Math.min(150, Math.max(1, floors)),
-          material, latitude: latN, longitude: lngN,
+          year_built: Math.min(new Date().getFullYear(), Math.max(1800, parseInt(yearBuilt, 10))),
+          floors: Math.min(150, Math.max(1, parseInt(floors, 10))),
+          material: material as BuildingMaterial, latitude: latN, longitude: lngN,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null,
           extras,
           professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
-
         });
       }}
     >
       <Field label="Name" className="sm:col-span-2"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
       <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={200} /></Field>
-      <Field label="Year built"><input type="number" className={inputClass()} min={1800} max={new Date().getFullYear()} value={yearBuilt} onChange={(e) => setYearBuilt(parseInt(e.target.value || "0", 10))} /></Field>
-      <Field label="Floors"><input type="number" className={inputClass()} min={1} max={150} value={floors} onChange={(e) => setFloors(parseInt(e.target.value || "1", 10))} /></Field>
+      <Field label="Year built"><input type="number" className={inputClass()} min={1800} max={new Date().getFullYear()} value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} /></Field>
+      <Field label="Floors"><input type="number" className={inputClass()} min={1} max={150} value={floors} onChange={(e) => setFloors(e.target.value)} /></Field>
       <Field label="Material" className="sm:col-span-2">
-        <select className={inputClass()} value={material} onChange={(e) => setMaterial(e.target.value as BuildingMaterial)}>
+        <select className={inputClass()} value={material} onChange={(e) => setMaterial(e.target.value)}>
+          <option value="">Select…</option>
           {MATERIALS.map((m) => <option key={m} value={m}>{MATERIAL_LABELS[m]}</option>)}
         </select>
       </Field>
