@@ -349,7 +349,7 @@ function BuildingsPanel() {
 
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+        <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-lg">
           <DialogHeader>
             <DialogTitle>Add a building</DialogTitle>
             <DialogDescription>
@@ -613,7 +613,7 @@ function WellsPanel() {
 
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+        <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-lg">
           <DialogHeader>
             <DialogTitle>Register a well</DialogTitle>
             <DialogDescription>
@@ -844,7 +844,7 @@ function ReportsPanel() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+        <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-lg">
           <DialogHeader>
             <DialogTitle>Submit a hazard report</DialogTitle>
             <DialogDescription>Tell the community what you're seeing.</DialogDescription>
@@ -1031,7 +1031,7 @@ function SoilPanel() {
 
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+        <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-lg">
           <DialogHeader>
             <DialogTitle>Add soil data</DialogTitle>
             <DialogDescription>
