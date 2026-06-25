@@ -1,14 +1,15 @@
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { GraduationCap, Home, LogOut, Map, ShieldCheck, Store, UserCircle2 } from "lucide-react";
+import { GraduationCap, Home, LogOut, Map, ShieldCheck, Store, UserCircle2, Briefcase, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useRole } from "@/hooks/use-role";
 import { useTrustBadge } from "@/hooks/use-trust-badge";
 import { GeoSafeLogo } from "@/components/geosafe-logo";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/map", label: "InfoHub\n", icon: Map },
+  { to: "/map", label: "InfoHub", icon: Map },
   { to: "/services", label: "Services/Products", icon: Store },
   { to: "/learn", label: "Learn", icon: GraduationCap },
   { to: "/profile", label: "Profile", icon: UserCircle2 },
@@ -18,6 +19,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const router = useRouter();
   const { user } = useAuth();
+  const { isProvider, isAdmin } = useRole();
   const badge = useTrustBadge(user?.id);
   const accountName = user?.email?.split("@")[0] ?? "Account";
 
