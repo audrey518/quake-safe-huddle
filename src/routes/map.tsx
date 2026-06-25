@@ -904,9 +904,10 @@ function SoilPanel() {
         onAdd={handleAdd}
         isGuest={!user}
       />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search soil records by name, address or type…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((s) => {
+          {filtered.map((s) => {
             const active = s.id === selectedId;
             return (
               <li key={s.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(s.id)}>
@@ -925,7 +926,8 @@ function SoilPanel() {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No soil data yet.</li>}
+          {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No soil data yet."}</li>}
+
         </ul>
       </div>
       <div className="card-soft p-2">
