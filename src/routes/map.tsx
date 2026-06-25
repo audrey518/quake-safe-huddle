@@ -563,7 +563,8 @@ function WellsPanel() {
         isGuest={!user}
       />
       <SearchBar value={query} onChange={setQuery} placeholder="Search wells by name or address…" />
-      <div className="card-soft p-2 max-h-[460px] overflow-auto">
+      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+      <div className="card-soft p-2 max-h-[460px] md:max-h-[600px] overflow-auto min-w-0">
         <ul className="divide-y divide-border">
 
           {filtered.map((w) => {
@@ -601,7 +602,8 @@ function WellsPanel() {
         </ul>
       </div>
 
-      <div className="card-soft p-2">
+      <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
+
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
 
