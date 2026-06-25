@@ -109,7 +109,7 @@ function MapHub() {
 }
 
 /** Stack layout: form/info above, map below. */
-function StackLayout({ markers, children }: { markers: MapMarker[]; children: React.ReactNode }) {
+function StackLayout({ markers, children, focusId = null }: { markers: MapMarker[]; children: React.ReactNode; focusId?: string | null }) {
   const center: [number, number] = useMemo(() => {
     const f = markers[0];
     return f ? [f.lat, f.lng] : [20, 0];
@@ -118,7 +118,7 @@ function StackLayout({ markers, children }: { markers: MapMarker[]; children: Re
     <div className="grid gap-4 md:grid-cols-2 md:items-start">
       <div className="space-y-4 min-w-0">{children}</div>
       <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
-        <MapView markers={markers} center={center} zoom={markers.length ? 4 : 2} height={520} />
+        <MapView markers={markers} center={center} zoom={markers.length ? 4 : 2} height={520} focusId={focusId} />
       </div>
     </div>
   );
