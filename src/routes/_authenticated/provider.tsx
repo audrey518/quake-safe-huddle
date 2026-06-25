@@ -148,6 +148,12 @@ function OrdersTab() {
 }
 
 function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"appointment"; primary: string; sub: string; when: string; status: string }[]; onChange: (id: string, status: string) => void }) {
+  const statusStyle: Record<string, { dot: string; select: string; label: string }> = {
+    new:       { dot: "bg-blue-500",    select: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300", label: "New" },
+    accepted:  { dot: "bg-amber-500",   select: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "Accepted" },
+    completed: { dot: "bg-emerald-500", select: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", label: "Completed" },
+    cancelled: { dot: "bg-red-500",     select: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300", label: "Cancelled" },
+  };
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -155,25 +161,33 @@ function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"
           <tr><th className="py-2 pr-3">Item</th><th className="py-2 pr-3">Detail</th><th className="py-2 pr-3">When</th><th className="py-2 pr-3">Status</th></tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-t border-border/60">
-              <td className="py-2 pr-3">{r.primary}</td>
-              <td className="py-2 pr-3 text-muted-foreground">{r.sub}</td>
-              <td className="py-2 pr-3 text-muted-foreground">{new Date(r.when).toLocaleDateString()}</td>
-              <td className="py-2 pr-3">
-                <select
-                  value={r.status}
-                  onChange={(e) => onChange(r.id, e.target.value)}
-                  className={inputClass("text-xs py-1")}
-                >
-                  <option value="new">New</option>
-                  <option value="accepted">Accepted</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </td>
-            </tr>
-          ))}
+          {rows.map((r) => {
+            const st = statusStyle[r.status] ?? statusStyle.new;
+            return (
+              <tr key={r.id} className="border-t border-border/60">
+                <td className="py-2 pr-3">
+                  <span className="inline-flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${st.dot}`} aria-hidden />
+                    {r.primary}
+                  </span>
+                </td>
+                <td className="py-2 pr-3 text-muted-foreground">{r.sub}</td>
+                <td className="py-2 pr-3 text-muted-foreground">{new Date(r.when).toLocaleDateString()}</td>
+                <td className="py-2 pr-3">
+                  <select
+                    value={r.status}
+                    onChange={(e) => onChange(r.id, e.target.value)}
+                    className={`rounded-md border px-2 py-1 text-xs font-medium ${st.select}`}
+                  >
+                    <option value="new">New</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
