@@ -18,7 +18,8 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const { user } = useAuth();
-  const { isProfessional } = useRole();
+  const { isProfessional, isProvider, isAdmin } = useRole();
+  const roleLabel = isAdmin ? "Admin" : isProvider ? "Service provider" : isProfessional ? "Professional" : "Local resident";
   const badge = useTrustBadge(user?.id);
   const qc = useQueryClient();
   const router = useRouter();
@@ -97,7 +98,7 @@ function ProfilePage() {
               >
                 <ShieldCheck className="h-3.5 w-3.5" /> {b?.tier ?? "—"} contributor
               </span>
-              <span className="chip">{isProfessional ? "Professional" : "Local"}</span>
+              <span className="chip">{roleLabel}</span>
             </div>
           </div>
         </header>
@@ -203,7 +204,7 @@ function ProfilePage() {
                 <input className={inputClass("opacity-70")} value={user?.email ?? ""} disabled />
               </Field>
               <Field label="Role">
-                <input className={inputClass("opacity-70")} value={isProfessional ? "Professional" : "Local resident"} disabled />
+                <input className={inputClass("opacity-70")} value={roleLabel} disabled />
               </Field>
 
               <div className="flex items-center justify-between gap-2 flex-wrap pt-2">
