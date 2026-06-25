@@ -606,6 +606,7 @@ export type Database = {
           contributions: number
           display_name: string
           is_professional: boolean
+          is_provider: boolean
         }[]
       }
       get_user_discount: {
