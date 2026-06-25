@@ -71,33 +71,40 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                 <Settings2 className="h-3.5 w-3.5" /> Admin
               </Link>
             )}
-            {user && (
-              <Link
-                to="/profile"
-                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border bg-background px-2 py-1 text-xs hover:bg-secondary"
-                title={badge.data ? `${badge.data.tier} — ${badge.data.contributions} contributions` : "Profile"}
-              >
-                <span
-                  className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                  style={{
-                    background: `color-mix(in oklab, ${badge.data?.color ?? "var(--color-muted-foreground)"} 18%, transparent)`,
-                    color: badge.data?.color ?? "var(--color-muted-foreground)",
-                  }}
+            {user ? (
+              <>
+                <Link
+                  to="/profile"
+                  className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border bg-background px-2 py-1 text-xs hover:bg-secondary"
+                  title={badge.data ? `${badge.data.tier} — ${badge.data.contributions} contributions` : "Profile"}
                 >
-                  <ShieldCheck className="h-3 w-3" /> {badge.data?.tier ?? "—"}
-                </span>
-                <span className="text-foreground/80 max-w-[120px] truncate">{accountName}</span>
-              </Link>
-            )}
-            {user && (
-              <button
-                onClick={signOut}
-                className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs hover:bg-secondary"
-                title="Sign out"
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                    style={{
+                      background: `color-mix(in oklab, ${badge.data?.color ?? "var(--color-muted-foreground)"} 18%, transparent)`,
+                      color: badge.data?.color ?? "var(--color-muted-foreground)",
+                    }}
+                  >
+                    <ShieldCheck className="h-3 w-3" /> {badge.data?.tier ?? "—"}
+                  </span>
+                  <span className="text-foreground/80 max-w-[120px] truncate">{accountName}</span>
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs hover:bg-secondary"
+                  title="Sign out"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Sign out</span>
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Sign out</span>
-              </button>
+                Sign in
+              </Link>
             )}
           </div>
         </div>
