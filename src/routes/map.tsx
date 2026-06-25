@@ -547,7 +547,11 @@ function WellsPanel() {
       />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((w) => {
+      />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search wells by name or address…" />
+      <div className="card-soft p-2 max-h-[460px] overflow-auto">
+        <ul className="divide-y divide-border">
+          {filtered.map((w) => {
             const active = w.id === selectedId;
             return (
               <li key={w.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(w.id)}>
@@ -566,9 +570,10 @@ function WellsPanel() {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No wells yet.</li>}
+          {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No wells yet."}</li>}
         </ul>
       </div>
+
       <div className="card-soft p-2">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
