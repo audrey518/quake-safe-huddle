@@ -803,8 +803,10 @@ const SOIL_TYPES = ["Clay", "Silt", "Sand", "Gravel", "Loam", "Peat", "Rocky", "
 
 function SoilPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const { isProfessional } = useRole();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("soil_data", ["soil_data"]);
   const q = useQuery({
     queryKey: ["soil_data"],
@@ -821,7 +823,7 @@ function SoilPanel() {
       if (error) throw error;
       return { id: data!.id as string };
     },
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Soil record added"); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); setOpen(false); toast.success("Soil record added"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
@@ -835,13 +837,22 @@ function SoilPanel() {
     popupHtml: `<strong>Soil: ${esc(s.soil_type)}</strong><br/>Depth: ${s.depth_m} m`,
   }));
 
+  const handleAdd = () => {
+    if (!user) { toast.info("Please sign in to add soil data."); navigate({ to: "/auth" }); return; }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Mountain className="h-5 w-5" />} title="Soil data" subtitle={isProfessional ? "Professional soil profile — add measurements & notes." : "Report visible soil conditions in your area."} />
-        <SoilForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
-      <div className="card-soft p-2 max-h-[400px] overflow-auto">
+    <div className="space-y-4">
+      <AddBar
+        icon={<Mountain className="h-5 w-5" />}
+        title="Soil data"
+        subtitle={items.length ? `${items.length} record${items.length === 1 ? "" : "s"}` : "No soil data yet."}
+        addLabel="Add Soil Data"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
+      <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((s) => {
             const active = s.id === selectedId;
@@ -865,14 +876,25 @@ function SoilPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No soil data yet.</li>}
         </ul>
       </div>
-      {selected && (
-        <div className="md:col-span-2">
-          <SoilDetail item={selected} />
-        </div>
-      )}
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      {selected && <SoilDetail item={selected} />}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Add soil data</DialogTitle>
+            <DialogDescription>
+              {isProfessional ? "Professional soil profile — add measurements & notes." : "Report visible soil conditions in your area."}
+            </DialogDescription>
+          </DialogHeader>
+          <SoilForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function SoilDetail({ item }: { item: any }) {
   const qc = useQueryClient();
