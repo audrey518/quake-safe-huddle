@@ -125,7 +125,7 @@ function ProfilePage() {
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="card-soft p-6">
+          <section className="card-soft p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Purchase history</h2>
