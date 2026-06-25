@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Briefcase, ShieldCheck, User } from "lucide-react";
+import { Briefcase, ShieldCheck, Store, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { tierColor, tierFor, type TrustTier } from "@/hooks/use-trust-badge";
 
@@ -9,20 +9,26 @@ interface AuthorInfo {
   color: string;
   contributions: number;
   isProfessional: boolean;
+  isProvider: boolean;
 }
 
 async function fetchAuthor(userId: string): Promise<AuthorInfo> {
-  const { data, error } = await supabase.rpc("get_author_info", { _user_id: userId });
+  const [{ data, error }, rolesRes] = await Promise.all([
+    supabase.rpc("get_author_info", { _user_id: userId }),
+    supabase.from("user_roles").select("role").eq("user_id", userId),
+  ]);
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
   const contributions = (row?.contributions as number) ?? 0;
   const tier = tierFor(contributions);
+  const roles = (rolesRes.data ?? []).map((r) => r.role as string);
   return {
     displayName: (row?.display_name as string) || "Member",
     tier,
     color: tierColor(tier),
     contributions,
     isProfessional: Boolean(row?.is_professional),
+    isProvider: roles.includes("provider"),
   };
 }
 
@@ -36,8 +42,12 @@ export function AuthorBadge({ userId, size = "sm" }: { userId: string | null | u
   if (!userId) return null;
   const data = q.data;
   const small = size === "sm";
-  const roleLabel = data?.isProfessional ? "Professional" : "Local user";
-  const RoleIcon = data?.isProfessional ? Briefcase : User;
+  const roleLabel = data?.isProvider
+    ? "Service Provider"
+    : data?.isProfessional
+    ? "Professional"
+    : "Local user";
+  const RoleIcon = data?.isProvider ? Store : data?.isProfessional ? Briefcase : User;
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full border border-border bg-background ${small ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs"}`}

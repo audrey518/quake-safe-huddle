@@ -98,14 +98,15 @@ function StackLayout({ markers, children }: { markers: MapMarker[]; children: Re
     return f ? [f.lat, f.lng] : [20, 0];
   }, [markers]);
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">{children}</div>
-      <div className="card-soft p-2">
+    <div className="grid gap-4 md:grid-cols-2 md:items-start">
+      <div className="space-y-4 min-w-0">{children}</div>
+      <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
         <MapView markers={markers} center={center} zoom={markers.length ? 4 : 2} height={520} />
       </div>
     </div>
   );
 }
+
 
 function PanelHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) {
   return (
@@ -302,7 +303,8 @@ function BuildingsPanel() {
         isGuest={!user}
       />
       <SearchBar value={query} onChange={setQuery} placeholder="Search buildings by name or address…" />
-      <div className="card-soft p-2 max-h-[460px] overflow-auto">
+      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+        <div className="card-soft p-2 max-h-[460px] md:max-h-[600px] overflow-auto min-w-0">
         <ul className="divide-y divide-border">
           {filtered.map((b) => {
             const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
@@ -338,11 +340,13 @@ function BuildingsPanel() {
           })}
           {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : (user ? "No buildings yet. Click \"Add Building\" to create one." : "No buildings yet. Sign in to add one.")}</li>}
         </ul>
+        </div>
+
+        <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
+          <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+        </div>
       </div>
 
-      <div className="card-soft p-2">
-        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
-      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
@@ -559,7 +563,8 @@ function WellsPanel() {
         isGuest={!user}
       />
       <SearchBar value={query} onChange={setQuery} placeholder="Search wells by name or address…" />
-      <div className="card-soft p-2 max-h-[460px] overflow-auto">
+      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+      <div className="card-soft p-2 max-h-[460px] md:max-h-[600px] overflow-auto min-w-0">
         <ul className="divide-y divide-border">
 
           {filtered.map((w) => {
@@ -597,9 +602,13 @@ function WellsPanel() {
         </ul>
       </div>
 
-      <div className="card-soft p-2">
+      <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
+
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
+      </div>
+
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
@@ -786,7 +795,8 @@ function ReportsPanel() {
         isGuest={!user}
       />
       <SearchBar value={query} onChange={setQuery} placeholder="Search reports by type or description…" />
-      <div className="card-soft p-2 max-h-[460px] overflow-auto">
+      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+      <div className="card-soft p-2 max-h-[460px] md:max-h-[600px] overflow-auto min-w-0">
         <ul className="divide-y divide-border">
           {filtered.map((r) => {
             const active = r.id === selectedId;
@@ -824,9 +834,11 @@ function ReportsPanel() {
 
         </ul>
       </div>
-      <div className="card-soft p-2">
+      <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
+      </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
           <DialogHeader>
@@ -970,7 +982,8 @@ function SoilPanel() {
         isGuest={!user}
       />
       <SearchBar value={query} onChange={setQuery} placeholder="Search soil records by name, address or type…" />
-      <div className="card-soft p-2 max-h-[460px] overflow-auto">
+      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+      <div className="card-soft p-2 max-h-[460px] md:max-h-[600px] overflow-auto min-w-0">
         <ul className="divide-y divide-border">
           {filtered.map((s) => {
             const active = s.id === selectedId;
@@ -1007,9 +1020,11 @@ function SoilPanel() {
 
         </ul>
       </div>
-      <div className="card-soft p-2">
+      <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
+      </div>
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
@@ -1173,6 +1188,7 @@ function AiBriefBlock({ brief, pending, onGenerate }: { brief: string | null | u
 
 function Comments({ targetType, targetId }: { targetType: "building" | "well"; targetId: string }) {
   const { user } = useAuth();
+  const { isProvider } = useRole();
   const qc = useQueryClient();
   const key = ["comments", targetType, targetId];
   useRealtime("comments", key);
@@ -1185,6 +1201,7 @@ function Comments({ targetType, targetId }: { targetType: "building" | "well"; t
   const [body, setBody] = useState("");
   const post = useMutation({
     mutationFn: async () => {
+      if (isProvider) throw new Error("Service providers cannot post professional comments.");
       const text = body.trim().slice(0, 1000);
       if (!text) throw new Error("Empty comment");
       const { error } = await supabase.from("comments").insert({ user_id: user!.id, target_type: targetType, target_id: targetId, body: text });
@@ -1202,13 +1219,19 @@ function Comments({ targetType, targetId }: { targetType: "building" | "well"; t
       <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         <MessageSquare className="h-3.5 w-3.5" /> Community comments ({items.length})
       </div>
-      <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); post.mutate(); }}>
-        <input className={inputClass()} placeholder="Add a comment…" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} />
-        <button type="submit" disabled={post.isPending || !body.trim()}
-          className="rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center gap-1">
-          <Send className="h-3.5 w-3.5" />
-        </button>
-      </form>
+      {isProvider ? (
+        <div className="mt-2 rounded-md border border-dashed border-border bg-secondary/40 px-3 py-2 text-[11px] text-muted-foreground">
+          Service providers can read community feedback but cannot post professional comments here.
+        </div>
+      ) : (
+        <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); post.mutate(); }}>
+          <input className={inputClass()} placeholder="Add a comment…" value={body} onChange={(e) => setBody(e.target.value)} maxLength={1000} />
+          <button type="submit" disabled={post.isPending || !body.trim()}
+            className="rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center gap-1">
+            <Send className="h-3.5 w-3.5" />
+          </button>
+        </form>
+      )}
       <ul className="mt-3 space-y-2 max-h-56 overflow-auto">
         {items.map((c) => (
           <li key={c.id} className="rounded-md border border-border bg-secondary/30 p-2">
@@ -1228,6 +1251,7 @@ function Comments({ targetType, targetId }: { targetType: "building" | "well"; t
     </div>
   );
 }
+
 
 /* ------------------------------ shared ------------------------------ */
 

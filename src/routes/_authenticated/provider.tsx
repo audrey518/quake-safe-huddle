@@ -176,8 +176,10 @@ function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"
                 <td className="py-2 pr-3">
                   <select
                     value={r.status}
+                    disabled={r.status === "cancelled"}
                     onChange={(e) => onChange(r.id, e.target.value)}
-                    className={`rounded-md border px-2 py-1 text-xs font-medium ${st.select}`}
+                    className={`rounded-md border px-2 py-1 text-xs font-medium ${st.select} disabled:cursor-not-allowed disabled:opacity-70`}
+                    title={r.status === "cancelled" ? "Order was cancelled by the customer" : undefined}
                   >
                     <option value="new">New</option>
                     <option value="accepted">Accepted</option>
@@ -185,6 +187,7 @@ function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </td>
+
               </tr>
             );
           })}
