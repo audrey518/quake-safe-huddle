@@ -210,8 +210,10 @@ const MATERIALS: BuildingMaterial[] = ["reinforced-concrete", "masonry", "wood",
 
 function BuildingsPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const { isProfessional } = useRole();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("buildings", ["buildings"]);
   const q = useQuery({
     queryKey: ["buildings"],
@@ -232,6 +234,7 @@ function BuildingsPanel() {
       qc.invalidateQueries({ queryKey: ["buildings"] });
       qc.invalidateQueries({ queryKey: ["trust-badge"] });
       setSelectedId(r.id);
+      setOpen(false);
       toast.success("Building saved");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
@@ -252,12 +255,25 @@ function BuildingsPanel() {
     }];
   });
 
+  const handleAdd = () => {
+    if (!user) {
+      toast.info("Please sign in to add a building.");
+      navigate({ to: "/auth" });
+      return;
+    }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Building2 className="h-5 w-5" />} title="Add a building" subtitle={isProfessional ? "Professional submission — include engineering measurements." : "Submit details and report any visible damage."} />
-        <BuildingForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
+    <div className="space-y-4">
+      <AddBar
+        icon={<Building2 className="h-5 w-5" />}
+        title="Buildings"
+        subtitle={items.length ? `${items.length} record${items.length === 1 ? "" : "s"}` : "No buildings yet."}
+        addLabel="Add Building"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((b) => {
@@ -279,17 +295,28 @@ function BuildingsPanel() {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No buildings yet.</li>}
+          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No buildings yet. {user ? "Click \"Add Building\" to create one." : "Sign in to add one."}</li>}
         </ul>
       </div>
-      {selected && (
-        <div className="md:col-span-2">
-          <BuildingDetail item={selected} />
-        </div>
-      )}
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      {selected && <BuildingDetail item={selected} />}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Add a building</DialogTitle>
+            <DialogDescription>
+              {isProfessional ? "Professional submission — include engineering measurements." : "Submit details and report any visible damage."}
+            </DialogDescription>
+          </DialogHeader>
+          <BuildingForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function BuildingDetail({ item }: { item: any }) {
   const qc = useQueryClient();
