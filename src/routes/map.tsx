@@ -22,7 +22,9 @@ import { formatDistanceToNow } from "@/lib/format";
 import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
 import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Send, Sparkles, Trash2 } from "lucide-react";
 import { AuthorBadge } from "@/components/safeground/author-badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+
 
 type CategoryKey = "earthquakes" | "buildings" | "wells" | "reports" | "soil";
 const CATS: CategoryKey[] = ["earthquakes", "buildings", "wells", "reports", "soil"];
@@ -117,6 +119,22 @@ function PanelHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: 
   );
 }
 
+function AddBar({ icon, title, subtitle, addLabel, onAdd, isGuest }: { icon: React.ReactNode; title: string; subtitle: string; addLabel: string; onAdd: () => void; isGuest: boolean }) {
+  return (
+    <div className="card-soft p-4 flex items-center justify-between gap-3 flex-wrap">
+      <PanelHeader icon={icon} title={title} subtitle={subtitle} />
+      <button
+        onClick={onAdd}
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2"
+      >
+        {isGuest ? <Lock className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+        {isGuest ? "Sign in to add" : addLabel}
+      </button>
+    </div>
+  );
+}
+
+
 /** Subscribe to realtime changes on a table and invalidate a query key. */
 function useRealtime(table: string, queryKey: unknown[]) {
   const qc = useQueryClient();
@@ -192,8 +210,10 @@ const MATERIALS: BuildingMaterial[] = ["reinforced-concrete", "masonry", "wood",
 
 function BuildingsPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const { isProfessional } = useRole();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("buildings", ["buildings"]);
   const q = useQuery({
     queryKey: ["buildings"],
@@ -214,6 +234,7 @@ function BuildingsPanel() {
       qc.invalidateQueries({ queryKey: ["buildings"] });
       qc.invalidateQueries({ queryKey: ["trust-badge"] });
       setSelectedId(r.id);
+      setOpen(false);
       toast.success("Building saved");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
@@ -234,12 +255,25 @@ function BuildingsPanel() {
     }];
   });
 
+  const handleAdd = () => {
+    if (!user) {
+      toast.info("Please sign in to add a building.");
+      navigate({ to: "/auth" });
+      return;
+    }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Building2 className="h-5 w-5" />} title="Add a building" subtitle={isProfessional ? "Professional submission — include engineering measurements." : "Submit details and report any visible damage."} />
-        <BuildingForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
+    <div className="space-y-4">
+      <AddBar
+        icon={<Building2 className="h-5 w-5" />}
+        title="Buildings"
+        subtitle={items.length ? `${items.length} record${items.length === 1 ? "" : "s"}` : "No buildings yet."}
+        addLabel="Add Building"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((b) => {
@@ -261,17 +295,28 @@ function BuildingsPanel() {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No buildings yet.</li>}
+          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No buildings yet. {user ? "Click \"Add Building\" to create one." : "Sign in to add one."}</li>}
         </ul>
       </div>
-      {selected && (
-        <div className="md:col-span-2">
-          <BuildingDetail item={selected} />
-        </div>
-      )}
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      {selected && <BuildingDetail item={selected} />}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Add a building</DialogTitle>
+            <DialogDescription>
+              {isProfessional ? "Professional submission — include engineering measurements." : "Submit details and report any visible damage."}
+            </DialogDescription>
+          </DialogHeader>
+          <BuildingForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function BuildingDetail({ item }: { item: any }) {
   const qc = useQueryClient();
@@ -416,8 +461,10 @@ const WELL_TYPES = ["Domestic", "Irrigation", "Monitoring", "Industrial"];
 
 function WellsPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const { isProfessional } = useRole();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("wells", ["wells"]);
   const q = useQuery({
     queryKey: ["wells"],
@@ -435,7 +482,7 @@ function WellsPanel() {
       await supabase.from("well_readings").insert({ well_id: data!.id, user_id: user!.id, level_m: p.current_level_m, measured_at: now });
       return { id: data!.id as string };
     },
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Well registered"); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); setOpen(false); toast.success("Well registered"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
   const remove = useMutation({
@@ -449,12 +496,21 @@ function WellsPanel() {
     popupHtml: `<strong>${esc(w.name)}</strong><br/>${esc(w.well_type)}<br/>Level: ${w.current_level_m ?? "—"} m`,
   }));
 
+  const handleAdd = () => {
+    if (!user) { toast.info("Please sign in to register a well."); navigate({ to: "/auth" }); return; }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Droplets className="h-5 w-5" />} title="Register a well" subtitle={isProfessional ? "Professional submission — include hydrogeological measurements." : "Track groundwater levels and report visible issues."} />
-        <WellForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
+    <div className="space-y-4">
+      <AddBar
+        icon={<Droplets className="h-5 w-5" />}
+        title="Wells"
+        subtitle={items.length ? `${items.length} record${items.length === 1 ? "" : "s"}` : "No wells yet."}
+        addLabel="Register Well"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((w) => {
@@ -479,14 +535,25 @@ function WellsPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No wells yet.</li>}
         </ul>
       </div>
-      {selected && (
-        <div className="md:col-span-2">
-          <WellDetail item={selected} />
-        </div>
-      )}
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      {selected && <WellDetail item={selected} />}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Register a well</DialogTitle>
+            <DialogDescription>
+              {isProfessional ? "Professional submission — include hydrogeological measurements." : "Track groundwater levels and report visible issues."}
+            </DialogDescription>
+          </DialogHeader>
+          <WellForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function WellDetail({ item }: { item: any }) {
   const qc = useQueryClient();
@@ -603,7 +670,9 @@ const HAZARD_TYPES: HazardType[] = ["earthquake-damage", "flooding", "landslide"
 
 function ReportsPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("hazard_reports", ["hazard_reports"]);
   const q = useQuery({
     queryKey: ["hazard_reports"],
@@ -616,7 +685,7 @@ function ReportsPanel() {
       const { error } = await supabase.from("hazard_reports").insert({ user_id: user!.id, ...p });
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["hazard_reports"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); toast.success("Report submitted"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["hazard_reports"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setOpen(false); toast.success("Report submitted"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
   const remove = useMutation({
@@ -629,13 +698,22 @@ function ReportsPanel() {
     popupHtml: `<strong>${esc(HAZARD_LABELS[r.kind as HazardType] ?? r.kind)}</strong><br/>${esc(r.description)}`,
   }));
 
+  const handleAdd = () => {
+    if (!user) { toast.info("Please sign in to submit a report."); navigate({ to: "/auth" }); return; }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Megaphone className="h-5 w-5" />} title="Submit a hazard report" subtitle="Tell the community what you're seeing." />
-        <ReportForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
-      <div className="card-soft p-2 max-h-[400px] overflow-auto">
+    <div className="space-y-4">
+      <AddBar
+        icon={<Megaphone className="h-5 w-5" />}
+        title="Hazard reports"
+        subtitle={items.length ? `${items.length} report${items.length === 1 ? "" : "s"}` : "No reports yet."}
+        addLabel="Submit Report"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
+      <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((r) => (
             <li key={r.id} className="p-3 flex items-start gap-3">
@@ -655,9 +733,22 @@ function ReportsPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No reports yet.</li>}
         </ul>
       </div>
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Submit a hazard report</DialogTitle>
+            <DialogDescription>Tell the community what you're seeing.</DialogDescription>
+          </DialogHeader>
+          <ReportForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType; severity: string; latitude: number; longitude: number; description: string; image_url?: string }) => void; submitting: boolean }) {
   const [kind, setKind] = useState<HazardType>("earthquake-damage");
@@ -712,8 +803,10 @@ const SOIL_TYPES = ["Clay", "Silt", "Sand", "Gravel", "Loam", "Peat", "Rocky", "
 
 function SoilPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const { isProfessional } = useRole();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("soil_data", ["soil_data"]);
   const q = useQuery({
     queryKey: ["soil_data"],
@@ -730,7 +823,7 @@ function SoilPanel() {
       if (error) throw error;
       return { id: data!.id as string };
     },
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Soil record added"); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); setOpen(false); toast.success("Soil record added"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
@@ -744,13 +837,22 @@ function SoilPanel() {
     popupHtml: `<strong>Soil: ${esc(s.soil_type)}</strong><br/>Depth: ${s.depth_m} m`,
   }));
 
+  const handleAdd = () => {
+    if (!user) { toast.info("Please sign in to add soil data."); navigate({ to: "/auth" }); return; }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Mountain className="h-5 w-5" />} title="Soil data" subtitle={isProfessional ? "Professional soil profile — add measurements & notes." : "Report visible soil conditions in your area."} />
-        <SoilForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
-      <div className="card-soft p-2 max-h-[400px] overflow-auto">
+    <div className="space-y-4">
+      <AddBar
+        icon={<Mountain className="h-5 w-5" />}
+        title="Soil data"
+        subtitle={items.length ? `${items.length} record${items.length === 1 ? "" : "s"}` : "No soil data yet."}
+        addLabel="Add Soil Data"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
+      <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((s) => {
             const active = s.id === selectedId;
@@ -774,14 +876,25 @@ function SoilPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No soil data yet.</li>}
         </ul>
       </div>
-      {selected && (
-        <div className="md:col-span-2">
-          <SoilDetail item={selected} />
-        </div>
-      )}
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      {selected && <SoilDetail item={selected} />}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Add soil data</DialogTitle>
+            <DialogDescription>
+              {isProfessional ? "Professional soil profile — add measurements & notes." : "Report visible soil conditions in your area."}
+            </DialogDescription>
+          </DialogHeader>
+          <SoilForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function SoilDetail({ item }: { item: any }) {
   const qc = useQueryClient();
