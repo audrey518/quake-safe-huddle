@@ -192,6 +192,7 @@ const MATERIALS: BuildingMaterial[] = ["reinforced-concrete", "masonry", "wood",
 
 function BuildingsPanel() {
   const { user } = useAuth();
+  const { isProfessional } = useRole();
   const qc = useQueryClient();
   useRealtime("buildings", ["buildings"]);
   const q = useQuery({
@@ -203,9 +204,9 @@ function BuildingsPanel() {
   const selected = items.find((b) => b.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null }) => {
+    mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown> }) => {
       const r = assessRisk({ yearBuilt: p.year_built, floors: p.floors, material: p.material });
-      const { data, error } = await supabase.from("buildings").insert({ user_id: user!.id, ...p, risk_score: r.score }).select("id").single();
+      const { data, error } = await supabase.from("buildings").insert({ user_id: user!.id, ...p, risk_score: r.score } as any).select("id").single();
       if (error) throw error;
       return { id: data!.id as string };
     },
@@ -235,8 +236,8 @@ function BuildingsPanel() {
   return (
     <StackLayout markers={markers}>
       <div className="card-soft p-5">
-        <PanelHeader icon={<Building2 className="h-5 w-5" />} title="Add a building" subtitle="Submit details to generate a risk report." />
-        <BuildingForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        <PanelHeader icon={<Building2 className="h-5 w-5" />} title="Add a building" subtitle={isProfessional ? "Professional submission — include engineering measurements." : "Submit details and report any visible damage."} />
+        <BuildingForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
       </div>
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
@@ -292,15 +293,17 @@ function BuildingDetail({ item }: { item: any }) {
         <RiskPill category={r.category} score={r.score} />
       </div>
       <p className="text-sm text-muted-foreground">{r.explanation}</p>
+      <ExtrasBlock extras={item.extras} photoUrl={item.photo_url} />
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="building" targetId={item.id} />
     </div>
   );
 }
 
-function BuildingForm({ onSubmit, submitting }: {
-  onSubmit: (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null }) => void;
+function BuildingForm({ onSubmit, submitting, isProfessional }: {
+  onSubmit: (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown> }) => void;
   submitting: boolean;
+  isProfessional: boolean;
 }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -309,6 +312,14 @@ function BuildingForm({ onSubmit, submitting }: {
   const [material, setMaterial] = useState<BuildingMaterial>("reinforced-concrete");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
+  // local
+  const [damage, setDamage] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  // professional
+  const [structural, setStructural] = useState("");
+  const [foundation, setFoundation] = useState("");
+  const [inspection, setInspection] = useState("");
+  const [loadCapacity, setLoadCapacity] = useState("");
 
   return (
     <form
@@ -318,11 +329,16 @@ function BuildingForm({ onSubmit, submitting }: {
         if (!name.trim() || !address.trim()) return;
         const latN = lat.trim() ? Number(lat) : null;
         const lngN = lng.trim() ? Number(lng) : null;
+        const extras: Record<string, unknown> = isProfessional
+          ? { structural_condition: structural || null, foundation_type: foundation || null, last_inspection: inspection || null, load_capacity_kn_m2: loadCapacity ? Number(loadCapacity) : null }
+          : { visible_damage: damage || null };
         onSubmit({
           name: name.trim().slice(0, 80), address: address.trim().slice(0, 200),
           year_built: Math.min(new Date().getFullYear(), Math.max(1800, yearBuilt)),
           floors: Math.min(150, Math.max(1, floors)),
           material, latitude: latN, longitude: lngN,
+          photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null,
+          extras,
         });
       }}
     >
@@ -337,6 +353,40 @@ function BuildingForm({ onSubmit, submitting }: {
       </Field>
       <Field label="Latitude"><input type="number" step="any" className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} /></Field>
       <Field label="Longitude"><input type="number" step="any" className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} /></Field>
+
+      {isProfessional ? (
+        <>
+          <Field label="Structural condition" className="sm:col-span-2">
+            <select className={inputClass()} value={structural} onChange={(e) => setStructural(e.target.value)}>
+              <option value="">Select…</option>
+              <option value="excellent">Excellent</option>
+              <option value="good">Good</option>
+              <option value="fair">Fair</option>
+              <option value="poor">Poor</option>
+              <option value="critical">Critical</option>
+            </select>
+          </Field>
+          <Field label="Foundation type">
+            <select className={inputClass()} value={foundation} onChange={(e) => setFoundation(e.target.value)}>
+              <option value="">Select…</option>
+              <option value="strip">Strip</option>
+              <option value="raft">Raft / mat</option>
+              <option value="pile">Pile</option>
+              <option value="pad">Pad</option>
+            </select>
+          </Field>
+          <Field label="Load capacity (kN/m²)"><input type="number" step="0.1" className={inputClass()} value={loadCapacity} onChange={(e) => setLoadCapacity(e.target.value)} /></Field>
+          <Field label="Last inspection date" className="sm:col-span-2"><input type="date" className={inputClass()} value={inspection} onChange={(e) => setInspection(e.target.value)} /></Field>
+        </>
+      ) : (
+        <>
+          <Field label="Visible damage" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} maxLength={1000} value={damage} onChange={(e) => setDamage(e.target.value)} placeholder="e.g. cracks on outer wall, leaking roof…" />
+          </Field>
+          <Field label="Photo URL of damaged area" className="sm:col-span-2"><input className={inputClass()} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" maxLength={500} /></Field>
+        </>
+      )}
+
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
         <LocationButton onLocate={(la, lo) => { setLat(la); setLng(lo); }} />
         <button type="submit" disabled={submitting} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center gap-2">
@@ -346,6 +396,7 @@ function BuildingForm({ onSubmit, submitting }: {
     </form>
   );
 }
+
 
 /* ------------------------------ WELLS ------------------------------ */
 
