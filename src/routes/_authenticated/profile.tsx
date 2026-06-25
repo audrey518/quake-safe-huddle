@@ -125,7 +125,7 @@ function ProfilePage() {
         </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="card-soft p-6">
+          <section className="card-soft p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Purchase history</h2>
@@ -138,13 +138,13 @@ function ProfilePage() {
                 {historyQ.isLoading ? (
                   <p className="text-sm text-muted-foreground">Loading…</p>
                 ) : historyQ.data?.purchases.length ? (
-                  <ul className="space-y-1.5 text-sm">
+                  <ul className="space-y-2 text-sm">
                     {historyQ.data.purchases.map((p) => (
-                      <li key={p.id} className="flex justify-between gap-2 border-b border-border/60 pb-1.5">
-                        <span className="truncate">
+                      <li key={p.id} className="flex flex-col gap-1 border-b border-border/60 pb-2 sm:flex-row sm:justify-between sm:gap-2">
+                        <span className="min-w-0 break-words">
                           {p.item_name} <span className="text-muted-foreground">· {p.provider_name}</span>
                         </span>
-                        <span className="text-muted-foreground whitespace-nowrap">{p.price ? `MMK ${Number(p.price).toLocaleString()}` : ""}</span>
+                        <span className="text-muted-foreground whitespace-nowrap text-xs sm:text-sm">{p.price ? `MMK ${Number(p.price).toLocaleString()}` : ""}</span>
                       </li>
                     ))}
                   </ul>
@@ -159,13 +159,13 @@ function ProfilePage() {
                 {historyQ.isLoading ? (
                   <p className="text-sm text-muted-foreground">Loading…</p>
                 ) : historyQ.data?.appointments.length ? (
-                  <ul className="space-y-1.5 text-sm">
+                  <ul className="space-y-2 text-sm">
                     {historyQ.data.appointments.map((a) => (
-                      <li key={a.id} className="flex justify-between gap-2 border-b border-border/60 pb-1.5">
-                        <span className="truncate">
+                      <li key={a.id} className="flex flex-col gap-1 border-b border-border/60 pb-2 sm:flex-row sm:justify-between sm:gap-2">
+                        <span className="min-w-0 break-words">
                           {a.service_name} <span className="text-muted-foreground">· {a.provider_name}</span>
                         </span>
-                        <span className="text-muted-foreground whitespace-nowrap">
+                        <span className="text-muted-foreground whitespace-nowrap text-xs sm:text-sm">
                           {a.appointment_date}
                           {a.appointment_time ? ` ${a.appointment_time}` : ""}
                         </span>
@@ -179,7 +179,7 @@ function ProfilePage() {
             </div>
           </section>
 
-          <section className="card-soft p-6">
+          <section className="card-soft p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <Settings className="h-5 w-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Account settings</h2>
