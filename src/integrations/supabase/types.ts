@@ -23,9 +23,12 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          provider_id: string | null
           provider_name: string
+          provider_user_id: string | null
           reminder_sent: boolean
           service_name: string
+          status: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
         Insert: {
@@ -36,9 +39,12 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          provider_id?: string | null
           provider_name: string
+          provider_user_id?: string | null
           reminder_sent?: boolean
           service_name: string
+          status?: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
         Update: {
@@ -49,12 +55,23 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          provider_id?: string | null
           provider_name?: string
+          provider_user_id?: string | null
           reminder_sent?: boolean
           service_name?: string
+          status?: Database["public"]["Enums"]["order_status"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "appointments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       buildings: {
         Row: {
@@ -197,6 +214,98 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_items: {
+        Row: {
+          active: boolean
+          appointment: boolean
+          created_at: string
+          id: string
+          name: string
+          price: number
+          provider_id: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          appointment?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          price?: number
+          provider_id: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          appointment?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+          provider_id?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_items_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      providers: {
+        Row: {
+          blurb: string | null
+          category: Database["public"]["Enums"]["provider_category"]
+          contact_email: string | null
+          created_at: string
+          id: string
+          license_number: string | null
+          location: string | null
+          name: string
+          phone: string | null
+          status: Database["public"]["Enums"]["provider_status"]
+          telegram_chat_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          blurb?: string | null
+          category: Database["public"]["Enums"]["provider_category"]
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          license_number?: string | null
+          location?: string | null
+          name: string
+          phone?: string | null
+          status?: Database["public"]["Enums"]["provider_status"]
+          telegram_chat_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          blurb?: string | null
+          category?: Database["public"]["Enums"]["provider_category"]
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          license_number?: string | null
+          location?: string | null
+          name?: string
+          phone?: string | null
+          status?: Database["public"]["Enums"]["provider_status"]
+          telegram_chat_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       purchases: {
         Row: {
           category: string
@@ -205,7 +314,10 @@ export type Database = {
           item_name: string
           notes: string | null
           price: number | null
+          provider_id: string | null
           provider_name: string
+          provider_user_id: string | null
+          status: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
         Insert: {
@@ -215,7 +327,10 @@ export type Database = {
           item_name: string
           notes?: string | null
           price?: number | null
+          provider_id?: string | null
           provider_name: string
+          provider_user_id?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
         Update: {
@@ -225,10 +340,21 @@ export type Database = {
           item_name?: string
           notes?: string | null
           price?: number | null
+          provider_id?: string | null
           provider_name?: string
+          provider_user_id?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "purchases_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       soil_data: {
         Row: {
@@ -406,6 +532,9 @@ export type Database = {
     }
     Enums: {
       app_role: "local" | "professional" | "provider" | "admin"
+      order_status: "new" | "accepted" | "completed" | "cancelled"
+      provider_category: "materials" | "engineering" | "water" | "insurance"
+      provider_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -534,6 +663,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["local", "professional", "provider", "admin"],
+      order_status: ["new", "accepted", "completed", "cancelled"],
+      provider_category: ["materials", "engineering", "water", "insurance"],
+      provider_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
