@@ -303,7 +303,8 @@ function BuildingsPanel() {
         isGuest={!user}
       />
       <SearchBar value={query} onChange={setQuery} placeholder="Search buildings by name or address…" />
-      <div className="card-soft p-2 max-h-[460px] overflow-auto">
+      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+        <div className="card-soft p-2 max-h-[460px] md:max-h-[600px] overflow-auto min-w-0">
         <ul className="divide-y divide-border">
           {filtered.map((b) => {
             const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
@@ -339,11 +340,13 @@ function BuildingsPanel() {
           })}
           {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : (user ? "No buildings yet. Click \"Add Building\" to create one." : "No buildings yet. Sign in to add one.")}</li>}
         </ul>
+        </div>
+
+        <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
+          <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+        </div>
       </div>
 
-      <div className="card-soft p-2">
-        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
-      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
