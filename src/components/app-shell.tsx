@@ -31,7 +31,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-clip">
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
         <div className="container-app flex h-16 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 group">
