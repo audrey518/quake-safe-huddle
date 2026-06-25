@@ -56,9 +56,8 @@ function ServicesPage() {
     queryKey: ["providers-public", cat],
     queryFn: async (): Promise<DbProvider[]> => {
       const { data: providers, error } = await supabase
-        .from("providers")
-        .select("id,name,blurb,location,phone")
-        .eq("status", "approved")
+        .from("providers_public")
+        .select("id,name,blurb,location")
         .eq("category", cat)
         .order("name");
       if (error) throw error;
