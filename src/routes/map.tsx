@@ -296,8 +296,12 @@ function BuildingsPanel() {
     return [{
       id: `b-${b.id}`, lat: b.latitude, lng: b.longitude, color: riskCategoryColor(r.category), title: b.name,
       popupHtml: `<strong>${esc(b.name)}</strong><br/><span style="color:#666">${esc(b.address)}</span><br/>${r.category} (${r.score}/100) · ${MATERIAL_LABELS[b.material as BuildingMaterial]}`,
+      emphasize: b.id === selectedId,
     }];
   });
+  const selMarker = selectedId ? markers.find((m) => m.emphasize) : null;
+  const mapCenter: [number, number] = selMarker ? [selMarker.lat, selMarker.lng] : (markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]);
+  const mapZoom = selMarker ? 14 : (markers.length ? 4 : 2);
 
 
   const handleAdd = () => {
@@ -360,7 +364,7 @@ function BuildingsPanel() {
         </div>
 
         <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
-          <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+          <MapView markers={markers} center={mapCenter} zoom={mapZoom} height={420} />
         </div>
       </div>
 
