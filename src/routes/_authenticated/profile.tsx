@@ -34,9 +34,24 @@ function ProfilePage() {
   });
 
   const [displayName, setDisplayName] = useState("");
+  const [nameDirty, setNameDirty] = useState(false);
   useEffect(() => {
-    if (profileQ.data?.display_name) setDisplayName(profileQ.data.display_name);
-  }, [profileQ.data?.display_name]);
+    if (!nameDirty && typeof profileQ.data?.display_name === "string") {
+      setDisplayName(profileQ.data.display_name);
+    }
+  }, [profileQ.data?.display_name, nameDirty]);
+
+  const historyQ = useQuery({
+    queryKey: ["profile-history", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const [p, a] = await Promise.all([
+        supabase.from("purchases").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("appointments").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20),
+      ]);
+      return { purchases: p.data ?? [], appointments: a.data ?? [] };
+    },
+  });
 
   const saveProfile = useMutation({
     mutationFn: async (input: { name: string }) => {
