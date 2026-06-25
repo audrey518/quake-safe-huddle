@@ -840,6 +840,27 @@ function ReportsPanel() {
   );
 }
 
+function ReportDetail({ item }: { item: any }) {
+  return (
+    <div className="card-soft p-4 space-y-3 border-l-4" style={{ borderLeftColor: "var(--color-risk-high)" }}>
+      <div>
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Hazard report</div>
+        <div className="mt-1 font-display text-base font-semibold">{HAZARD_LABELS[item.kind as HazardType] ?? item.kind}</div>
+        <div className="text-[11px] text-muted-foreground">Severity: {item.severity} · {formatDistanceToNow(new Date(item.created_at).getTime())} ago</div>
+        <div className="text-[11px] text-muted-foreground">Coords: {Number(item.latitude).toFixed(3)}, {Number(item.longitude).toFixed(3)}</div>
+        <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
+      </div>
+      <p className="text-sm whitespace-pre-line">{item.description}</p>
+      {item.image_url && (
+        <a href={item.image_url} target="_blank" rel="noreferrer" className="block">
+          <img src={item.image_url} alt="Report" className="max-h-64 w-full object-cover rounded-md border border-border" />
+        </a>
+      )}
+      <Comments targetType="report" targetId={item.id} />
+    </div>
+  );
+}
+
 
 function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType; severity: string; latitude: number; longitude: number; description: string; image_url?: string }) => void; submitting: boolean }) {
   const [kind, setKind] = useState<HazardType>("earthquake-damage");
