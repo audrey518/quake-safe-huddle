@@ -452,7 +452,7 @@ function CheckoutModal({
         )}
 
         {step === 2 && (
-          <form
+          <form onFocusCapture={selectOnFocus}
             onSubmit={(e) => { e.preventDefault(); if (canPay) buy.mutate(); }}
             className="space-y-3"
           >
@@ -554,7 +554,7 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: DbPro
   });
 
   return (
-    <form
+    <form onFocusCapture={selectOnFocus}
       onSubmit={(e) => { e.preventDefault(); if (date) book.mutate(); }}
       className="mt-3 grid gap-2 sm:grid-cols-3 border-t border-border/60 pt-3"
     >
