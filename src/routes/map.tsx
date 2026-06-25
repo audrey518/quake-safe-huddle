@@ -484,9 +484,11 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
         </>
       )}
 
-      <Field label={isProfessional ? "Professional notes" : "Notes from a professional (optional)"} className="sm:col-span-2">
-        <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
-      </Field>
+      {isProfessional && (
+        <Field label="Professional notes" className="sm:col-span-2">
+          <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
+        </Field>
+      )}
 
 
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
@@ -718,9 +720,11 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         </>
       )}
 
-      <Field label={isProfessional ? "Professional notes" : "Notes from a professional (optional)"} className="sm:col-span-2">
-        <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
-      </Field>
+      {isProfessional && (
+        <Field label="Professional notes" className="sm:col-span-2">
+          <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
+        </Field>
+      )}
 
 
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">

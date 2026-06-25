@@ -130,7 +130,7 @@ function OrdersTab() {
       <Section title="Purchases" icon={<ShoppingCart className="h-4 w-4" />}>
         {!q.data?.purchases.length ? <Empty>No purchases yet.</Empty> : (
           <OrderTable
-            rows={q.data.purchases.map((p) => ({ id: p.id, kind: "purchase" as const, primary: p.item_name, sub: `MMK ${Number(p.price ?? 0).toLocaleString()}`, when: p.created_at as string, status: (p.status ?? "new") as string }))}
+            rows={q.data.purchases.map((p: any) => ({ id: p.id, kind: "purchase" as const, primary: p.item_name, sub: `MMK ${Number(p.price ?? 0).toLocaleString()}${p.quantity ? ` · qty ${p.quantity}` : ""}`, when: p.created_at as string, status: (p.status ?? "new") as string, customer: p.customer }))}
             onChange={(id, status) => m.mutate({ id, kind: "purchase", status: status as "new"|"accepted"|"completed"|"cancelled" })}
           />
         )}
@@ -138,7 +138,7 @@ function OrdersTab() {
       <Section title="Bookings" icon={<CalendarClock className="h-4 w-4" />}>
         {!q.data?.appointments.length ? <Empty>No bookings yet.</Empty> : (
           <OrderTable
-            rows={q.data.appointments.map((a) => ({ id: a.id, kind: "appointment" as const, primary: a.service_name, sub: `${a.appointment_date}${a.appointment_time ? " " + a.appointment_time : ""}`, when: a.created_at as string, status: (a.status ?? "new") as string }))}
+            rows={q.data.appointments.map((a: any) => ({ id: a.id, kind: "appointment" as const, primary: a.service_name, sub: `${a.appointment_date}${a.appointment_time ? " " + a.appointment_time : ""}`, when: a.created_at as string, status: (a.status ?? "new") as string, customer: { ...a.customer, phone: a.contact_phone ?? a.customer?.phone ?? null } }))}
             onChange={(id, status) => m.mutate({ id, kind: "appointment", status: status as "new"|"accepted"|"completed"|"cancelled" })}
           />
         )}
@@ -147,7 +147,8 @@ function OrdersTab() {
   );
 }
 
-function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"appointment"; primary: string; sub: string; when: string; status: string }[]; onChange: (id: string, status: string) => void }) {
+type CustomerInfo = { name: string; email: string | null; phone: string | null };
+function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"appointment"; primary: string; sub: string; when: string; status: string; customer?: CustomerInfo }[]; onChange: (id: string, status: string) => void }) {
   const statusStyle: Record<string, { dot: string; select: string; label: string }> = {
     new:       { dot: "bg-blue-500",    select: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300", label: "New" },
     accepted:  { dot: "bg-amber-500",   select: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "Accepted" },
@@ -158,13 +159,14 @@ function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-          <tr><th className="py-2 pr-3">Item</th><th className="py-2 pr-3">Detail</th><th className="py-2 pr-3">When</th><th className="py-2 pr-3">Status</th></tr>
+          <tr><th className="py-2 pr-3">Item</th><th className="py-2 pr-3">Detail</th><th className="py-2 pr-3">Customer</th><th className="py-2 pr-3">When</th><th className="py-2 pr-3">Status</th></tr>
         </thead>
         <tbody>
           {rows.map((r) => {
             const st = statusStyle[r.status] ?? statusStyle.new;
+            const c = r.customer;
             return (
-              <tr key={r.id} className="border-t border-border/60">
+              <tr key={r.id} className="border-t border-border/60 align-top">
                 <td className="py-2 pr-3">
                   <span className="inline-flex items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${st.dot}`} aria-hidden />
@@ -172,7 +174,17 @@ function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"
                   </span>
                 </td>
                 <td className="py-2 pr-3 text-muted-foreground">{r.sub}</td>
-                <td className="py-2 pr-3 text-muted-foreground">{new Date(r.when).toLocaleDateString()}</td>
+                <td className="py-2 pr-3">
+                  {c ? (
+                    <div className="min-w-[180px]">
+                      <div className="font-medium text-foreground">{c.name}</div>
+                      {c.email && <a href={`mailto:${c.email}`} className="block text-xs text-primary hover:underline break-all">{c.email}</a>}
+                      {c.phone && <a href={`tel:${c.phone}`} className="block text-xs text-muted-foreground hover:underline">{c.phone}</a>}
+                      {!c.email && !c.phone && <div className="text-xs text-muted-foreground">No contact on file</div>}
+                    </div>
+                  ) : <span className="text-xs text-muted-foreground">—</span>}
+                </td>
+                <td className="py-2 pr-3 text-muted-foreground whitespace-nowrap">{new Date(r.when).toLocaleDateString()}</td>
                 <td className="py-2 pr-3">
                   <select
                     value={r.status}
@@ -187,7 +199,6 @@ function OrderTable({ rows, onChange }: { rows: { id: string; kind: "purchase"|"
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </td>
-
               </tr>
             );
           })}

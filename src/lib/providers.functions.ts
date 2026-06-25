@@ -120,7 +120,44 @@ export const listMyOrders = createServerFn({ method: "GET" })
       supabase.from("purchases").select("*").eq("provider_user_id", context.userId).order("created_at", { ascending: false }).limit(100),
       supabase.from("appointments").select("*").eq("provider_user_id", context.userId).order("created_at", { ascending: false }).limit(100),
     ]);
-    return { purchases: p.data ?? [], appointments: a.data ?? [] };
+    const purchases = p.data ?? [];
+    const appointments = a.data ?? [];
+
+    // Enrich with customer details (name + email + phone) for the provider.
+    const userIds = Array.from(new Set([
+      ...purchases.map((r: any) => r.user_id).filter(Boolean),
+      ...appointments.map((r: any) => r.user_id).filter(Boolean),
+    ]));
+    const customers: Record<string, { name: string; email: string | null; phone: string | null }> = {};
+    if (userIds.length) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: profs } = await supabaseAdmin
+        .from("profiles").select("id, display_name").in("id", userIds);
+      for (const pr of profs ?? []) {
+        customers[pr.id] = { name: (pr as any).display_name ?? "Customer", email: null, phone: null };
+      }
+      // Fetch emails/phones via auth admin
+      await Promise.all(userIds.map(async (uid) => {
+        try {
+          const { data } = await supabaseAdmin.auth.admin.getUserById(uid);
+          const u = data?.user;
+          if (!u) return;
+          customers[uid] = {
+            name: customers[uid]?.name ?? ((u.user_metadata as any)?.display_name ?? u.email ?? "Customer"),
+            email: u.email ?? null,
+            phone: (u.phone as string | null) ?? null,
+          };
+        } catch { /* ignore */ }
+      }));
+    }
+    const enrich = <T extends { user_id: string | null }>(r: T) => ({
+      ...r,
+      customer: (r.user_id && customers[r.user_id]) || { name: "Customer", email: null, phone: null },
+    });
+    return {
+      purchases: purchases.map(enrich),
+      appointments: appointments.map(enrich),
+    };
   });
 
 export const updateOrderStatus = createServerFn({ method: "POST" })
