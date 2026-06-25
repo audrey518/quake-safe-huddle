@@ -79,9 +79,9 @@ function ProfilePage() {
   return (
     <AppShell>
       <div className="container-app py-8 space-y-8">
-        <header className="flex items-center gap-5">
-          <div className="grid h-20 w-20 place-items-center rounded-full bg-primary/10 text-primary">
-            <UserCircle2 className="h-12 w-12" />
+        <header className="flex items-center gap-4 sm:gap-5">
+          <div className="grid h-16 w-16 sm:h-20 sm:w-20 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+            <UserCircle2 className="h-10 w-10 sm:h-12 sm:w-12" />
           </div>
           <div className="min-w-0">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight truncate">
