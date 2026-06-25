@@ -418,7 +418,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
 
   return (
     <form
-      className="mt-4 grid gap-3 sm:grid-cols-2"
+      className="mt-4 grid gap-3 sm:grid-cols-2 [&_input]:min-w-0 [&_select]:min-w-0 [&_textarea]:min-w-0"
       onSubmit={(e) => {
         e.preventDefault();
         if (!name.trim() || !address.trim()) return;
