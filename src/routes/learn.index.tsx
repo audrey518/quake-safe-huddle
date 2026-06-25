@@ -20,6 +20,7 @@ const ICONS = {
   soil: Mountain,
   materials: Hammer,
   water: Droplets,
+  waste: Trash2,
 } as const;
 
 function LearnIndex() {
