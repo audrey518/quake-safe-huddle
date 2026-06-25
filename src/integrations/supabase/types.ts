@@ -71,6 +71,13 @@ export type Database = {
             referencedRelation: "providers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "appointments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       buildings: {
@@ -259,6 +266,13 @@ export type Database = {
             referencedRelation: "providers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "provider_items_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       providers: {
@@ -373,6 +387,13 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers_public"
             referencedColumns: ["id"]
           },
           {
@@ -547,7 +568,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      providers_public: {
+        Row: {
+          blurb: string | null
+          category: Database["public"]["Enums"]["provider_category"] | null
+          created_at: string | null
+          id: string | null
+          location: string | null
+          name: string | null
+          status: Database["public"]["Enums"]["provider_status"] | null
+        }
+        Insert: {
+          blurb?: string | null
+          category?: Database["public"]["Enums"]["provider_category"] | null
+          created_at?: string | null
+          id?: string | null
+          location?: string | null
+          name?: string | null
+          status?: Database["public"]["Enums"]["provider_status"] | null
+        }
+        Update: {
+          blurb?: string | null
+          category?: Database["public"]["Enums"]["provider_category"] | null
+          created_at?: string | null
+          id?: string | null
+          location?: string | null
+          name?: string | null
+          status?: Database["public"]["Enums"]["provider_status"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_author_info: {
