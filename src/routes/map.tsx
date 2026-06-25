@@ -196,6 +196,7 @@ const FEEDS: { id: UsgsFeed; label: string }[] = [
 function EarthquakesPanel() {
   const [feed, setFeed] = useState<UsgsFeed>("2.5_day");
   const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["usgs", feed],
     queryFn: () => fetchRecentEarthquakes(feed),
@@ -209,7 +210,7 @@ function EarthquakesPanel() {
   }));
 
   return (
-    <StackLayout markers={markers}>
+    <StackLayout markers={markers} focusId={selectedId ? `q-${selectedId}` : null}>
       <div className="card-soft p-5 md:col-span-2 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <PanelHeader icon={<Activity className="h-5 w-5" />} title="Live earthquakes" subtitle="Real-time USGS feed (read-only)." />
@@ -226,15 +227,25 @@ function EarthquakesPanel() {
         <div className="max-h-[400px] overflow-auto -mx-2">
           {isLoading && <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>}
           <ul className="divide-y divide-border">
-            {filtered.slice(0, 50).map((q) => (
-              <li key={q.id} className="flex items-center gap-3 p-3">
-                <MagnitudeBadge mag={q.magnitude} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{q.place}</div>
-                  <div className="text-[11px] text-muted-foreground">{q.depth.toFixed(0)} km · {formatDistanceToNow(q.time)} ago</div>
-                </div>
-              </li>
-            ))}
+            {filtered.slice(0, 50).map((q) => {
+              const active = q.id === selectedId;
+              return (
+                <li key={q.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(active ? null : q.id)}
+                    className={`w-full text-left flex items-center gap-3 p-3 transition ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`}
+                    aria-pressed={active}
+                  >
+                    <MagnitudeBadge mag={q.magnitude} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium">{q.place}</div>
+                      <div className="text-[11px] text-muted-foreground">{q.depth.toFixed(0)} km · {formatDistanceToNow(q.time)} ago</div>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
             {filtered.length === 0 && !isLoading && <li className="p-6 text-center text-sm text-muted-foreground">{query ? "No matches." : "No earthquakes in this feed."}</li>}
           </ul>
         </div>
