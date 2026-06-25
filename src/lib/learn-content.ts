@@ -13,7 +13,7 @@ export type LearnCategory = {
   shortTitle: string;
   description: string;
   accent: string; // css color
-  icon: "alert" | "building" | "soil" | "materials" | "water";
+  icon: "alert" | "building" | "soil" | "materials" | "water" | "waste";
   posts: LearnPost[];
 };
 
