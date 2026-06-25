@@ -128,10 +128,34 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; kind: "purchase" | "appointment"; status: "new" | "accepted" | "completed" | "cancelled" }) => d)
   .handler(async ({ data, context }) => {
     const table = data.kind === "purchase" ? "purchases" : "appointments";
+    const { data: existing } = await context.supabase.from(table).select("status").eq("id", data.id).maybeSingle();
+    if (existing?.status === "cancelled") {
+      throw new Error("This order was cancelled by the customer and can no longer be updated.");
+    }
     const { error } = await context.supabase.from(table).update({ status: data.status }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const adminGetRevenue = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("purchases")
+      .select("id, item_name, price, quantity, admin_commission, provider_payout, status, created_at, provider_user_id")
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    const rows = data ?? [];
+    const totalRevenue = rows.reduce((s, r) => s + Number((r as any).admin_commission ?? 0), 0);
+    const grossSales = rows.reduce((s, r) => s + Number((r as any).price ?? 0), 0);
+    return { rows, totalRevenue, grossSales, count: rows.length };
+  });
+
 
 export const getMyStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
