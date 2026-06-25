@@ -216,10 +216,10 @@ function ServicesPage() {
 function ProviderCard({ provider, category, onDone }: { provider: DbProvider; category: ServiceCategoryId; onDone: () => void }) {
   return (
     <div className="card-soft p-5 space-y-3">
-      <div>
-        <h3 className="font-display text-lg font-semibold">{provider.name}</h3>
-        <p className="text-xs text-muted-foreground">{provider.location ?? ""}{provider.phone ? ` · ${provider.phone}` : ""}</p>
-        {provider.blurb && <p className="text-sm mt-1.5 text-foreground/80">{provider.blurb}</p>}
+      <div className="min-w-0">
+        <h3 className="font-display text-lg font-semibold truncate">{provider.name}</h3>
+        <p className="text-xs text-muted-foreground truncate">{provider.location ?? ""}{provider.phone ? ` · ${provider.phone}` : ""}</p>
+        {provider.blurb && <p className="text-sm mt-1.5 text-foreground/80 line-clamp-2">{provider.blurb}</p>}
       </div>
       <ul className="space-y-2">
         {provider.items.length === 0 && (
@@ -252,7 +252,7 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
 
   return (
     <li className="rounded-md border border-border bg-secondary/30 p-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{item.name}</div>
           <div className="text-xs text-muted-foreground">
@@ -261,14 +261,14 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
           </div>
         </div>
         {item.appointment ? (
-          <button onClick={() => requireAuth(() => setBookOpen((v) => !v))} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap">
-            {!user ? "Sign in to book" : bookOpen ? "Close" : "Book appointment"}
+          <button onClick={() => requireAuth(() => setBookOpen((v) => !v))} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap w-full sm:w-auto">
+            {!user ? "Sign in to book" : bookOpen ? "Close" : "Book"}
           </button>
         ) : (
           <button
             onClick={() => requireAuth(() => setCheckoutOpen(true))}
             disabled={outOfStock}
-            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap"
+            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap w-full sm:w-auto"
           >
             {!user ? "Sign in to buy" : outOfStock ? "Sold out" : "Buy now"}
           </button>
