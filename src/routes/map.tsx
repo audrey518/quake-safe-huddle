@@ -1101,8 +1101,8 @@ function SoilDetail({ item }: { item: any }) {
 function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string | null; address: string | null; latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [soilType, setSoilType] = useState("Clay");
-  const [depth, setDepth] = useState(5);
+  const [soilType, setSoilType] = useState("");
+  const [depth, setDepth] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [notes, setNotes] = useState("");
   // local
@@ -1119,6 +1119,7 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
         if (!name.trim() || !address.trim()) { toast.error("Name and address required"); return; }
+        if (!soilType) { toast.error("Please select a soil type"); return; }
         if (Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Coordinates required"); return; }
         const extras: Record<string, unknown> = isProfessional
           ? { bearing_capacity_kpa: bearing ? Number(bearing) : null, moisture_pct: moisture ? Number(moisture) : null, permeability_cm_s: permeability ? Number(permeability) : null, spt_n_value: spt ? Number(spt) : null }
@@ -1126,7 +1127,7 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         onSubmit({
           name: name.trim().slice(0, 80),
           address: address.trim().slice(0, 200),
-          latitude: la, longitude: lo, soil_type: soilType, depth_m: depth, notes: notes.slice(0, 1000),
+          latitude: la, longitude: lo, soil_type: soilType, depth_m: depth ? parseFloat(depth) : 0, notes: notes.slice(0, 1000),
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
         });
       }}>
@@ -1135,10 +1136,11 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
 
       <Field label="Soil type">
         <select className={inputClass()} value={soilType} onChange={(e) => setSoilType(e.target.value)}>
+          <option value="">Select…</option>
           {SOIL_TYPES.map((t) => <option key={t}>{t}</option>)}
         </select>
       </Field>
-      <Field label="Depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
+      <Field label="Depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(e.target.value)} /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
 
