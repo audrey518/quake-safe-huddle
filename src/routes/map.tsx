@@ -349,7 +349,7 @@ function BuildingsPanel() {
 
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 rounded-lg">
+        <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[85vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 rounded-lg">
           <DialogHeader>
             <DialogTitle>Add a building</DialogTitle>
             <DialogDescription>
