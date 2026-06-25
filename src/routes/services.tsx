@@ -9,8 +9,9 @@ import { CATEGORIES, type ServiceCategoryId } from "@/lib/services-data";
 import { bookAppointment, recordPurchase, cancelPurchase } from "@/lib/telegram.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Briefcase, Building2, CalendarClock, CreditCard, Droplets, Lock, Minus, Plus, ShieldCheck, ShoppingCart, X } from "lucide-react";
+import { Briefcase, Building2, CalendarClock, CreditCard, Droplets, Lock, Minus, Plus, ShieldCheck, ShoppingCart, Store, X } from "lucide-react";
 import { toast } from "sonner";
+import heroImg from "@/assets/hero-services.jpg";
 
 const searchSchema = z.object({ cat: z.enum(["materials", "engineering", "water", "insurance"]).optional() });
 
