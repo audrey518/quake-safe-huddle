@@ -500,8 +500,12 @@ function WellsPanel() {
     queryFn: async () => (await supabase.from("wells").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((w) => (w.name?.toLowerCase().includes(ql) || w.address?.toLowerCase().includes(ql))) : items;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = items.find((w) => w.id === selectedId) ?? null;
+
 
   const create = useMutation({
     mutationFn: async (p: { name: string; address: string | null; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
