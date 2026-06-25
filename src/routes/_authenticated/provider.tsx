@@ -237,7 +237,7 @@ function ListingsTab() {
         <button onClick={() => setEditing({ name: "", price: 0, unit: "", appointment: false, active: false, stock: 0 })} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"><Plus className="h-3.5 w-3.5" /> Add item</button>
       </div>
       {editing && (
-        <form onSubmit={(e) => {
+        <form onFocusCapture={selectOnFocus} onSubmit={(e) => {
           e.preventDefault();
           if (!editing.name) return;
           if (editing.active && !editing.appointment && editing.stock <= 0) {
@@ -304,7 +304,7 @@ function SettingsTab({ provider, onSaved }: { provider: { blurb: string | null; 
     onError: (e) => toast.error(e instanceof Error ? e.message : "Save failed"),
   });
   return (
-    <form onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="card-soft p-4 grid gap-3 max-w-xl">
+    <form onFocusCapture={selectOnFocus} onSubmit={(e) => { e.preventDefault(); m.mutate(); }} className="card-soft p-4 grid gap-3 max-w-xl">
       <Field label="Short description"><textarea className={inputClass()} rows={2} value={blurb} onChange={(e) => setBlurb(e.target.value)} /></Field>
       <Field label="Location"><input className={inputClass()} value={location} onChange={(e) => setLocation(e.target.value)} /></Field>
       <Field label="Phone"><input className={inputClass()} value={phone} onChange={(e) => setPhone(e.target.value)} /></Field>

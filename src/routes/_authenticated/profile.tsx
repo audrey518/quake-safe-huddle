@@ -185,7 +185,7 @@ function ProfilePage() {
               <Settings className="h-5 w-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Account settings</h2>
             </div>
-            <form
+            <form onFocusCapture={selectOnFocus}
               className="mt-4 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();

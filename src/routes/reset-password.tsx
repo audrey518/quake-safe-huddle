@@ -4,6 +4,7 @@ import { Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GeoSafeLogo } from "@/components/geosafe-logo";
+import { selectOnFocus } from "@/components/safeground/ui";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
@@ -63,7 +64,7 @@ function ResetPasswordPage() {
         <h1 className="font-display text-2xl font-semibold tracking-tight">Set a new password</h1>
         <p className="mt-1 text-sm text-muted-foreground">Choose something you haven't used before.</p>
 
-        <form className="mt-6 space-y-3" onSubmit={onSubmit}>
+        <form onFocusCapture={selectOnFocus} className="mt-6 space-y-3" onSubmit={onSubmit}>
           <Input icon={<Lock className="h-4 w-4" />} placeholder="New password" value={password} onChange={setPassword} />
           <Input icon={<Lock className="h-4 w-4" />} placeholder="Confirm new password" value={confirm} onChange={setConfirm} />
           <button
