@@ -343,7 +343,8 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           material, latitude: latN, longitude: lngN,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null,
           extras,
-          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+          professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+
         });
       }}
     >
