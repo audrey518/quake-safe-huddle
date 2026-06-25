@@ -100,7 +100,7 @@ function StatCards() {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <StatCard label="Orders this month" value={s?.ordersThisMonth ?? "—"} />
-      <StatCard label="Revenue this month" value={s ? `Rs. ${s.revenueThisMonth.toLocaleString()}` : "—"} />
+      <StatCard label="Revenue this month" value={s ? `MMK ${s.revenueThisMonth.toLocaleString()}` : "—"} />
       <StatCard label="Pending orders" value={s?.pending ?? "—"} />
     </div>
   );
