@@ -33,7 +33,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-clip">
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-        <div className="container-app flex h-20 md:h-14 items-center justify-between gap-4">
+        <div className="container-app flex h-20 md:h-16 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5 group">
             <GeoSafeLogo className="h-10 w-10 md:h-8 md:w-8 rounded-lg" />
             <div className="leading-tight">
