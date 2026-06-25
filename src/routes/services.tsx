@@ -265,7 +265,7 @@ function ProviderCard({ provider, category, onDone }: { provider: DbProvider; ca
     <div className="card-soft p-5 space-y-3">
       <div className="min-w-0">
         <h3 className="font-display text-lg font-semibold truncate">{provider.name}</h3>
-        <p className="text-xs text-muted-foreground truncate">{provider.location ?? ""}{provider.phone ? ` · ${provider.phone}` : ""}</p>
+        <p className="text-xs text-muted-foreground truncate">{provider.location ?? ""}</p>
         {provider.blurb && <p className="text-sm mt-1.5 text-foreground/80 line-clamp-2">{provider.blurb}</p>}
       </div>
       <ul className="space-y-2">
