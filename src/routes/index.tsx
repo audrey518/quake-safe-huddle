@@ -281,8 +281,7 @@ function Dashboard() {
           </aside>
         </div>
       </div>
-        </div>
-      </div>
+
 
       {/* FEATURED LEARN */}
       <section className="border-t border-border bg-secondary/30">
