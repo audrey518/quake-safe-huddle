@@ -162,24 +162,24 @@ function ServicesPage() {
                 <ShoppingCart className="h-3.5 w-3.5" /> Purchases
               </div>
               {historyQ.data?.purchases.length ? (
-                <ul className="space-y-1.5 text-sm">
+                <ul className="space-y-2 text-sm">
                   {historyQ.data.purchases.map((p) => {
                     const cancelled = p.status === "cancelled";
                     const completed = p.status === "completed";
                     return (
-                      <li key={p.id} className="flex items-center justify-between gap-2 border-b border-border/60 pb-1.5">
-                        <span className="truncate min-w-0">
+                      <li key={p.id} className="flex flex-col gap-1.5 border-b border-border/60 pb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                        <span className="min-w-0 break-words">
                           {p.item_name} × {p.quantity ?? 1}
                           <span className="text-muted-foreground"> · {p.provider_name}</span>
                           {cancelled && <span className="ml-1.5 text-[10px] uppercase text-destructive">cancelled</span>}
                           {completed && <span className="ml-1.5 text-[10px] uppercase text-emerald-600">completed</span>}
                         </span>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center justify-between gap-2 shrink-0 sm:justify-end">
                           <span className="text-muted-foreground whitespace-nowrap">{p.price ? `MMK ${Number(p.price).toLocaleString()}` : ""}</span>
                           {!cancelled && !completed && (
                             <button
                               onClick={() => { if (confirm("Cancel this order? Stock will be restored.")) cancel.mutate(p.id); }}
-                              className="text-[11px] rounded border border-input px-1.5 py-0.5 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                              className="text-[11px] rounded border border-input px-2 py-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
                             >
                               Cancel
                             </button>
@@ -196,11 +196,11 @@ function ServicesPage() {
                 <CalendarClock className="h-3.5 w-3.5" /> Appointments
               </div>
               {historyQ.data?.appointments.length ? (
-                <ul className="space-y-1.5 text-sm">
+                <ul className="space-y-2 text-sm">
                   {historyQ.data.appointments.map((a) => (
-                    <li key={a.id} className="flex justify-between gap-2 border-b border-border/60 pb-1.5">
-                      <span className="truncate">{a.service_name} <span className="text-muted-foreground">· {a.provider_name}</span></span>
-                      <span className="text-muted-foreground whitespace-nowrap">{a.appointment_date}{a.appointment_time ? ` ${a.appointment_time}` : ""}</span>
+                    <li key={a.id} className="flex flex-col gap-1 border-b border-border/60 pb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                      <span className="min-w-0 break-words">{a.service_name} <span className="text-muted-foreground">· {a.provider_name}</span></span>
+                      <span className="text-muted-foreground whitespace-nowrap text-xs sm:text-sm">{a.appointment_date}{a.appointment_time ? ` ${a.appointment_time}` : ""}</span>
                     </li>
                   ))}
                 </ul>
