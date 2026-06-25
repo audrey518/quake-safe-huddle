@@ -565,18 +565,30 @@ function WellsPanel() {
           {filtered.map((w) => {
             const active = w.id === selectedId;
             return (
-              <li key={w.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(w.id)}>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{w.name}</div>
-                  {w.address && <div className="text-[11px] text-muted-foreground truncate">{w.address}</div>}
-                  <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
-                  <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
-                </div>
-
-                {w.user_id === user?.id && (
-                  <button onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+              <li key={w.id} className={active ? "bg-primary/5" : "hover:bg-secondary/40"}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(active ? null : w.id)}
+                  className="w-full text-left p-3 flex items-center gap-3 cursor-pointer"
+                  aria-expanded={active}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{w.name}</div>
+                    {w.address && <div className="text-[11px] text-muted-foreground truncate">{w.address}</div>}
+                    <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
+                    <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
+                  </div>
+                  {w.user_id === user?.id && (
+                    <span onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)] inline-flex" role="button" aria-label="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${active ? "rotate-180" : ""}`} />
+                </button>
+                {active && (
+                  <div className="px-3 pb-3">
+                    <WellDetail item={w} />
+                  </div>
                 )}
               </li>
             );
@@ -588,7 +600,7 @@ function WellsPanel() {
       <div className="card-soft p-2">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
-      {selected && <WellDetail item={selected} />}
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
           <DialogHeader>
