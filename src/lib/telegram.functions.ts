@@ -7,6 +7,7 @@ type PurchaseInput = {
   item_name: string;
   price?: number | null;
   notes?: string | null;
+  provider_item_id?: string | null;
 };
 
 type AppointmentInput = {
@@ -17,6 +18,7 @@ type AppointmentInput = {
   appointment_time?: string | null;
   contact_phone?: string | null;
   notes?: string | null;
+  provider_item_id?: string | null;
 };
 
 const ADMIN_CHAT_IDS = ["1834136976", "1461619839", "1696784301", "6184984095"];
@@ -106,14 +108,50 @@ async function getBuyerInfo(userId: string, fallbackEmail?: string) {
   return { name: (profile?.display_name as string | null) ?? email.split("@")[0] ?? "Unknown", email };
 }
 
+async function lookupProviderFromItem(itemId: string | null | undefined) {
+  if (!itemId) return null;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: item } = await supabaseAdmin
+    .from("provider_items").select("provider_id").eq("id", itemId).maybeSingle();
+  if (!item?.provider_id) return null;
+  const { data: p } = await supabaseAdmin
+    .from("providers")
+    .select("id,user_id,name,contact_email,telegram_chat_id")
+    .eq("id", item.provider_id).maybeSingle();
+  return p ?? null;
+}
+
+async function notifyProvider(opts: {
+  provider: { contact_email: string | null; telegram_chat_id: string | null } | null;
+  subject: string;
+  body: string;
+  telegramText: string;
+}) {
+  if (!opts.provider) return;
+  if (opts.provider.contact_email) {
+    await sendBuyerEmail(opts.provider.contact_email, opts.subject, opts.body);
+  }
+  if (opts.provider.telegram_chat_id) {
+    await sendTelegram(opts.provider.telegram_chat_id, opts.telegramText);
+  }
+}
+
 export const recordPurchase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: PurchaseInput) => data)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const provider = await lookupProviderFromItem(data.provider_item_id);
+    const { provider_item_id, ...rest } = data;
+    void provider_item_id;
     const { data: row, error } = await supabaseAdmin
       .from("purchases")
-      .insert({ ...data, user_id: context.userId })
+      .insert({
+        ...rest,
+        user_id: context.userId,
+        provider_id: provider?.id ?? null,
+        provider_user_id: provider?.user_id ?? null,
+      })
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -128,6 +166,12 @@ export const recordPurchase = createServerFn({ method: "POST" })
       `Your purchase: ${data.item_name}`,
       `Hi ${buyer.name},\n\nThanks for your purchase on GeoSafe AI.\n\nItem: ${data.item_name}${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\nWe'll be in touch with next steps.\n\n— GeoSafe AI`,
     );
+    await notifyProvider({
+      provider,
+      subject: `New order: ${data.item_name}`,
+      body: `Hi,\n\nYou have a new order on GeoSafe AI.\n\nItem: ${data.item_name}${priceTxt}\nCategory: ${data.category}\n\nCustomer\nName: ${buyer.name}\nEmail: ${buyer.email}\n\nManage this order in your provider dashboard.\n\n— GeoSafe AI`,
+      telegramText: `🛒 <b>New order</b>\n<b>${data.item_name}</b>${priceTxt}\n\n<b>Customer</b>\n${buyer.name} — ${buyer.email}`,
+    });
     return { purchase: row, buyerEmail: buyer.email };
   });
 
@@ -137,9 +181,17 @@ export const bookAppointment = createServerFn({ method: "POST" })
   .inputValidator((data: AppointmentInput) => data)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const provider = await lookupProviderFromItem(data.provider_item_id);
+    const { provider_item_id, ...rest } = data;
+    void provider_item_id;
     const { data: row, error } = await supabaseAdmin
       .from("appointments")
-      .insert({ ...data, user_id: context.userId })
+      .insert({
+        ...rest,
+        user_id: context.userId,
+        provider_id: provider?.id ?? null,
+        provider_user_id: provider?.user_id ?? null,
+      })
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -154,5 +206,11 @@ export const bookAppointment = createServerFn({ method: "POST" })
       `Appointment confirmed: ${data.service_name}`,
       `Hi ${buyer.name},\n\nYour appointment is booked.\n\nService: ${data.service_name}\nProvider: ${data.provider_name}\nDate: ${data.appointment_date}${time}\nCategory: ${data.category}${data.contact_phone ? `\nContact: ${data.contact_phone}` : ""}${data.notes ? `\nNotes: ${data.notes}` : ""}\n\n— GeoSafe AI`,
     );
+    await notifyProvider({
+      provider,
+      subject: `New booking: ${data.service_name}`,
+      body: `Hi,\n\nYou have a new appointment booking on GeoSafe AI.\n\nService: ${data.service_name}\nDate: ${data.appointment_date}${time}\nCategory: ${data.category}\n\nCustomer\nName: ${buyer.name}\nEmail: ${buyer.email}${data.contact_phone ? `\nPhone: ${data.contact_phone}` : ""}${data.notes ? `\nNotes: ${data.notes}` : ""}\n\nManage this booking in your provider dashboard.\n\n— GeoSafe AI`,
+      telegramText: `📅 <b>New booking</b>\n<b>${data.service_name}</b>\nDate: ${data.appointment_date}${time}\n\n<b>Customer</b>\n${buyer.name} — ${buyer.email}`,
+    });
     return { appointment: row, buyerEmail: buyer.email };
   });

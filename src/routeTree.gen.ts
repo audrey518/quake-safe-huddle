@@ -14,9 +14,11 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as AuthenticatedProviderRouteImport } from './routes/_authenticated/provider'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedLearnIndexRouteImport } from './routes/_authenticated/learn.index'
+import { Route as AuthenticatedAdminProvidersRouteImport } from './routes/_authenticated/admin.providers'
 import { Route as ApiPublicHooksAppointmentRemindersRouteImport } from './routes/api/public/hooks/appointment-reminders'
 import { Route as AuthenticatedLearnCategoryPostRouteImport } from './routes/_authenticated/learn.$category.$post'
 
@@ -44,6 +46,11 @@ const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProviderRoute = AuthenticatedProviderRouteImport.update({
+  id: '/provider',
+  path: '/provider',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -59,6 +66,12 @@ const AuthenticatedLearnIndexRoute = AuthenticatedLearnIndexRouteImport.update({
   path: '/learn/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminProvidersRoute =
+  AuthenticatedAdminProvidersRouteImport.update({
+    id: '/admin/providers',
+    path: '/admin/providers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicHooksAppointmentRemindersRoute =
   ApiPublicHooksAppointmentRemindersRouteImport.update({
     id: '/api/public/hooks/appointment-reminders',
@@ -78,7 +91,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/map': typeof AuthenticatedMapRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/provider': typeof AuthenticatedProviderRoute
   '/services': typeof AuthenticatedServicesRoute
+  '/admin/providers': typeof AuthenticatedAdminProvidersRoute
   '/learn/': typeof AuthenticatedLearnIndexRoute
   '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
   '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
@@ -88,8 +103,10 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/map': typeof AuthenticatedMapRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/provider': typeof AuthenticatedProviderRoute
   '/services': typeof AuthenticatedServicesRoute
   '/': typeof AuthenticatedIndexRoute
+  '/admin/providers': typeof AuthenticatedAdminProvidersRoute
   '/learn': typeof AuthenticatedLearnIndexRoute
   '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
   '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
@@ -101,8 +118,10 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/map': typeof AuthenticatedMapRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/provider': typeof AuthenticatedProviderRoute
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/admin/providers': typeof AuthenticatedAdminProvidersRoute
   '/_authenticated/learn/': typeof AuthenticatedLearnIndexRoute
   '/_authenticated/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
   '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
@@ -115,7 +134,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/map'
     | '/profile'
+    | '/provider'
     | '/services'
+    | '/admin/providers'
     | '/learn/'
     | '/learn/$category/$post'
     | '/api/public/hooks/appointment-reminders'
@@ -125,8 +146,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/map'
     | '/profile'
+    | '/provider'
     | '/services'
     | '/'
+    | '/admin/providers'
     | '/learn'
     | '/learn/$category/$post'
     | '/api/public/hooks/appointment-reminders'
@@ -137,8 +160,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/map'
     | '/_authenticated/profile'
+    | '/_authenticated/provider'
     | '/_authenticated/services'
     | '/_authenticated/'
+    | '/_authenticated/admin/providers'
     | '/_authenticated/learn/'
     | '/_authenticated/learn/$category/$post'
     | '/api/public/hooks/appointment-reminders'
@@ -188,6 +213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedServicesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/provider': {
+      id: '/_authenticated/provider'
+      path: '/provider'
+      fullPath: '/provider'
+      preLoaderRoute: typeof AuthenticatedProviderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -207,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/learn'
       fullPath: '/learn/'
       preLoaderRoute: typeof AuthenticatedLearnIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/providers': {
+      id: '/_authenticated/admin/providers'
+      path: '/admin/providers'
+      fullPath: '/admin/providers'
+      preLoaderRoute: typeof AuthenticatedAdminProvidersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/hooks/appointment-reminders': {
@@ -229,8 +268,10 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedProviderRoute: typeof AuthenticatedProviderRoute
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAdminProvidersRoute: typeof AuthenticatedAdminProvidersRoute
   AuthenticatedLearnIndexRoute: typeof AuthenticatedLearnIndexRoute
   AuthenticatedLearnCategoryPostRoute: typeof AuthenticatedLearnCategoryPostRoute
 }
@@ -238,8 +279,10 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedProviderRoute: AuthenticatedProviderRoute,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAdminProvidersRoute: AuthenticatedAdminProvidersRoute,
   AuthenticatedLearnIndexRoute: AuthenticatedLearnIndexRoute,
   AuthenticatedLearnCategoryPostRoute: AuthenticatedLearnCategoryPostRoute,
 }

@@ -5,11 +5,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { Field, inputClass } from "@/components/safeground/ui";
-import { CATEGORIES, PROVIDERS, type ServiceCategoryId, type ProviderItem, type Provider } from "@/lib/services-data";
+import { CATEGORIES, type ServiceCategoryId } from "@/lib/services-data";
 import { bookAppointment, recordPurchase } from "@/lib/telegram.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Briefcase, Building2, CalendarClock, CheckCircle2, Droplets, ShieldCheck, ShoppingCart } from "lucide-react";
+import { Briefcase, Building2, CalendarClock, Droplets, ShieldCheck, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({ cat: z.enum(["materials", "engineering", "water", "insurance"]).optional() });
@@ -27,26 +27,69 @@ const ICONS: Record<ServiceCategoryId, React.ComponentType<{ className?: string 
   insurance: ShieldCheck,
 };
 
+type DbProvider = {
+  id: string;
+  name: string;
+  blurb: string | null;
+  location: string | null;
+  phone: string | null;
+  items: DbItem[];
+};
+type DbItem = {
+  id: string;
+  name: string;
+  price: number;
+  unit: string | null;
+  appointment: boolean;
+};
+
 function ServicesPage() {
   const search = Route.useSearch();
   const cat: ServiceCategoryId = (search.cat as ServiceCategoryId) ?? "materials";
-  const providers = PROVIDERS[cat];
   const meta = CATEGORIES.find((c) => c.id === cat)!;
 
   const { user } = useAuth();
   const qc = useQueryClient();
+
+  const providersQ = useQuery({
+    queryKey: ["providers-public", cat],
+    queryFn: async (): Promise<DbProvider[]> => {
+      const { data: providers, error } = await supabase
+        .from("providers")
+        .select("id,name,blurb,location,phone")
+        .eq("status", "approved")
+        .eq("category", cat)
+        .order("name");
+      if (error) throw error;
+      const ids = (providers ?? []).map((p) => p.id);
+      if (!ids.length) return [];
+      const { data: items } = await supabase
+        .from("provider_items")
+        .select("id,provider_id,name,price,unit,appointment,active")
+        .in("provider_id", ids)
+        .eq("active", true);
+      return (providers ?? []).map((p) => ({
+        ...p,
+        items: ((items ?? []) as Array<{provider_id:string;id:string;name:string;price:number;unit:string|null;appointment:boolean}>)
+          .filter((i) => i.provider_id === p.id)
+          .map((i) => ({ id: i.id, name: i.name, price: Number(i.price), unit: i.unit, appointment: i.appointment })),
+      }));
+    },
+  });
 
   const historyQ = useQuery({
     queryKey: ["purchases", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const [p, a] = await Promise.all([
-        supabase.from("purchases").select("*").order("created_at", { ascending: false }).limit(10),
-        supabase.from("appointments").select("*").order("created_at", { ascending: false }).limit(10),
+        supabase.from("purchases").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("appointments").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(10),
       ]);
       return { purchases: p.data ?? [], appointments: a.data ?? [] };
     },
   });
+
+  const providers = providersQ.data ?? [];
 
   return (
     <AppShell>
@@ -54,7 +97,7 @@ function ServicesPage() {
         <header>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Services & Products</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Verified vendors and providers. Notifications sent via our Telegram bot — link your chat ID in <Link to="/profile" className="underline">Profile</Link>.
+            Verified vendors. Are you a provider? <Link to="/auth" className="underline">Sign up as a Provider</Link> to list your goods and services.
           </p>
         </header>
 
@@ -82,7 +125,11 @@ function ServicesPage() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-2">
-          {providers.map((p) => (
+          {providersQ.isLoading ? (
+            <div className="text-sm text-muted-foreground">Loading providers…</div>
+          ) : providers.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No providers in this category yet.</div>
+          ) : providers.map((p) => (
             <ProviderCard
               key={p.id}
               provider={p}
@@ -132,15 +179,18 @@ function ServicesPage() {
   );
 }
 
-function ProviderCard({ provider, category, onDone }: { provider: Provider; category: ServiceCategoryId; onDone: () => void }) {
+function ProviderCard({ provider, category, onDone }: { provider: DbProvider; category: ServiceCategoryId; onDone: () => void }) {
   return (
     <div className="card-soft p-5 space-y-3">
       <div>
         <h3 className="font-display text-lg font-semibold">{provider.name}</h3>
-        <p className="text-xs text-muted-foreground">{provider.location} · {provider.phone}</p>
-        <p className="text-sm mt-1.5 text-foreground/80">{provider.blurb}</p>
+        <p className="text-xs text-muted-foreground">{provider.location ?? ""}{provider.phone ? ` · ${provider.phone}` : ""}</p>
+        {provider.blurb && <p className="text-sm mt-1.5 text-foreground/80">{provider.blurb}</p>}
       </div>
       <ul className="space-y-2">
+        {provider.items.length === 0 && (
+          <li className="text-xs text-muted-foreground">No items listed.</li>
+        )}
         {provider.items.map((item) => (
           <ItemRow key={item.id} item={item} provider={provider} category={category} onDone={onDone} />
         ))}
@@ -149,18 +199,18 @@ function ProviderCard({ provider, category, onDone }: { provider: Provider; cate
   );
 }
 
-function ItemRow({ item, provider, category, onDone }: { item: ProviderItem; provider: Provider; category: ServiceCategoryId; onDone: () => void }) {
+function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider: DbProvider; category: ServiceCategoryId; onDone: () => void }) {
   const [bookOpen, setBookOpen] = useState(false);
   const purchaseFn = useServerFn(recordPurchase);
   const buy = useMutation({
     mutationFn: () => purchaseFn({ data: {
       category, provider_name: provider.name, item_name: item.name, price: item.price,
+      provider_item_id: item.id,
     } }),
     onSuccess: () => {
-      toast.success("Purchase recorded");
+      toast.success("Purchase recorded — provider notified");
       onDone();
     },
-
     onError: (e) => toast.error(e instanceof Error ? e.message : "Purchase failed"),
   });
 
@@ -193,7 +243,7 @@ function ItemRow({ item, provider, category, onDone }: { item: ProviderItem; pro
   );
 }
 
-function AppointmentForm({ provider, item, category, onDone }: { provider: Provider; item: ProviderItem; category: ServiceCategoryId; onDone: () => void }) {
+function AppointmentForm({ provider, item, category, onDone }: { provider: DbProvider; item: DbItem; category: ServiceCategoryId; onDone: () => void }) {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -203,13 +253,13 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: Provi
     mutationFn: () => bookFn({ data: {
       category, provider_name: provider.name, service_name: item.name,
       appointment_date: date, appointment_time: time || null,
-      contact_phone: provider.phone, notes: notes || null,
+      contact_phone: provider.phone ?? null, notes: notes || null,
+      provider_item_id: item.id,
     } }),
     onSuccess: () => {
-      toast.success("Appointment booked. Reminder 2 days before.");
+      toast.success("Appointment booked — provider notified");
       onDone();
     },
-
     onError: (e) => toast.error(e instanceof Error ? e.message : "Booking failed"),
   });
 
@@ -225,11 +275,11 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: Provi
         <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={inputClass()} />
       </Field>
       <Field label="Notes (optional)">
-        <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass()} placeholder="Address, contact…" />
+        <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass()} />
       </Field>
       <div className="sm:col-span-3 flex justify-end">
-        <button type="submit" disabled={!date || book.isPending} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-60">
-          <CheckCircle2 className="h-3.5 w-3.5" /> Confirm booking
+        <button disabled={book.isPending || !date} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+          {book.isPending ? "Booking…" : "Confirm booking"}
         </button>
       </div>
     </form>

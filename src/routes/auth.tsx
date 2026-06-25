@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Lock, User, ShieldCheck, Briefcase, IdCard } from "lucide-react";
+import { Mail, Lock, User, ShieldCheck, Briefcase, IdCard, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GeoSafeLogo } from "@/components/geosafe-logo";
@@ -21,8 +21,14 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState<"local" | "professional">("local");
+  const [role, setRole] = useState<"local" | "professional" | "provider">("local");
   const [licenseNumber, setLicenseNumber] = useState("");
+  // Provider-only fields
+  const [businessName, setBusinessName] = useState("");
+  const [providerCategory, setProviderCategory] = useState<"materials" | "engineering" | "water" | "insurance">("materials");
+  const [providerLocation, setProviderLocation] = useState("");
+  const [providerPhone, setProviderPhone] = useState("");
+  const [providerBlurb, setProviderBlurb] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -50,6 +56,17 @@ function AuthPage() {
           setBusy(false);
           return;
         }
+        if (role === "provider") {
+          if (!businessName.trim()) {
+            toast.error("Business name is required");
+            setBusy(false); return;
+          }
+          if (providerCategory === "engineering" && !licenseNumber.trim()) {
+            toast.error("Engineering licence number is required for engineering providers");
+            setBusy(false); return;
+          }
+        }
+        const signupRole = role === "provider" ? "local" : role; // base role; provider role granted server-side
         const { data, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
@@ -57,8 +74,8 @@ function AuthPage() {
             emailRedirectTo: window.location.origin,
             data: {
               display_name: displayName.trim() || cleanEmail.split("@")[0],
-              role,
-              license_number: role === "professional" ? licenseNumber.trim() : "",
+              role: signupRole,
+              license_number: (role === "professional" || (role === "provider" && providerCategory === "engineering")) ? licenseNumber.trim() : "",
             },
           },
         });
@@ -67,7 +84,28 @@ function AuthPage() {
           const { error: signInError } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
           if (signInError) throw signInError;
         }
-        toast.success("Account created. You're signed in.");
+        if (role === "provider") {
+          // Submit provider application now that we're signed in
+          const { applyAsProvider } = await import("@/lib/providers.functions");
+          try {
+            await applyAsProvider({ data: {
+              name: businessName.trim(),
+              category: providerCategory,
+              blurb: providerBlurb.trim() || null,
+              location: providerLocation.trim() || null,
+              phone: providerPhone.trim() || null,
+              contact_email: cleanEmail,
+              license_number: licenseNumber.trim() || null,
+            } });
+            toast.success("Application submitted — waiting for admin approval.");
+            router.navigate({ to: "/provider", replace: true });
+            return;
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Could not submit provider application");
+          }
+        } else {
+          toast.success("Account created. You're signed in.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) throw error;
@@ -144,20 +182,27 @@ function AuthPage() {
 
             {mode === "signup" && (
               <>
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-3 gap-2 pt-1">
                   <RoleCard
                     active={role === "local"}
                     onClick={() => setRole("local")}
                     icon={<ShieldCheck className="h-4 w-4" />}
-                    label="Local resident"
-                    hint="View, report, register wells"
+                    label="Local"
+                    hint="Report & register"
                   />
                   <RoleCard
                     active={role === "professional"}
                     onClick={() => setRole("professional")}
                     icon={<Briefcase className="h-4 w-4" />}
                     label="Professional"
-                    hint="Submit soil assessments"
+                    hint="Soil assessments"
+                  />
+                  <RoleCard
+                    active={role === "provider"}
+                    onClick={() => setRole("provider")}
+                    icon={<Store className="h-4 w-4" />}
+                    label="Provider"
+                    hint="Sell goods/services"
                   />
                 </div>
                 {role === "professional" && (
@@ -168,6 +213,34 @@ function AuthPage() {
                     onChange={setLicenseNumber}
                     required
                   />
+                )}
+                {role === "provider" && (
+                  <div className="space-y-2 rounded-md border border-border bg-secondary/30 p-3">
+                    <p className="text-[11px] text-muted-foreground">Tell us about your business. Your account will be active immediately, listings appear after admin approval.</p>
+                    <Input icon={<Store className="h-4 w-4" />} placeholder="Business name *" value={businessName} onChange={setBusinessName} required />
+                    <select
+                      value={providerCategory}
+                      onChange={(e) => setProviderCategory(e.target.value as typeof providerCategory)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
+                    >
+                      <option value="materials">Building Materials</option>
+                      <option value="engineering">Engineering Firm</option>
+                      <option value="water">Water Purification</option>
+                      <option value="insurance">Insurance</option>
+                    </select>
+                    <Input icon={<Mail className="h-4 w-4" />} placeholder="Location (city)" value={providerLocation} onChange={setProviderLocation} />
+                    <Input icon={<Mail className="h-4 w-4" />} placeholder="Phone" value={providerPhone} onChange={setProviderPhone} />
+                    <textarea
+                      placeholder="Short description (optional)"
+                      value={providerBlurb}
+                      onChange={(e) => setProviderBlurb(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
+                      rows={2}
+                    />
+                    {providerCategory === "engineering" && (
+                      <Input icon={<IdCard className="h-4 w-4" />} placeholder="Engineering licence number *" value={licenseNumber} onChange={setLicenseNumber} required />
+                    )}
+                  </div>
                 )}
               </>
             )}
