@@ -35,7 +35,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
         <div className="container-app flex h-20 md:h-16 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <GeoSafeLogo className="h-10 w-10 md:h-8 md:w-8 rounded-lg" />
+            <GeoSafeLogo className="h-10 w-10 md:h-9 md:w-9 rounded-lg" />
             <div className="leading-tight">
               <div className="font-display font-semibold tracking-tight text-lg md:text-sm">GeoSafe AI</div>
               <div className="text-[11px] md:text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
