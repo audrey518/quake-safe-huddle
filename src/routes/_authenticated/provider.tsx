@@ -130,7 +130,7 @@ function OrdersTab() {
       <Section title="Purchases" icon={<ShoppingCart className="h-4 w-4" />}>
         {!q.data?.purchases.length ? <Empty>No purchases yet.</Empty> : (
           <OrderTable
-            rows={q.data.purchases.map((p) => ({ id: p.id, kind: "purchase" as const, primary: p.item_name, sub: `Rs. ${p.price ?? "—"}`, when: p.created_at as string, status: (p.status ?? "new") as string }))}
+            rows={q.data.purchases.map((p) => ({ id: p.id, kind: "purchase" as const, primary: p.item_name, sub: `MMK ${Number(p.price ?? 0).toLocaleString()}`, when: p.created_at as string, status: (p.status ?? "new") as string }))}
             onChange={(id, status) => m.mutate({ id, kind: "purchase", status: status as "new"|"accepted"|"completed"|"cancelled" })}
           />
         )}
