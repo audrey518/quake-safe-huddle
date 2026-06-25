@@ -78,8 +78,18 @@ function Dashboard() {
     <AppShell>
       {/* HERO */}
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-accent/40 via-background to-background">
-        <div className="container-app py-12 md:py-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] items-center">
-          <div>
+        {/* Mobile background image behind text */}
+        <div className="absolute inset-0 md:hidden">
+          <img
+            src={heroImage}
+            alt=""
+            className="h-full w-full object-cover opacity-15"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background" />
+        </div>
+
+        <div className="container-app relative z-10 py-12 md:py-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] items-center">
+          <div className="relative z-10">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
               <span className="relative inline-flex h-2 w-2">
                 <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60" />
@@ -120,7 +130,7 @@ function Dashboard() {
             )}
           </div>
 
-          <div className="relative">
+          <div className="relative hidden md:block">
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border">
               <img
                 src={heroImage}
@@ -187,7 +197,7 @@ function Dashboard() {
           <StatCard icon={<Activity className="h-5 w-5" />} label="Quakes (24h)" value={quakesQ.isLoading ? "—" : String(quakes.length)} hint="M2.5+ worldwide" />
         </section>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="flex flex-col gap-8 lg:grid lg:grid-cols-3">
           <section className="lg:col-span-2 space-y-6">
             <div className="card-soft p-5 md:p-6">
               <div className="flex items-center justify-between">
