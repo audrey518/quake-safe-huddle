@@ -33,7 +33,6 @@ type DbProvider = {
   name: string;
   blurb: string | null;
   location: string | null;
-  phone: string | null;
   items: DbItem[];
 };
 type DbItem = {
