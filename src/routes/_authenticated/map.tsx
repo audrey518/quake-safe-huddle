@@ -947,3 +947,54 @@ function esc(s: string | null | undefined) {
   if (!s) return "";
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 }
+
+function safeUrl(raw: string): string | null {
+  try {
+    const u = new URL(raw.trim());
+    return u.protocol.startsWith("http") ? u.toString() : null;
+  } catch { return null; }
+}
+
+const EXTRA_LABELS: Record<string, string> = {
+  visible_damage: "Visible damage",
+  visible_issues: "Visible issues",
+  visible_condition: "Visible condition",
+  structural_condition: "Structural condition",
+  foundation_type: "Foundation type",
+  last_inspection: "Last inspection",
+  load_capacity_kn_m2: "Load capacity (kN/m²)",
+  water_ph: "Water pH",
+  yield_lpm: "Yield (L/min)",
+  drilling_method: "Drilling method",
+  casing_diameter_mm: "Casing diameter (mm)",
+  bearing_capacity_kpa: "Bearing capacity (kPa)",
+  moisture_pct: "Moisture content (%)",
+  permeability_cm_s: "Permeability (cm/s)",
+  spt_n_value: "SPT N-value",
+};
+
+function ExtrasBlock({ extras, photoUrl }: { extras: Record<string, unknown> | null | undefined; photoUrl: string | null | undefined }) {
+  const entries = extras ? Object.entries(extras).filter(([, v]) => v !== null && v !== undefined && v !== "") : [];
+  if (entries.length === 0 && !photoUrl) return null;
+  return (
+    <div className="rounded-md border border-border bg-background p-3 space-y-2">
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Additional details</div>
+      {entries.length > 0 && (
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
+          {entries.map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-2 border-b border-border/40 py-1">
+              <dt className="text-muted-foreground">{EXTRA_LABELS[k] ?? k}</dt>
+              <dd className="font-medium text-right">{String(v)}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {photoUrl && (
+        <a href={photoUrl} target="_blank" rel="noopener noreferrer" className="block">
+          <img src={photoUrl} alt="Submitted" className="mt-2 max-h-64 rounded-md border border-border object-cover" />
+        </a>
+      )}
+    </div>
+  );
+}
+
