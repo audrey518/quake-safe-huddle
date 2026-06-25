@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Lock, User, ShieldCheck, Briefcase, IdCard } from "lucide-react";
+import { Mail, Lock, User, ShieldCheck, Briefcase, IdCard, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GeoSafeLogo } from "@/components/geosafe-logo";
@@ -21,8 +21,14 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState<"local" | "professional">("local");
+  const [role, setRole] = useState<"local" | "professional" | "provider">("local");
   const [licenseNumber, setLicenseNumber] = useState("");
+  // Provider-only fields
+  const [businessName, setBusinessName] = useState("");
+  const [providerCategory, setProviderCategory] = useState<"materials" | "engineering" | "water" | "insurance">("materials");
+  const [providerLocation, setProviderLocation] = useState("");
+  const [providerPhone, setProviderPhone] = useState("");
+  const [providerBlurb, setProviderBlurb] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -50,6 +56,17 @@ function AuthPage() {
           setBusy(false);
           return;
         }
+        if (role === "provider") {
+          if (!businessName.trim()) {
+            toast.error("Business name is required");
+            setBusy(false); return;
+          }
+          if (providerCategory === "engineering" && !licenseNumber.trim()) {
+            toast.error("Engineering licence number is required for engineering providers");
+            setBusy(false); return;
+          }
+        }
+        const signupRole = role === "provider" ? "local" : role; // base role; provider role granted server-side
         const { data, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
@@ -57,8 +74,8 @@ function AuthPage() {
             emailRedirectTo: window.location.origin,
             data: {
               display_name: displayName.trim() || cleanEmail.split("@")[0],
-              role,
-              license_number: role === "professional" ? licenseNumber.trim() : "",
+              role: signupRole,
+              license_number: (role === "professional" || (role === "provider" && providerCategory === "engineering")) ? licenseNumber.trim() : "",
             },
           },
         });
@@ -67,8 +84,38 @@ function AuthPage() {
           const { error: signInError } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
           if (signInError) throw signInError;
         }
-        toast.success("Account created. You're signed in.");
+        if (role === "provider") {
+          // Submit provider application now that we're signed in
+          const { applyAsProvider } = await import("@/lib/providers.functions");
+          try {
+            await applyAsProvider({ data: {
+              name: businessName.trim(),
+              category: providerCategory,
+              blurb: providerBlurb.trim() || null,
+              location: providerLocation.trim() || null,
+              phone: providerPhone.trim() || null,
+              contact_email: cleanEmail,
+              license_number: licenseNumber.trim() || null,
+            } });
+            toast.success("Application submitted — waiting for admin approval.");
+            router.navigate({ to: "/provider", replace: true });
+            return;
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Could not submit provider application");
+          }
+        } else {
+          toast.success("Account created. You're signed in.");
+        }
       } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+        if (error) throw error;
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Authentication failed");
+    } finally {
+      setBusy(false);
+    }
+  }
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
         if (error) throw error;
       }
