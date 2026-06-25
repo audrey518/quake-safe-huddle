@@ -524,10 +524,11 @@ function WellsPanel() {
   });
 
 
-  const markers: MapMarker[] = items.map((w) => ({
+  const markers: MapMarker[] = filtered.map((w) => ({
     id: `w-${w.id}`, lat: w.latitude, lng: w.longitude, color: "oklch(0.6 0.12 230)", title: w.name,
     popupHtml: `<strong>${esc(w.name)}</strong><br/>${esc(w.well_type)}<br/>Level: ${w.current_level_m ?? "—"} m`,
   }));
+
 
   const handleAdd = () => {
     if (!user) { toast.info("Please sign in to register a well."); navigate({ to: "/auth" }); return; }
