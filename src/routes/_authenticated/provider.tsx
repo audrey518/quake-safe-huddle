@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { Field, inputClass } from "@/components/safeground/ui";
+import { selectOnFocus } from "@/components/safeground/ui";
 import {
   getMyProvider, updateMyProvider, listMyItems, saveItem, deleteItem,
   listMyOrders, updateOrderStatus, getMyStats,
