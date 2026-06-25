@@ -542,7 +542,7 @@ function AppointmentForm({ provider, item, category, onDone }: { provider: DbPro
     mutationFn: () => bookFn({ data: {
       category, provider_name: provider.name, service_name: item.name,
       appointment_date: date, appointment_time: time || null,
-      contact_phone: provider.phone ?? null, notes: notes || null,
+      contact_phone: null, notes: notes || null,
       provider_item_id: item.id,
     } }),
     onSuccess: () => {
