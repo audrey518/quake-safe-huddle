@@ -175,7 +175,7 @@ function ServicesPage() {
                           {completed && <span className="ml-1.5 text-[10px] uppercase text-emerald-600">completed</span>}
                         </span>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-muted-foreground whitespace-nowrap">{p.price ? `Rs. ${p.price}` : ""}</span>
+                          <span className="text-muted-foreground whitespace-nowrap">{p.price ? `MMK ${Number(p.price).toLocaleString()}` : ""}</span>
                           {!cancelled && !completed && (
                             <button
                               onClick={() => { if (confirm("Cancel this order? Stock will be restored.")) cancel.mutate(p.id); }}
