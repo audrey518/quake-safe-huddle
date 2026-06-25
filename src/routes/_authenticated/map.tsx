@@ -543,7 +543,7 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
           address: address.trim() ? address.trim().slice(0, 200) : null,
           latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
-          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+          professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
         });
       }}>
       <Field label="Name"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
