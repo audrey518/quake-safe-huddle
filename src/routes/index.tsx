@@ -409,21 +409,21 @@ function Dashboard() {
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><FileText className="h-4 w-4" /></span>
                 <div>
                   <div className="text-xs text-muted-foreground">Email</div>
-                  <a href="mailto:hello@geosafe.ai" className="font-medium hover:text-primary">hello@geosafe.ai</a>
+                  <a href="mailto:levivalorant122@gmail.com" className="font-medium hover:text-primary">levivalorant122@gmail.com</a>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Phone className="h-4 w-4" /></span>
                 <div>
                   <div className="text-xs text-muted-foreground">Phone</div>
-                  <a href="tel:+97714000000" className="font-medium hover:text-primary">+977-1-400-0000</a>
+                  <a href="tel:+959232322777" className="font-medium hover:text-primary">+95 9 232 322 777</a>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-4 w-4" /></span>
                 <div>
                   <div className="text-xs text-muted-foreground">Office</div>
-                  <div className="font-medium">Kathmandu, Nepal</div>
+                  <div className="font-medium">Corner of Pyay Road and Sanchaung Road, Yangon</div>
                 </div>
               </li>
             </ul>
