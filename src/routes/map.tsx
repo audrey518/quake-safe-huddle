@@ -670,7 +670,9 @@ const HAZARD_TYPES: HazardType[] = ["earthquake-damage", "flooding", "landslide"
 
 function ReportsPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("hazard_reports", ["hazard_reports"]);
   const q = useQuery({
     queryKey: ["hazard_reports"],
@@ -683,7 +685,7 @@ function ReportsPanel() {
       const { error } = await supabase.from("hazard_reports").insert({ user_id: user!.id, ...p });
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["hazard_reports"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); toast.success("Report submitted"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["hazard_reports"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setOpen(false); toast.success("Report submitted"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
   const remove = useMutation({
@@ -696,13 +698,22 @@ function ReportsPanel() {
     popupHtml: `<strong>${esc(HAZARD_LABELS[r.kind as HazardType] ?? r.kind)}</strong><br/>${esc(r.description)}`,
   }));
 
+  const handleAdd = () => {
+    if (!user) { toast.info("Please sign in to submit a report."); navigate({ to: "/auth" }); return; }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Megaphone className="h-5 w-5" />} title="Submit a hazard report" subtitle="Tell the community what you're seeing." />
-        <ReportForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
-      <div className="card-soft p-2 max-h-[400px] overflow-auto">
+    <div className="space-y-4">
+      <AddBar
+        icon={<Megaphone className="h-5 w-5" />}
+        title="Hazard reports"
+        subtitle={items.length ? `${items.length} report${items.length === 1 ? "" : "s"}` : "No reports yet."}
+        addLabel="Submit Report"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
+      <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((r) => (
             <li key={r.id} className="p-3 flex items-start gap-3">
@@ -722,9 +733,22 @@ function ReportsPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No reports yet.</li>}
         </ul>
       </div>
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Submit a hazard report</DialogTitle>
+            <DialogDescription>Tell the community what you're seeing.</DialogDescription>
+          </DialogHeader>
+          <ReportForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType; severity: string; latitude: number; longitude: number; description: string; image_url?: string }) => void; submitting: boolean }) {
   const [kind, setKind] = useState<HazardType>("earthquake-damage");
