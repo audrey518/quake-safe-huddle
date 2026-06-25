@@ -418,9 +418,9 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
 }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [yearBuilt, setYearBuilt] = useState(2000);
-  const [floors, setFloors] = useState(2);
-  const [material, setMaterial] = useState<BuildingMaterial>("reinforced-concrete");
+  const [yearBuilt, setYearBuilt] = useState("");
+  const [floors, setFloors] = useState("");
+  const [material, setMaterial] = useState("");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   // local
@@ -439,6 +439,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
       onSubmit={(e) => {
         e.preventDefault();
         if (!name.trim() || !address.trim()) return;
+        if (!yearBuilt.trim() || !floors.trim() || !material) { toast.error("Year built, floors and material are required"); return; }
         const latN = lat.trim() ? Number(lat) : null;
         const lngN = lng.trim() ? Number(lng) : null;
         const extras: Record<string, unknown> = isProfessional
@@ -446,22 +447,22 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           : { visible_damage: damage || null };
         onSubmit({
           name: name.trim().slice(0, 80), address: address.trim().slice(0, 200),
-          year_built: Math.min(new Date().getFullYear(), Math.max(1800, yearBuilt)),
-          floors: Math.min(150, Math.max(1, floors)),
-          material, latitude: latN, longitude: lngN,
+          year_built: Math.min(new Date().getFullYear(), Math.max(1800, parseInt(yearBuilt, 10))),
+          floors: Math.min(150, Math.max(1, parseInt(floors, 10))),
+          material: material as BuildingMaterial, latitude: latN, longitude: lngN,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null,
           extras,
           professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
-
         });
       }}
     >
       <Field label="Name" className="sm:col-span-2"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
       <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={200} /></Field>
-      <Field label="Year built"><input type="number" className={inputClass()} min={1800} max={new Date().getFullYear()} value={yearBuilt} onChange={(e) => setYearBuilt(parseInt(e.target.value || "0", 10))} /></Field>
-      <Field label="Floors"><input type="number" className={inputClass()} min={1} max={150} value={floors} onChange={(e) => setFloors(parseInt(e.target.value || "1", 10))} /></Field>
+      <Field label="Year built"><input type="number" className={inputClass()} min={1800} max={new Date().getFullYear()} value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} /></Field>
+      <Field label="Floors"><input type="number" className={inputClass()} min={1} max={150} value={floors} onChange={(e) => setFloors(e.target.value)} /></Field>
       <Field label="Material" className="sm:col-span-2">
-        <select className={inputClass()} value={material} onChange={(e) => setMaterial(e.target.value as BuildingMaterial)}>
+        <select className={inputClass()} value={material} onChange={(e) => setMaterial(e.target.value)}>
+          <option value="">Select…</option>
           {MATERIALS.map((m) => <option key={m} value={m}>{MATERIAL_LABELS[m]}</option>)}
         </select>
       </Field>
@@ -675,8 +676,8 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
-  const [type, setType] = useState("Domestic");
-  const [depth, setDepth] = useState(20); const [level, setLevel] = useState(5);
+  const [type, setType] = useState("");
+  const [depth, setDepth] = useState(""); const [level, setLevel] = useState("");
   // local
   const [issues, setIssues] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
@@ -692,26 +693,27 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
         if (!name.trim() || Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Name and coordinates required"); return; }
+        if (!type) { toast.error("Please select a well type"); return; }
         const extras: Record<string, unknown> = isProfessional
           ? { water_ph: ph ? Number(ph) : null, yield_lpm: yieldLpm ? Number(yieldLpm) : null, drilling_method: drilling || null, casing_diameter_mm: casingDiameter ? Number(casingDiameter) : null }
           : { visible_issues: issues || null };
         onSubmit({
           name: name.trim().slice(0, 80),
           address: address.trim() ? address.trim().slice(0, 200) : null,
-          latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level,
+          latitude: la, longitude: lo, well_type: type, total_depth_m: depth ? parseFloat(depth) : 0, current_level_m: level ? parseFloat(level) : 0,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
           professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
         });
       }}>
       <Field label="Name"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
       <Field label="Type">
-        <select className={inputClass()} value={type} onChange={(e) => setType(e.target.value)}>{WELL_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
+        <select className={inputClass()} value={type} onChange={(e) => setType(e.target.value)}><option value="">Select…</option>{WELL_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
       </Field>
       <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Street, city, area…" /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
-      <Field label="Total depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
-      <Field label="Water level (m)"><input type="number" step="0.01" className={inputClass()} value={level} onChange={(e) => setLevel(parseFloat(e.target.value || "0"))} /></Field>
+      <Field label="Total depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(e.target.value)} /></Field>
+      <Field label="Water level (m)"><input type="number" step="0.01" className={inputClass()} value={level} onChange={(e) => setLevel(e.target.value)} /></Field>
 
       {isProfessional ? (
         <>
@@ -896,8 +898,8 @@ function ReportDetail({ item }: { item: any }) {
 
 
 function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType; severity: string; latitude: number; longitude: number; description: string; image_url?: string }) => void; submitting: boolean }) {
-  const [kind, setKind] = useState<HazardType>("earthquake-damage");
-  const [severity, setSeverity] = useState("moderate");
+  const [kind, setKind] = useState<HazardType | "">("");
+  const [severity, setSeverity] = useState("");
   const [description, setDescription] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -906,10 +908,12 @@ function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
+        if (!kind) { toast.error("Please select a hazard type"); return; }
+        if (!severity) { toast.error("Please select a severity"); return; }
         if (!description.trim() || Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Description and coordinates required"); return; }
         let safe: string | undefined;
         if (imageUrl.trim()) { try { const u = new URL(imageUrl.trim()); if (u.protocol.startsWith("http")) safe = u.toString(); } catch {} }
-        onSubmit({ kind, severity, description: description.trim().slice(0, 1000), latitude: la, longitude: lo, image_url: safe });
+        onSubmit({ kind: kind as HazardType, severity, description: description.trim().slice(0, 1000), latitude: la, longitude: lo, image_url: safe });
       }}>
       <Field label="Type" className="sm:col-span-2">
         <div className="grid grid-cols-2 gap-2">
@@ -923,6 +927,7 @@ function ReportForm({ onSubmit, submitting }: { onSubmit: (p: { kind: HazardType
       </Field>
       <Field label="Severity">
         <select className={inputClass()} value={severity} onChange={(e) => setSeverity(e.target.value)}>
+          <option value="">Select…</option>
           <option value="minor">Minor</option><option value="moderate">Moderate</option><option value="severe">Severe</option>
         </select>
       </Field>
@@ -1096,8 +1101,8 @@ function SoilDetail({ item }: { item: any }) {
 function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string | null; address: string | null; latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [soilType, setSoilType] = useState("Clay");
-  const [depth, setDepth] = useState(5);
+  const [soilType, setSoilType] = useState("");
+  const [depth, setDepth] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [notes, setNotes] = useState("");
   // local
@@ -1114,6 +1119,7 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
         if (!name.trim() || !address.trim()) { toast.error("Name and address required"); return; }
+        if (!soilType) { toast.error("Please select a soil type"); return; }
         if (Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Coordinates required"); return; }
         const extras: Record<string, unknown> = isProfessional
           ? { bearing_capacity_kpa: bearing ? Number(bearing) : null, moisture_pct: moisture ? Number(moisture) : null, permeability_cm_s: permeability ? Number(permeability) : null, spt_n_value: spt ? Number(spt) : null }
@@ -1121,7 +1127,7 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         onSubmit({
           name: name.trim().slice(0, 80),
           address: address.trim().slice(0, 200),
-          latitude: la, longitude: lo, soil_type: soilType, depth_m: depth, notes: notes.slice(0, 1000),
+          latitude: la, longitude: lo, soil_type: soilType, depth_m: depth ? parseFloat(depth) : 0, notes: notes.slice(0, 1000),
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
         });
       }}>
@@ -1130,10 +1136,11 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
 
       <Field label="Soil type">
         <select className={inputClass()} value={soilType} onChange={(e) => setSoilType(e.target.value)}>
+          <option value="">Select…</option>
           {SOIL_TYPES.map((t) => <option key={t}>{t}</option>)}
         </select>
       </Field>
-      <Field label="Depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
+      <Field label="Depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(e.target.value)} /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
 
