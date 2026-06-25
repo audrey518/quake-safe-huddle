@@ -737,10 +737,11 @@ function ReportsPanel() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["hazard_reports"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
 
-  const markers: MapMarker[] = items.map((r) => ({
+  const markers: MapMarker[] = filtered.map((r) => ({
     id: `r-${r.id}`, lat: r.latitude, lng: r.longitude, color: "var(--color-risk-high)", title: r.kind,
     popupHtml: `<strong>${esc(HAZARD_LABELS[r.kind as HazardType] ?? r.kind)}</strong><br/>${esc(r.description)}`,
   }));
+
 
   const handleAdd = () => {
     if (!user) { toast.info("Please sign in to submit a report."); navigate({ to: "/auth" }); return; }
