@@ -790,10 +790,12 @@ function SoilDetail({ item }: { item: any }) {
     <div className="card-soft p-5 space-y-4 border-l-4" style={{ borderLeftColor: "oklch(0.5 0.06 80)" }}>
       <div>
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Soil report</div>
-        <div className="mt-1 font-display text-lg font-semibold">{item.soil_type}</div>
-        <div className="text-xs text-muted-foreground">Depth {Number(item.depth_m).toFixed(1)} m</div>
+        <div className="mt-1 font-display text-lg font-semibold">{item.name || item.soil_type}</div>
+        {item.address && <div className="text-xs text-muted-foreground">{item.address}</div>}
+        <div className="text-xs text-muted-foreground">{item.soil_type} · Depth {Number(item.depth_m).toFixed(1)} m</div>
         <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
       </div>
+
       {item.notes && (
         <div className="rounded-md border border-border bg-background p-3">
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Notes</div>
