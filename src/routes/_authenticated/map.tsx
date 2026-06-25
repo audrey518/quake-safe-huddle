@@ -295,11 +295,13 @@ function BuildingDetail({ item }: { item: any }) {
       </div>
       <p className="text-sm text-muted-foreground">{r.explanation}</p>
       <ExtrasBlock extras={item.extras} photoUrl={item.photo_url} />
+      <ProfessionalNotesBlock notes={item.professional_notes} />
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="building" targetId={item.id} />
     </div>
   );
 }
+
 
 function BuildingForm({ onSubmit, submitting, isProfessional }: {
   onSubmit: (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown> }) => void;
