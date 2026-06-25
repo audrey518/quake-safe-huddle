@@ -364,7 +364,7 @@ function BuildingsPanel() {
         </div>
 
         <div className="card-soft p-2 md:sticky md:top-20 md:self-start">
-          <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+          <MapView markers={markers} center={mapCenter} zoom={mapZoom} height={420} />
         </div>
       </div>
 
