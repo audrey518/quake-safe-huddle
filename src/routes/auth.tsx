@@ -146,6 +146,14 @@ function AuthPage() {
 
       <div className="flex items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-sm">
+          <Link to="/" className="mb-6 inline-flex items-center gap-2 hover:opacity-80 transition">
+            <GeoSafeLogo />
+            <div className="leading-tight">
+              <div className="font-display font-semibold tracking-tight text-lg">GeoSafe AI</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Geo-risk awareness</div>
+            </div>
+          </Link>
+
           <div className="mb-6 inline-flex rounded-full border border-border bg-card p-1 text-xs">
             {(["signin", "signup"] as const).map((m) => (
               <button
