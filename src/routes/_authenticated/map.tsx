@@ -752,10 +752,12 @@ function SoilPanel() {
             return (
               <li key={s.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(s.id)}>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">{s.soil_type}</div>
-                  <div className="text-[11px] text-muted-foreground">Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
+                  <div className="text-sm font-medium">{s.name || s.soil_type}</div>
+                  {s.address && <div className="text-[11px] text-muted-foreground truncate">{s.address}</div>}
+                  <div className="text-[11px] text-muted-foreground">{s.soil_type} · Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
                   <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
                 </div>
+
                 {s.user_id === user?.id && (
                   <button onClick={(e) => { e.stopPropagation(); remove.mutate(s.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
                     <Trash2 className="h-3.5 w-3.5" />
