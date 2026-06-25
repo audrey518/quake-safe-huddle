@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
-import { Field, inputClass } from "@/components/safeground/ui";
+import { Field, inputClass, selectOnFocus } from "@/components/safeground/ui";
 import { CATEGORIES, type ServiceCategoryId } from "@/lib/services-data";
 import { bookAppointment, recordPurchase, cancelPurchase, cancelAppointment } from "@/lib/telegram.functions";
 import { supabase } from "@/integrations/supabase/client";

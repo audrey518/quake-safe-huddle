@@ -19,7 +19,7 @@ import {
   type HazardType,
 } from "@/lib/safeground";
 import { formatDistanceToNow } from "@/lib/format";
-import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
+import { Field, inputClass, MagnitudeBadge, RiskPill, selectOnFocus } from "@/components/safeground/ui";
 import { Activity, Building2, ChevronDown, Droplets, Globe, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Search, Send, Sparkles, Trash2 } from "lucide-react";
 import heroImg from "@/assets/hero-map.jpg";
 import { AuthorBadge } from "@/components/safeground/author-badge";
