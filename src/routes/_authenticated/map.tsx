@@ -460,9 +460,11 @@ function WellsPanel() {
               <li key={w.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(w.id)}>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{w.name}</div>
+                  {w.address && <div className="text-[11px] text-muted-foreground truncate">{w.address}</div>}
                   <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
                   <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
                 </div>
+
                 {w.user_id === user?.id && (
                   <button onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
                     <Trash2 className="h-3.5 w-3.5" />
