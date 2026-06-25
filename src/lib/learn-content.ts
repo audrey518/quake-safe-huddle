@@ -13,7 +13,7 @@ export type LearnCategory = {
   shortTitle: string;
   description: string;
   accent: string; // css color
-  icon: "alert" | "building" | "soil" | "materials" | "water";
+  icon: "alert" | "building" | "soil" | "materials" | "water" | "waste";
   posts: LearnPost[];
 };
 
@@ -330,6 +330,72 @@ export const LEARN_CATEGORIES: LearnCategory[] = [
           "Step changes in well level indicate aquifer damage",
           "Networks of readings beat any single well for detection",
           "Always test water quality after a significant quake",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "waste-management",
+    title: "Waste Management for Households & Communities",
+    shortTitle: "Waste Management",
+    description:
+      "How everyday garbage handling, composting, and sewage choices protect groundwater purity, reduce disease, and keep neighborhoods resilient.",
+    accent: "oklch(0.6 0.12 150)",
+    icon: "waste",
+    posts: [
+      {
+        slug: "household-garbage-basics",
+        title: "Household garbage: sort, store, and dispose without polluting groundwater",
+        excerpt:
+          "What you throw out today can show up in your well tomorrow. A simple three-bin routine keeps contaminants out of the soil column.",
+        readTime: "5 min read",
+        body: [
+          "Most household groundwater contamination starts with mixed waste sitting in open piles or thrown into informal pits. Rainwater percolates through the pile, picks up soluble chemicals, heavy metals from batteries, and pathogens from food scraps, then carries them straight down into the aquifer that feeds your well.",
+          "Adopt a three-bin routine at home: one bin for dry recyclables (paper, clean plastic, metal, glass), one for wet organics (food scraps, garden trim), and one for residual waste that must go to a sealed municipal collection. Keep all bins lined and covered so rain cannot reach them.",
+          "Never bury batteries, paint, motor oil, pesticides, or expired medicine in your yard — a single AA battery can contaminate hundreds of liters of groundwater. Collect these as 'hazardous household waste' and hand them to the nearest municipal collection point or a take-back program at a pharmacy or auto shop.",
+          "If municipal pickup is unreliable, build a small concrete-floored waste shed at least 15 meters downhill from any well, with a sloped roof and a drain that runs to a soak pit lined with gravel and clay — not to bare soil.",
+        ],
+        takeaways: [
+          "Sort into dry, wet, and hazardous — never mix them",
+          "Keep waste covered; rain leachate is the main contaminant path",
+          "Store waste at least 15 m downhill from any well",
+        ],
+      },
+      {
+        slug: "composting-and-organics",
+        title: "Composting organics: turn kitchen waste into safe soil, not pollution",
+        excerpt:
+          "Food scraps are 40-60% of household waste. Composted correctly they feed your garden; dumped wet they breed flies and leach nitrates into wells.",
+        readTime: "5 min read",
+        body: [
+          "Organic waste decomposes whether you manage it or not. Uncontrolled rotting in an open pit produces methane, attracts rodents, and releases nitrate-rich leachate that can push well water above safe drinking limits within a single rainy season.",
+          "A simple two-bin compost setup solves this. Use a bin with a lid and drainage holes raised on bricks over a shallow tray. Layer 'greens' (kitchen scraps, fresh grass) with 'browns' (dry leaves, shredded cardboard, sawdust) in roughly equal volumes. Turn the pile weekly. In 8-12 weeks you get a dark, crumbly compost that smells like forest soil.",
+          "Keep the compost bin at least 10 meters from any well or surface water, and never compost meat, dairy, fish, or pet waste in a household pile — those need higher temperatures than a backyard system can sustain. For dense urban homes, a sealed bokashi bucket ferments food scraps anaerobically with no smell and no leachate.",
+          "Finished compost reduces the need for chemical fertilizer, which is itself a major nitrate source in groundwater. The same routine that cleans up your waste stream also lowers the pollution load on the aquifer.",
+        ],
+        takeaways: [
+          "Compost greens + browns in equal layers; turn weekly",
+          "Site the bin 10 m from wells; never compost meat or pet waste",
+          "Bokashi buckets are the urban-apartment alternative",
+        ],
+      },
+      {
+        slug: "sewage-and-septic-systems",
+        title: "Sewage systems for the home: pits, septic tanks, and why distance matters",
+        excerpt:
+          "A poorly sited toilet pit is the single fastest way to contaminate a shallow well. Here is how to choose and place a sewage system that protects water.",
+        readTime: "6 min read",
+        body: [
+          "Sewage carries pathogens (E. coli, hepatitis, cholera) and high concentrations of nitrate and phosphate. When a pit latrine or septic system is sited too close to a well, those contaminants reach drinking water in days — sometimes hours after heavy rain.",
+          "The minimum safe horizontal distance between a pit latrine or septic soak field and a drinking-water well is 15 meters on flat ground with clay soils, and 30 meters or more on sandy soils or sloping land. The well must also be uphill of the sewage system, never downhill. If you cannot meet this distance, a sealed septic tank with effluent piped to a distant leach field is the only safe option.",
+          "A properly built septic system has three parts: a watertight tank (concrete or molded HDPE) that separates solids and lets anaerobic bacteria break them down; a distribution box; and a leach field of perforated pipes buried in gravel that lets treated effluent slowly soak into the soil. The tank needs desludging every 3-5 years — skipping this is the most common cause of system failure and groundwater contamination.",
+          "For neighborhoods, a small-bore sewer connected to a decentralized treatment unit (DEWATS, planted gravel filter, or anaerobic baffled reactor) handles 50-500 households at far lower cost than a city-scale treatment plant. These systems work well in low-lying areas where pit latrines are not safe because the water table is shallow.",
+          "Greywater from sinks and laundry should never go into the same pit as the toilet — it overloads the system. Route it to a separate mulch basin or planted garden bed where soil microbes filter it before it reaches the aquifer.",
+        ],
+        takeaways: [
+          "Minimum 15 m (clay) or 30 m (sand) from any well, and well must be uphill",
+          "Septic tanks need desludging every 3-5 years",
+          "Separate greywater from blackwater to prevent overload",
         ],
       },
     ],

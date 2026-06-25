@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { LEARN_CATEGORIES } from "@/lib/learn-content";
-import { AlertTriangle, Building2, Droplets, GraduationCap, Hammer, Mountain } from "lucide-react";
+import { AlertTriangle, Building2, Droplets, GraduationCap, Hammer, Mountain, Trash2 } from "lucide-react";
 import heroImg from "@/assets/hero-digital-learning.jpg";
 
 export const Route = createFileRoute("/learn/")({
@@ -20,6 +20,7 @@ const ICONS = {
   soil: Mountain,
   materials: Hammer,
   water: Droplets,
+  waste: Trash2,
 } as const;
 
 function LearnIndex() {
@@ -58,6 +59,7 @@ function LearnIndex() {
             { soft: "#fef3c7", deep: "#92400e", wash: "linear-gradient(135deg, #fef3c7 0%, #fff 100%)" }, // amber - soil
             { soft: "#fce7f3", deep: "#9d174d", wash: "linear-gradient(135deg, #fce7f3 0%, #fff 100%)" }, // pink - materials
             { soft: "#cffafe", deep: "#155e75", wash: "linear-gradient(135deg, #cffafe 0%, #fff 100%)" }, // cyan - water
+            { soft: "#dcfce7", deep: "#166534", wash: "linear-gradient(135deg, #dcfce7 0%, #fff 100%)" }, // green - waste
           ];
           const p = palettes[ci % palettes.length];
           return (
