@@ -498,15 +498,18 @@ function WellDetail({ item }: { item: any }) {
       <div>
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Well report</div>
         <div className="mt-1 font-display text-lg font-semibold">{item.name}</div>
+        {item.address && <div className="text-xs text-muted-foreground">{item.address}</div>}
         <div className="text-xs text-muted-foreground">{item.well_type} · depth {item.total_depth_m ?? "—"} m · level {item.current_level_m ?? "—"} m</div>
         <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
       </div>
       <ExtrasBlock extras={item.extras} photoUrl={item.photo_url} />
+      <ProfessionalNotesBlock notes={item.professional_notes} />
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="well" targetId={item.id} />
     </div>
   );
 }
+
 
 function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
   const [name, setName] = useState("");
