@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ArrowRight, Building2, ClipboardList, Droplets, FileText, Map, Megaphone, TrendingUp, UserCircle2, Waves } from "lucide-react";
+import { Activity, ArrowRight, BookOpen, Building2, CheckCircle2, ClipboardList, Compass, Droplets, FileText, Map, MapPin, Megaphone, Phone, ShieldCheck, Sparkles, Store, TrendingUp, UserCircle2, Waves } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { assessRisk, HAZARD_LABELS, type BuildingMaterial, type HazardType } from "@/lib/safeground";
@@ -8,6 +8,11 @@ import { fetchRecentEarthquakes } from "@/lib/usgs";
 import { formatDistanceToNow } from "@/lib/format";
 import { MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
 import { useAuth } from "@/hooks/use-auth";
+import { LEARN_CATEGORIES } from "@/lib/learn-content";
+import { CATEGORIES as SERVICE_CATEGORIES, PROVIDERS } from "@/lib/services-data";
+import heroImage from "@/assets/hero-geosafe.jpg";
+import heroCard1 from "@/assets/hero-card-1.jpg";
+import heroCard2 from "@/assets/hero-card-2.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Dashboard — GeoSafe AI" }] }),
@@ -58,25 +63,109 @@ function Dashboard() {
   const recentMajor = quakes.find((q) => q.magnitude >= 4.5 && Date.now() - q.time < 60 * 60 * 1000);
   const greeting = user?.email?.split("@")[0] ?? "there";
 
+  // Featured Learn posts: pick first post from first 3 categories
+  const featuredPosts = LEARN_CATEGORIES.slice(0, 3).map((c) => ({
+    category: c,
+    post: c.posts[0],
+  }));
+
+  // Collaborated providers — pick top 4 across categories
+  const featuredProviders = SERVICE_CATEGORIES.flatMap((c) =>
+    (PROVIDERS[c.id] ?? []).slice(0, 1).map((p) => ({ category: c, provider: p })),
+  ).slice(0, 4);
+
   return (
     <AppShell>
-      <section className="border-b border-border bg-gradient-to-b from-accent/40 via-background to-background">
-        <div className="container-app py-10 md:py-14">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-            </span>
-            Live monitoring
+      {/* HERO */}
+      <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-accent/40 via-background to-background">
+        <div className="container-app py-12 md:py-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] items-center">
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              <span className="relative inline-flex h-2 w-2">
+                <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
+              {user ? `Welcome back, ${greeting}` : "Live earthquake monitoring"}
+            </div>
+            <h1 className="mt-4 text-4xl md:text-6xl font-semibold tracking-tight font-display leading-[1.05]">
+              Understand earthquake risk <span className="text-primary">around your home</span> — no engineering degree needed.
+            </h1>
+            <p className="mt-5 max-w-xl text-base md:text-lg text-muted-foreground">
+              GeoSafe AI turns live seismic data, community hazard reports and simple building details into clear, plain-language risk for everyday residents.
+            </p>
+            <ul className="mt-6 space-y-2 text-sm">
+              {[
+                "Real-time quakes from USGS, mapped to your area",
+                "Plain-language risk score for any building",
+                "Crowd-sourced hazard reports from your neighbors",
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link to="/map" className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 shadow">
+                <Compass className="h-4 w-4" /> Explore the InfoHub
+              </Link>
+              <Link to="/learn" className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-5 py-2.5 text-sm font-medium hover:bg-secondary">
+                <BookOpen className="h-4 w-4" /> Learn the basics
+              </Link>
+            </div>
+            {!user && (
+              <p className="mt-4 text-xs text-muted-foreground">
+                Browse freely as a guest. <Link to="/auth" className="text-primary hover:underline">Sign in</Link> to add buildings and submit reports.
+              </p>
+            )}
           </div>
-          <h1 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight font-display">
-            Hello, {greeting}.
-          </h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            Live earthquake activity, community hazard reports, and groundwater observations from across your region.
-          </p>
+
+          <div className="relative">
+            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border">
+              <img
+                src={heroImage}
+                alt="Aerial neighborhood with seismic wave visualization"
+                width={1536}
+                height={1024}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-tr from-background/40 via-transparent to-transparent" />
+            </div>
+            <div className="hidden md:block absolute -bottom-6 -left-6 w-40 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+              <img src={heroCard1} alt="Risk map on phone" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
+            </div>
+            <div className="hidden md:block absolute -top-6 -right-6 w-36 rounded-xl overflow-hidden shadow-xl ring-1 ring-border">
+              <img src={heroCard2} alt="Engineer inspecting a home" width={768} height={768} loading="lazy" className="h-full w-full object-cover" />
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* HOW IT WORKS */}
+      <section className="border-b border-border bg-secondary/30">
+        <div className="container-app py-12 md:py-16">
+          <div className="max-w-2xl">
+            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">How it works</div>
+            <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Three simple steps to get prepared</h2>
+            <p className="mt-3 text-muted-foreground">No jargon, no engineering background required.</p>
+          </div>
+          <ol className="mt-8 grid gap-5 md:grid-cols-3">
+            {[
+              { n: "01", icon: <Compass className="h-5 w-5" />, title: "Explore", text: "Open the InfoHub map and see live quakes, hazard reports, wells and buildings in your area." },
+              { n: "02", icon: <Building2 className="h-5 w-5" />, title: "Check your home", text: "Add a building — name, year built, floors, material — and get an instant plain-language risk score." },
+              { n: "03", icon: <ShieldCheck className="h-5 w-5" />, title: "Stay informed", text: "Follow community reports, learn what to do in the first 60 seconds, and connect with trusted providers." },
+            ].map((s) => (
+              <li key={s.n} className="card-soft p-6 relative">
+                <div className="absolute right-5 top-5 text-5xl font-display font-semibold text-primary/10 leading-none">{s.n}</div>
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">{s.icon}</span>
+                <div className="mt-4 font-display text-xl font-semibold">{s.title}</div>
+                <p className="mt-1.5 text-sm text-muted-foreground">{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
 
       <div className="container-app py-8 space-y-8">
         {recentMajor && (
@@ -170,7 +259,11 @@ function Dashboard() {
                 <ActionCard to="/map" search={{ cat: "buildings" }} icon={<Building2 className="h-5 w-5" />} title="Add Building" description="Track a home or workplace and get a risk report." />
                 <ActionCard to="/map" search={{ cat: "wells" }} icon={<Droplets className="h-5 w-5" />} title="Register Well" description="Track groundwater levels nearby." />
                 <ActionCard to="/map" search={{ cat: "reports" }} icon={<Megaphone className="h-5 w-5" />} title="Submit Report" description="Log damage, flooding or cracks." />
-                <ActionCard to="/profile" icon={<UserCircle2 className="h-5 w-5" />} title="Your profile" description="Trust badge, history and settings." />
+                {user ? (
+                  <ActionCard to="/profile" icon={<UserCircle2 className="h-5 w-5" />} title="Your profile" description="Trust badge, history and settings." />
+                ) : (
+                  <ActionCard to="/auth" icon={<UserCircle2 className="h-5 w-5" />} title="Join the community" description="Sign in to add buildings, submit reports and earn a trust badge." />
+                )}
               </div>
             </div>
 
@@ -188,6 +281,150 @@ function Dashboard() {
           </aside>
         </div>
       </div>
+
+
+      {/* FEATURED LEARN */}
+      <section className="border-t border-border bg-secondary/30">
+        <div className="container-app py-12 md:py-16">
+          <div className="flex items-end justify-between flex-wrap gap-3">
+            <div className="max-w-2xl">
+              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Learn</div>
+              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Start with the essentials</h2>
+              <p className="mt-3 text-muted-foreground">Plain-language guides written for residents — no engineering background needed.</p>
+            </div>
+            <Link to="/learn" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
+              All articles <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {featuredPosts.map(({ category, post }) => (
+              <Link
+                key={post.slug}
+                to="/learn/$category/$post"
+                params={{ category: category.slug, post: post.slug }}
+                className="group card-soft p-6 hover:border-primary/40 transition-colors flex flex-col"
+              >
+                <div className="text-[11px] uppercase tracking-wider font-medium" style={{ color: category.accent }}>
+                  {category.shortTitle}
+                </div>
+                <div className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                  {post.title}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{post.readTime}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* COLLABORATED PROVIDERS */}
+      <section className="border-t border-border bg-background">
+        <div className="container-app py-12 md:py-16">
+          <div className="flex items-end justify-between flex-wrap gap-3">
+            <div className="max-w-2xl">
+              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Our partners</div>
+              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Collaborated service providers</h2>
+              <p className="mt-3 text-muted-foreground">Vetted local materials suppliers, engineers, water specialists and insurers — booking and purchase available inside the app.</p>
+            </div>
+            <Link to="/services" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
+              <Store className="h-4 w-4" /> Browse all
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredProviders.map(({ category, provider }) => (
+              <Link
+                key={provider.id}
+                to="/services"
+                className="group card-soft p-5 hover:border-primary/40 transition-colors flex flex-col"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground">{category.label}</span>
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                </div>
+                <div className="mt-3 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                  {provider.name}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{provider.blurb}</p>
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" /> {provider.location}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ABOUT + CONTACT */}
+      <section className="border-t border-border bg-gradient-to-b from-secondary/40 to-background">
+        <div className="container-app py-14 md:py-20 grid gap-10 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">About GeoSafe AI</div>
+            <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">A community-driven platform for earthquake awareness</h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              GeoSafe AI helps ordinary residents understand the earthquake risk around their homes using public seismic data,
+              community hazard reports and simple building information — no engineering degree required.
+            </p>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="card-soft p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Sparkles className="h-4 w-4 text-primary" /> Our mission
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  To democratize disaster preparedness by giving every resident, student and community member free,
+                  clear and actionable insight into the seismic risk of the places they live, learn and work.
+                </p>
+              </div>
+              <div className="card-soft p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <ShieldCheck className="h-4 w-4 text-primary" /> Our vision
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  A world where neighborhoods, not just engineers, can read the ground they stand on — and where a single
+                  shared map turns isolated observations into collective resilience.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card-soft p-6 self-start">
+            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Contact</div>
+            <h3 className="mt-2 font-display text-xl font-semibold">Get in touch</h3>
+            <p className="mt-2 text-sm text-muted-foreground">Questions, partnership ideas or feedback — we'd love to hear from you.</p>
+            <ul className="mt-5 space-y-3 text-sm">
+              <li className="flex items-start gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><FileText className="h-4 w-4" /></span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Email</div>
+                  <a href="mailto:hello@geosafe.ai" className="font-medium hover:text-primary">hello@geosafe.ai</a>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Phone className="h-4 w-4" /></span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Phone</div>
+                  <a href="tel:+97714000000" className="font-medium hover:text-primary">+977-1-400-0000</a>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-4 w-4" /></span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Office</div>
+                  <div className="font-medium">Kathmandu, Nepal</div>
+                </div>
+              </li>
+            </ul>
+            {!user && (
+              <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                Join GeoSafe AI
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
     </AppShell>
   );
 }
