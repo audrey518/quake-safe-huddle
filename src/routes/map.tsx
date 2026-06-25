@@ -272,7 +272,7 @@ function BuildingsPanel() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["buildings"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
 
-  const markers: MapMarker[] = items.flatMap((b) => {
+  const markers: MapMarker[] = filtered.flatMap((b) => {
     if (b.latitude == null || b.longitude == null) return [];
     const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
     return [{
@@ -280,6 +280,7 @@ function BuildingsPanel() {
       popupHtml: `<strong>${esc(b.name)}</strong><br/><span style="color:#666">${esc(b.address)}</span><br/>${r.category} (${r.score}/100) · ${MATERIAL_LABELS[b.material as BuildingMaterial]}`,
     }];
   });
+
 
   const handleAdd = () => {
     if (!user) {
