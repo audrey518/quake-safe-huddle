@@ -113,7 +113,7 @@ function ServicesPage() {
           </p>
         </header>
 
-        <nav className="flex flex-wrap gap-2">
+        <nav className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
           {CATEGORIES.map((c) => {
             const Icon = ICONS[c.id];
             const active = cat === c.id;
