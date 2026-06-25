@@ -61,14 +61,15 @@ function ServicesPage() {
         .eq("category", cat)
         .order("name");
       if (error) throw error;
-      const ids = (providers ?? []).map((p) => p.id);
+      const rows = (providers ?? []).filter((p): p is { id: string; name: string; blurb: string | null; location: string | null } => !!p.id && !!p.name);
+      const ids = rows.map((p) => p.id);
       if (!ids.length) return [];
       const { data: items } = await supabase
         .from("provider_items")
         .select("id,provider_id,name,price,unit,appointment,active,stock")
         .in("provider_id", ids)
         .eq("active", true);
-      return (providers ?? []).map((p) => ({
+      return rows.map((p) => ({
         ...p,
         items: ((items ?? []) as Array<{provider_id:string;id:string;name:string;price:number;unit:string|null;appointment:boolean;stock:number}>)
           .filter((i) => i.provider_id === p.id)
