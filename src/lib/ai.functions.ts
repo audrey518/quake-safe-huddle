@@ -42,7 +42,7 @@ export const generateBrief = createServerFn({ method: "POST" })
     const text = json.choices?.[0]?.message?.content?.trim() ?? "";
     if (!text) throw new Error("Empty AI response");
 
-    const table = data.kind === "building" ? "buildings" : "wells";
+    const table = data.kind === "building" ? "buildings" : data.kind === "well" ? "wells" : "soil_data";
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from(table).update({ ai_brief: text }).eq("id", data.id);
     return { brief: text };
