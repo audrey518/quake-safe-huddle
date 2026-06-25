@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { LEARN_CATEGORIES } from "@/lib/learn-content";
 import { AlertTriangle, Building2, Droplets, GraduationCap, Hammer, Mountain } from "lucide-react";
+import heroImg from "@/assets/hero-geosafe.jpg";
 
 export const Route = createFileRoute("/learn/")({
   head: () => ({
@@ -25,6 +26,12 @@ function LearnIndex() {
   return (
     <AppShell>
       <section className="relative overflow-hidden border-b border-border" style={{ background: "linear-gradient(135deg, #f5f3ff 0%, #fdf2f8 50%, #ecfeff 100%)" }}>
+        <img
+          src={heroImg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+        />
         <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, #ddd6fe 0%, transparent 70%)" }} />
         <div aria-hidden className="pointer-events-none absolute -bottom-20 left-10 h-64 w-64 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #fbcfe8 0%, transparent 70%)" }} />
         <div className="container-app relative py-10 md:py-14">
