@@ -545,12 +545,10 @@ function WellsPanel() {
         onAdd={handleAdd}
         isGuest={!user}
       />
-      <div className="card-soft p-2 max-h-[460px] overflow-auto">
-        <ul className="divide-y divide-border">
-      />
       <SearchBar value={query} onChange={setQuery} placeholder="Search wells by name or address…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
+
           {filtered.map((w) => {
             const active = w.id === selectedId;
             return (
