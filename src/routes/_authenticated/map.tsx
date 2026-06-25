@@ -511,8 +511,9 @@ function WellDetail({ item }: { item: any }) {
 }
 
 
-function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
+function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string; address: string | null; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => void; submitting: boolean; isProfessional: boolean }) {
   const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [type, setType] = useState("Domestic");
   const [depth, setDepth] = useState(20); const [level, setLevel] = useState(5);
@@ -524,6 +525,7 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
   const [yieldLpm, setYieldLpm] = useState("");
   const [drilling, setDrilling] = useState("");
   const [casingDiameter, setCasingDiameter] = useState("");
+  const [proNotes, setProNotes] = useState("");
   return (
     <form className="mt-4 grid gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
@@ -533,12 +535,19 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         const extras: Record<string, unknown> = isProfessional
           ? { water_ph: ph ? Number(ph) : null, yield_lpm: yieldLpm ? Number(yieldLpm) : null, drilling_method: drilling || null, casing_diameter_mm: casingDiameter ? Number(casingDiameter) : null }
           : { visible_issues: issues || null };
-        onSubmit({ name: name.trim().slice(0, 80), latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level, photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras });
+        onSubmit({
+          name: name.trim().slice(0, 80),
+          address: address.trim() ? address.trim().slice(0, 200) : null,
+          latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level,
+          photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
+          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
+        });
       }}>
       <Field label="Name"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
       <Field label="Type">
         <select className={inputClass()} value={type} onChange={(e) => setType(e.target.value)}>{WELL_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
       </Field>
+      <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Street, city, area…" /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
       <Field label="Total depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
@@ -558,6 +567,9 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
             </select>
           </Field>
           <Field label="Casing diameter (mm)"><input type="number" step="1" className={inputClass()} value={casingDiameter} onChange={(e) => setCasingDiameter(e.target.value)} /></Field>
+          <Field label="Professional notes" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
+          </Field>
         </>
       ) : (
         <>
@@ -577,6 +589,7 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
     </form>
   );
 }
+
 
 
 /* ------------------------------ REPORTS ------------------------------ */
