@@ -404,6 +404,7 @@ const WELL_TYPES = ["Domestic", "Irrigation", "Monitoring", "Industrial"];
 
 function WellsPanel() {
   const { user } = useAuth();
+  const { isProfessional } = useRole();
   const qc = useQueryClient();
   useRealtime("wells", ["wells"]);
   const q = useQuery({
@@ -415,9 +416,9 @@ function WellsPanel() {
   const selected = items.find((w) => w.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number }) => {
+    mutationFn: async (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown> }) => {
       const now = new Date().toISOString();
-      const { data, error } = await supabase.from("wells").insert({ user_id: user!.id, ...p, measured_at: now }).select("id").single();
+      const { data, error } = await supabase.from("wells").insert({ user_id: user!.id, ...p, measured_at: now } as any).select("id").single();
       if (error) throw error;
       await supabase.from("well_readings").insert({ well_id: data!.id, user_id: user!.id, level_m: p.current_level_m, measured_at: now });
       return { id: data!.id as string };
@@ -438,8 +439,8 @@ function WellsPanel() {
   return (
     <StackLayout markers={markers}>
       <div className="card-soft p-5">
-        <PanelHeader icon={<Droplets className="h-5 w-5" />} title="Register a well" subtitle="Track groundwater levels in your area." />
-        <WellForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        <PanelHeader icon={<Droplets className="h-5 w-5" />} title="Register a well" subtitle={isProfessional ? "Professional submission — include hydrogeological measurements." : "Track groundwater levels and report visible issues."} />
+        <WellForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
       </div>
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
@@ -488,24 +489,36 @@ function WellDetail({ item }: { item: any }) {
         <div className="text-xs text-muted-foreground">{item.well_type} · depth {item.total_depth_m ?? "—"} m · level {item.current_level_m ?? "—"} m</div>
         <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
       </div>
+      <ExtrasBlock extras={item.extras} photoUrl={item.photo_url} />
       <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
       <Comments targetType="well" targetId={item.id} />
     </div>
   );
 }
 
-function WellForm({ onSubmit, submitting }: { onSubmit: (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number }) => void; submitting: boolean }) {
+function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { name: string; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
   const [name, setName] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [type, setType] = useState("Domestic");
   const [depth, setDepth] = useState(20); const [level, setLevel] = useState(5);
+  // local
+  const [issues, setIssues] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  // professional
+  const [ph, setPh] = useState("");
+  const [yieldLpm, setYieldLpm] = useState("");
+  const [drilling, setDrilling] = useState("");
+  const [casingDiameter, setCasingDiameter] = useState("");
   return (
     <form className="mt-4 grid gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
         if (!name.trim() || Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Name and coordinates required"); return; }
-        onSubmit({ name: name.trim().slice(0, 80), latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level });
+        const extras: Record<string, unknown> = isProfessional
+          ? { water_ph: ph ? Number(ph) : null, yield_lpm: yieldLpm ? Number(yieldLpm) : null, drilling_method: drilling || null, casing_diameter_mm: casingDiameter ? Number(casingDiameter) : null }
+          : { visible_issues: issues || null };
+        onSubmit({ name: name.trim().slice(0, 80), latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level, photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras });
       }}>
       <Field label="Name"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
       <Field label="Type">
@@ -515,6 +528,31 @@ function WellForm({ onSubmit, submitting }: { onSubmit: (p: { name: string; lati
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
       <Field label="Total depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
       <Field label="Water level (m)"><input type="number" step="0.01" className={inputClass()} value={level} onChange={(e) => setLevel(parseFloat(e.target.value || "0"))} /></Field>
+
+      {isProfessional ? (
+        <>
+          <Field label="Water pH"><input type="number" step="0.1" className={inputClass()} value={ph} onChange={(e) => setPh(e.target.value)} /></Field>
+          <Field label="Yield (L/min)"><input type="number" step="0.1" className={inputClass()} value={yieldLpm} onChange={(e) => setYieldLpm(e.target.value)} /></Field>
+          <Field label="Drilling method">
+            <select className={inputClass()} value={drilling} onChange={(e) => setDrilling(e.target.value)}>
+              <option value="">Select…</option>
+              <option value="rotary">Rotary</option>
+              <option value="percussion">Percussion</option>
+              <option value="auger">Auger</option>
+              <option value="hand-dug">Hand-dug</option>
+            </select>
+          </Field>
+          <Field label="Casing diameter (mm)"><input type="number" step="1" className={inputClass()} value={casingDiameter} onChange={(e) => setCasingDiameter(e.target.value)} /></Field>
+        </>
+      ) : (
+        <>
+          <Field label="Visible issues / damage" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} maxLength={1000} value={issues} onChange={(e) => setIssues(e.target.value)} placeholder="e.g. low water, cloudy water, broken cover…" />
+          </Field>
+          <Field label="Photo URL of damaged area" className="sm:col-span-2"><input className={inputClass()} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" maxLength={500} /></Field>
+        </>
+      )}
+
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
         <LocationButton onLocate={(la, lo) => { setLat(la); setLng(lo); }} />
         <button type="submit" disabled={submitting} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center gap-2">
@@ -524,6 +562,7 @@ function WellForm({ onSubmit, submitting }: { onSubmit: (p: { name: string; lati
     </form>
   );
 }
+
 
 /* ------------------------------ REPORTS ------------------------------ */
 
