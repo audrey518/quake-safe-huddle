@@ -33,35 +33,38 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-clip">
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-        <div className="container-app flex h-16 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 group">
-            <GeoSafeLogo className="h-8 w-8 rounded-lg" />
+        <div className="container-app flex h-20 items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <GeoSafeLogo className="h-10 w-10 rounded-lg" />
             <div className="leading-tight">
-              <div className="font-display font-semibold tracking-tight">GeoSafe AI</div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="font-display font-semibold tracking-tight text-lg">GeoSafe AI</div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                 Geo-risk awareness
               </div>
             </div>
           </Link>
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1.5">
             {navItems.map((item) => {
+              const Icon = item.icon;
               const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
               return (
                 <Link
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                    "inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-[15px] font-medium transition-colors",
                     active
                       ? "bg-secondary text-secondary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
                   )}
                 >
+                  <Icon className="h-5 w-5" />
                   {item.label}
                 </Link>
               );
             })}
           </nav>
+
           <div className="flex items-center gap-2">
             {isProvider && (
               <Link to="/provider" className="hidden md:inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs hover:bg-secondary" title="Provider dashboard">
