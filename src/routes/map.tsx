@@ -20,7 +20,8 @@ import {
 } from "@/lib/safeground";
 import { formatDistanceToNow } from "@/lib/format";
 import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
-import { Activity, Building2, ChevronDown, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Search, Send, Sparkles, Trash2 } from "lucide-react";
+import { Activity, Building2, ChevronDown, Droplets, Globe, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Search, Send, Sparkles, Trash2 } from "lucide-react";
+import heroImg from "@/assets/hero-map.jpg";
 import { AuthorBadge } from "@/components/safeground/author-badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -54,13 +55,29 @@ function MapHub() {
 
   return (
     <AppShell>
-      <div className="container-app py-6">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">InfoHub</h1>
-            <p className="text-sm text-muted-foreground mt-1">Browse one category at a time and contribute new data.</p>
+      <section className="relative overflow-hidden border-b border-border" style={{ background: "linear-gradient(135deg, #ecfeff 0%, #f0f9ff 50%, #f5f3ff 100%)" }}>
+        <img
+          src={heroImg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+        />
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, #bae6fd 0%, transparent 70%)" }} />
+        <div aria-hidden className="pointer-events-none absolute -bottom-20 left-10 h-64 w-64 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #a5f3fc 0%, transparent 70%)" }} />
+        <div className="container-app relative py-10 md:py-14">
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#ecfeff", color: "#155e75" }}>
+            <Globe className="h-3.5 w-3.5" /> InfoHub
           </div>
+          <h1 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight font-display">
+            Explore data on the map.
+          </h1>
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            Browse earthquakes, buildings, wells, hazard reports, and soil data — all in one place. Contribute what you know and help your community stay informed.
+          </p>
         </div>
+      </section>
+
+      <div className="container-app py-6">
 
         <div className="flex flex-nowrap gap-1.5 overflow-x-auto pb-1 mb-4">
           {CATEGORIES.map((c) => {

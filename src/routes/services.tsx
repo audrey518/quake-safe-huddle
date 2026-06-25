@@ -9,8 +9,9 @@ import { CATEGORIES, type ServiceCategoryId } from "@/lib/services-data";
 import { bookAppointment, recordPurchase, cancelPurchase } from "@/lib/telegram.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Briefcase, Building2, CalendarClock, CreditCard, Droplets, Lock, Minus, Plus, ShieldCheck, ShoppingCart, X } from "lucide-react";
+import { Briefcase, Building2, CalendarClock, CreditCard, Droplets, Lock, Minus, Plus, ShieldCheck, ShoppingCart, Store, X } from "lucide-react";
 import { toast } from "sonner";
+import heroImg from "@/assets/hero-services.jpg";
 
 const searchSchema = z.object({ cat: z.enum(["materials", "engineering", "water", "insurance"]).optional() });
 
@@ -105,13 +106,31 @@ function ServicesPage() {
 
   return (
     <AppShell>
-      <div className="container-app py-8 space-y-6">
-        <header>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Services & Products</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Verified vendors. Are you a provider? <Link to="/auth" className="underline">Sign up as a Provider</Link> to list your goods and services.
+      <section className="relative overflow-hidden border-b border-border" style={{ background: "linear-gradient(135deg, #fefce8 0%, #fef3c7 50%, #ecfdf5 100%)" }}>
+        <img
+          src={heroImg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+        />
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, #fde68a 0%, transparent 70%)" }} />
+        <div aria-hidden className="pointer-events-none absolute -bottom-20 left-10 h-64 w-64 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #bbf7d0 0%, transparent 70%)" }} />
+        <div className="container-app relative py-10 md:py-14">
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#fef9c3", color: "#854d0e" }}>
+            <Store className="h-3.5 w-3.5" /> Marketplace
+          </div>
+          <h1 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight font-display">
+            Services & Products
+          </h1>
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            Verified vendors for materials, engineering, water services, and insurance. Are you a provider?{" "}
+            <Link to="/auth" className="underline decoration-primary/50 underline-offset-4">Sign up as a Provider</Link>{" "}
+            to list your goods and services.
           </p>
-        </header>
+        </div>
+      </section>
+
+      <div className="container-app py-8 space-y-6">
 
         <nav className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
           {CATEGORIES.map((c) => {
