@@ -101,6 +101,16 @@ function ServicesPage() {
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Cancel failed"),
   });
+  const cancelApptFn = useServerFn(cancelAppointment);
+  const cancelAppt = useMutation({
+    mutationFn: (id: string) => cancelApptFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Appointment cancelled");
+      qc.invalidateQueries({ queryKey: ["purchases", user?.id] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Cancel failed"),
+  });
+
 
   const providers = providersQ.data ?? [];
 
