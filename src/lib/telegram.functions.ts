@@ -138,6 +138,9 @@ async function notifyProvider(opts: {
   }
 }
 
+const ADMIN_COMMISSION_PCT = 7;
+const fmt = (n: number) => `MMK ${Math.round(n).toLocaleString()}`;
+
 export const recordPurchase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: PurchaseInput) => data)
@@ -146,7 +149,6 @@ export const recordPurchase = createServerFn({ method: "POST" })
     const provider = await lookupProviderFromItem(data.provider_item_id);
     const qty = Math.max(1, Math.floor(Number(data.quantity ?? 1)));
 
-    // Decrement stock atomically if linked to a provider_item
     if (data.provider_item_id) {
       const { data: itemRow, error: itemErr } = await supabaseAdmin
         .from("provider_items").select("stock").eq("id", data.provider_item_id).maybeSingle();
@@ -157,12 +159,20 @@ export const recordPurchase = createServerFn({ method: "POST" })
         .from("provider_items")
         .update({ stock: stock - qty })
         .eq("id", data.provider_item_id)
-        .eq("stock", stock); // optimistic
+        .eq("stock", stock);
       if (updErr) throw new Error(updErr.message);
     }
 
+    // Server-side discount + commission (do not trust client)
+    const { data: discRow } = await supabaseAdmin.rpc("get_user_discount", { _user_id: context.userId });
+    const discountPct = Number((discRow as Array<{ discount_pct: number }> | null)?.[0]?.discount_pct ?? 0);
+
     const unit = Number(data.price ?? 0);
-    const total = unit * qty;
+    const subtotal = unit * qty;
+    const total = Math.round(subtotal * (1 - discountPct / 100));
+    const adminCommission = Math.round(total * (ADMIN_COMMISSION_PCT / 100));
+    const providerPayout = total - adminCommission;
+
     const { data: row, error } = await supabaseAdmin
       .from("purchases")
       .insert({
@@ -170,6 +180,10 @@ export const recordPurchase = createServerFn({ method: "POST" })
         provider_name: data.provider_name,
         item_name: data.item_name,
         price: total,
+        subtotal,
+        discount_pct: discountPct,
+        admin_commission: adminCommission,
+        provider_payout: providerPayout,
         notes: data.notes ?? null,
         quantity: qty,
         provider_item_id: data.provider_item_id ?? null,
@@ -182,22 +196,23 @@ export const recordPurchase = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const buyer = await getBuyerInfo(context.userId, context.claims?.email as string | undefined);
-    const priceTxt = total ? ` — Rs. ${total} (${qty} × Rs. ${unit})` : "";
+    const discTxt = discountPct > 0 ? `\nDiscount: ${discountPct}% (-${fmt(subtotal - total)})` : "";
+    const breakdown = `Subtotal: ${fmt(subtotal)} (${qty} × ${fmt(unit)})${discTxt}\nTotal: ${fmt(total)}\nAdmin commission (${ADMIN_COMMISSION_PCT}%): ${fmt(adminCommission)}\nProvider payout: ${fmt(providerPayout)}`;
     await broadcastToAdmins(
-      `🛒 <b>New purchase</b>\n<b>${data.item_name}</b>${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\n<b>Buyer</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
+      `🛒 <b>New purchase</b>\n<b>${data.item_name}</b>\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\n${breakdown}\n\n<b>Buyer</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
     );
     await sendBuyerEmail(
       buyer.email,
       `Your purchase: ${data.item_name}`,
-      `Hi ${buyer.name},\n\nThanks for your purchase on GeoSafe AI.\n\nItem: ${data.item_name}\nQuantity: ${qty}\nTotal: Rs. ${total}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\nYou can cancel this order from your Services page if your plans change.\n\n— GeoSafe AI`,
+      `Hi ${buyer.name},\n\nThanks for your purchase on GeoSafe AI.\n\nItem: ${data.item_name}\nQuantity: ${qty}\nSubtotal: ${fmt(subtotal)}${discountPct > 0 ? `\nDiscount: ${discountPct}% (-${fmt(subtotal - total)})` : ""}\nTotal charged: ${fmt(total)}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\nYou can cancel this order from your Services page if your plans change.\n\n— GeoSafe AI`,
     );
     await notifyProvider({
       provider,
       subject: `New order: ${data.item_name}`,
-      body: `Hi,\n\nYou have a new order on GeoSafe AI.\n\nItem: ${data.item_name}\nQuantity: ${qty}\nTotal: Rs. ${total}\nCategory: ${data.category}\n\nCustomer\nName: ${buyer.name}\nEmail: ${buyer.email}\n\nManage this order in your provider dashboard.\n\n— GeoSafe AI`,
-      telegramText: `🛒 <b>New order</b>\n<b>${data.item_name}</b>${priceTxt}\n\n<b>Customer</b>\n${buyer.name} — ${buyer.email}`,
+      body: `Hi,\n\nYou have a new order on GeoSafe AI.\n\nItem: ${data.item_name}\nQuantity: ${qty}\nTotal: ${fmt(total)}\nYour payout (after ${ADMIN_COMMISSION_PCT}% platform fee): ${fmt(providerPayout)}\nCategory: ${data.category}\n\nCustomer\nName: ${buyer.name}\nEmail: ${buyer.email}\n\nManage this order in your provider dashboard.\n\n— GeoSafe AI`,
+      telegramText: `🛒 <b>New order</b>\n<b>${data.item_name}</b> × ${qty}\nTotal: ${fmt(total)} · Your payout: ${fmt(providerPayout)}\n\n<b>Customer</b>\n${buyer.name} — ${buyer.email}`,
     });
-    return { purchase: row, buyerEmail: buyer.email };
+    return { purchase: row, buyerEmail: buyer.email, discountPct, total };
   });
 
 export const cancelPurchase = createServerFn({ method: "POST" })
