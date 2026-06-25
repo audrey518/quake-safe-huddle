@@ -62,6 +62,7 @@ function ProfilePage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["profile", user?.id] });
+      setNameDirty(false);
       toast.success("Profile updated");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
