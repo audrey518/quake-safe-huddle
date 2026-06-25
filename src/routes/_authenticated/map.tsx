@@ -204,7 +204,7 @@ function BuildingsPanel() {
   const selected = items.find((b) => b.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown> }) => {
+    mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
       const r = assessRisk({ yearBuilt: p.year_built, floors: p.floors, material: p.material });
       const { data, error } = await supabase.from("buildings").insert({ user_id: user!.id, ...p, risk_score: r.score } as any).select("id").single();
       if (error) throw error;
@@ -218,6 +218,7 @@ function BuildingsPanel() {
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
+
 
   const remove = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("buildings").delete().eq("id", id); if (error) throw error; },
