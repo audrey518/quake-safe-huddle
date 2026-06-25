@@ -250,6 +250,51 @@ export const cancelPurchase = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const cancelAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("appointments")
+      .select("id,user_id,status,service_name,provider_name,appointment_date,appointment_time,provider_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Appointment not found");
+    if (row.user_id !== context.userId) throw new Error("Not your appointment");
+    if (row.status === "cancelled") return { ok: true };
+    if (row.status === "completed") throw new Error("Completed appointments cannot be cancelled");
+
+    const { error: uErr } = await supabaseAdmin
+      .from("appointments").update({ status: "cancelled" }).eq("id", row.id);
+    if (uErr) throw new Error(uErr.message);
+
+    let provider: { contact_email: string | null; telegram_chat_id: string | null } | null = null;
+    if (row.provider_id) {
+      const { data: p } = await supabaseAdmin
+        .from("providers").select("contact_email,telegram_chat_id").eq("id", row.provider_id).maybeSingle();
+      provider = p ?? null;
+    }
+    const buyer = await getBuyerInfo(context.userId, context.claims?.email as string | undefined);
+    const time = row.appointment_time ? ` at ${row.appointment_time}` : "";
+    await broadcastToAdmins(
+      `❌ <b>Appointment cancelled</b>\n<b>${row.service_name}</b>\nProvider: ${row.provider_name}\nDate: ${row.appointment_date}${time}\n\nBy: ${buyer.name} — ${buyer.email}`,
+    );
+    await sendBuyerEmail(
+      buyer.email,
+      `Appointment cancelled: ${row.service_name}`,
+      `Hi ${buyer.name},\n\nYour appointment has been cancelled.\n\nService: ${row.service_name}\nProvider: ${row.provider_name}\nDate: ${row.appointment_date}${time}\n\n— GeoSafe AI`,
+    );
+    await notifyProvider({
+      provider,
+      subject: `Appointment cancelled: ${row.service_name}`,
+      body: `Hi,\n\nAn appointment was cancelled by the customer.\n\nService: ${row.service_name}\nDate: ${row.appointment_date}${time}\n\nCustomer\nName: ${buyer.name}\nEmail: ${buyer.email}\n\n— GeoSafe AI`,
+      telegramText: `❌ <b>Appointment cancelled</b>\n<b>${row.service_name}</b>\nDate: ${row.appointment_date}${time}\n\n${buyer.name} — ${buyer.email}`,
+    });
+    return { ok: true };
+  });
+
 
 
 export const bookAppointment = createServerFn({ method: "POST" })

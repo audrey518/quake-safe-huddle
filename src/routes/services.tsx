@@ -6,7 +6,7 @@ import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { Field, inputClass } from "@/components/safeground/ui";
 import { CATEGORIES, type ServiceCategoryId } from "@/lib/services-data";
-import { bookAppointment, recordPurchase, cancelPurchase } from "@/lib/telegram.functions";
+import { bookAppointment, recordPurchase, cancelPurchase, cancelAppointment } from "@/lib/telegram.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Briefcase, Building2, CalendarClock, CreditCard, Droplets, Lock, Minus, Plus, ShieldCheck, ShoppingCart, Store, X } from "lucide-react";
@@ -101,6 +101,16 @@ function ServicesPage() {
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Cancel failed"),
   });
+  const cancelApptFn = useServerFn(cancelAppointment);
+  const cancelAppt = useMutation({
+    mutationFn: (id: string) => cancelApptFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Appointment cancelled");
+      qc.invalidateQueries({ queryKey: ["purchases", user?.id] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Cancel failed"),
+  });
+
 
   const providers = providersQ.data ?? [];
 
@@ -216,14 +226,33 @@ function ServicesPage() {
               </div>
               {historyQ.data?.appointments.length ? (
                 <ul className="space-y-2 text-sm">
-                  {historyQ.data.appointments.map((a) => (
-                    <li key={a.id} className="flex flex-col gap-1 border-b border-border/60 pb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-                      <span className="min-w-0 break-words">{a.service_name} <span className="text-muted-foreground">· {a.provider_name}</span></span>
-                      <span className="text-muted-foreground whitespace-nowrap text-xs sm:text-sm">{a.appointment_date}{a.appointment_time ? ` ${a.appointment_time}` : ""}</span>
-                    </li>
-                  ))}
+                  {historyQ.data.appointments.map((a) => {
+                    const cancelled = (a as { status?: string }).status === "cancelled";
+                    const completed = (a as { status?: string }).status === "completed";
+                    return (
+                      <li key={a.id} className="flex flex-col gap-1.5 border-b border-border/60 pb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                        <span className="min-w-0 break-words">
+                          {a.service_name} <span className="text-muted-foreground">· {a.provider_name}</span>
+                          {cancelled && <span className="ml-1.5 text-[10px] uppercase text-destructive">cancelled</span>}
+                          {completed && <span className="ml-1.5 text-[10px] uppercase text-emerald-600">completed</span>}
+                        </span>
+                        <div className="flex items-center justify-between gap-2 shrink-0 sm:justify-end">
+                          <span className="text-muted-foreground whitespace-nowrap text-xs sm:text-sm">{a.appointment_date}{a.appointment_time ? ` ${a.appointment_time}` : ""}</span>
+                          {!cancelled && !completed && (
+                            <button
+                              onClick={() => { if (confirm("Cancel this appointment?")) cancelAppt.mutate(a.id); }}
+                              className="text-[11px] rounded border border-input px-2 py-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : <p className="text-sm text-muted-foreground">No appointments yet.</p>}
+
             </div>
           </div>
         </section>
