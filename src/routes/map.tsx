@@ -177,48 +177,54 @@ const FEEDS: { id: UsgsFeed; label: string }[] = [
 
 function EarthquakesPanel() {
   const [feed, setFeed] = useState<UsgsFeed>("2.5_day");
+  const [query, setQuery] = useState("");
   const { data, isLoading } = useQuery({
     queryKey: ["usgs", feed],
     queryFn: () => fetchRecentEarthquakes(feed),
     refetchInterval: 60_000,
   });
   const quakes = data ?? [];
-  const markers: MapMarker[] = quakes.map((q) => ({
+  const filtered = quakes.filter((q) => q.place.toLowerCase().includes(query.trim().toLowerCase()));
+  const markers: MapMarker[] = filtered.map((q) => ({
     id: `q-${q.id}`, lat: q.latitude, lng: q.longitude, color: magnitudeColor(q.magnitude), title: q.place,
     popupHtml: `<strong>M${q.magnitude.toFixed(1)}</strong><br/>${esc(q.place)}<br/><span style="color:#666">${q.depth.toFixed(0)} km deep</span>`,
   }));
 
   return (
     <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Activity className="h-5 w-5" />} title="Live earthquakes" subtitle="Real-time USGS feed (read-only)." />
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {FEEDS.map((f) => (
-            <button key={f.id} onClick={() => setFeed(f.id)}
-              className={`rounded-full border px-2.5 py-1 text-xs ${feed === f.id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>
-              {f.label}
-            </button>
-          ))}
+      <div className="card-soft p-5 md:col-span-2 space-y-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <PanelHeader icon={<Activity className="h-5 w-5" />} title="Live earthquakes" subtitle="Real-time USGS feed (read-only)." />
+          <div className="flex flex-wrap gap-1.5">
+            {FEEDS.map((f) => (
+              <button key={f.id} onClick={() => setFeed(f.id)}
+                className={`rounded-full border px-2.5 py-1 text-xs ${feed === f.id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="card-soft p-2 max-h-[400px] overflow-auto">
-        {isLoading && <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>}
-        <ul className="divide-y divide-border">
-          {quakes.slice(0, 50).map((q) => (
-            <li key={q.id} className="flex items-center gap-3 p-3">
-              <MagnitudeBadge mag={q.magnitude} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{q.place}</div>
-                <div className="text-[11px] text-muted-foreground">{q.depth.toFixed(0)} km · {formatDistanceToNow(q.time)} ago</div>
-              </div>
-            </li>
-          ))}
-          {quakes.length === 0 && !isLoading && <li className="p-6 text-center text-sm text-muted-foreground">No earthquakes in this feed.</li>}
-        </ul>
+        <SearchBar value={query} onChange={setQuery} placeholder="Search earthquakes by place…" />
+        <div className="max-h-[400px] overflow-auto -mx-2">
+          {isLoading && <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>}
+          <ul className="divide-y divide-border">
+            {filtered.slice(0, 50).map((q) => (
+              <li key={q.id} className="flex items-center gap-3 p-3">
+                <MagnitudeBadge mag={q.magnitude} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{q.place}</div>
+                  <div className="text-[11px] text-muted-foreground">{q.depth.toFixed(0)} km · {formatDistanceToNow(q.time)} ago</div>
+                </div>
+              </li>
+            ))}
+            {filtered.length === 0 && !isLoading && <li className="p-6 text-center text-sm text-muted-foreground">{query ? "No matches." : "No earthquakes in this feed."}</li>}
+          </ul>
+        </div>
       </div>
     </StackLayout>
   );
 }
+
 
 /* ------------------------------ BUILDINGS ------------------------------ */
 
