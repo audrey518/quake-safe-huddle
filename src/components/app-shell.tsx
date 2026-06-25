@@ -23,6 +23,8 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const badge = useTrustBadge(user?.id);
   const accountName = user?.email?.split("@")[0] ?? "Account";
 
+  const navItems = user ? NAV : NAV.filter((n) => n.to !== "/profile");
+
   async function signOut() {
     await supabase.auth.signOut();
     router.navigate({ to: "/auth", replace: true });
