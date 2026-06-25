@@ -2,14 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
-import { adminListProviders, adminSetProviderStatus } from "@/lib/providers.functions";
+import { adminGetRevenue, adminListProviders, adminSetProviderStatus } from "@/lib/providers.functions";
 import { toast } from "sonner";
-import { Check, X } from "lucide-react";
+import { Check, TrendingUp, Wallet, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/providers")({
   head: () => ({ meta: [{ title: "Admin · Providers — GeoSafe AI" }] }),
   component: AdminProviders,
 });
+
 
 function AdminProviders() {
   const list = useServerFn(adminListProviders);
