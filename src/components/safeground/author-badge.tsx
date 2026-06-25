@@ -13,22 +13,18 @@ interface AuthorInfo {
 }
 
 async function fetchAuthor(userId: string): Promise<AuthorInfo> {
-  const [{ data, error }, rolesRes] = await Promise.all([
-    supabase.rpc("get_author_info", { _user_id: userId }),
-    supabase.from("user_roles").select("role").eq("user_id", userId),
-  ]);
+  const { data, error } = await supabase.rpc("get_author_info", { _user_id: userId });
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
   const contributions = (row?.contributions as number) ?? 0;
   const tier = tierFor(contributions);
-  const roles = (rolesRes.data ?? []).map((r) => r.role as string);
   return {
     displayName: (row?.display_name as string) || "Member",
     tier,
     color: tierColor(tier),
     contributions,
     isProfessional: Boolean(row?.is_professional),
-    isProvider: roles.includes("provider"),
+    isProvider: Boolean(row?.is_provider),
   };
 }
 
