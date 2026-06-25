@@ -61,12 +61,14 @@ export type Database = {
           address: string
           ai_brief: string | null
           created_at: string
+          extras: Json
           floors: number
           id: string
           latitude: number | null
           longitude: number | null
           material: string
           name: string
+          photo_url: string | null
           risk_score: number | null
           user_id: string
           year_built: number
@@ -75,12 +77,14 @@ export type Database = {
           address: string
           ai_brief?: string | null
           created_at?: string
+          extras?: Json
           floors: number
           id?: string
           latitude?: number | null
           longitude?: number | null
           material: string
           name: string
+          photo_url?: string | null
           risk_score?: number | null
           user_id: string
           year_built: number
@@ -89,12 +93,14 @@ export type Database = {
           address?: string
           ai_brief?: string | null
           created_at?: string
+          extras?: Json
           floors?: number
           id?: string
           latitude?: number | null
           longitude?: number | null
           material?: string
           name?: string
+          photo_url?: string | null
           risk_score?: number | null
           user_id?: string
           year_built?: number
@@ -223,35 +229,44 @@ export type Database = {
       }
       soil_data: {
         Row: {
+          ai_brief: string | null
           created_at: string
           depth_m: number
+          extras: Json
           id: string
           latitude: number
           layers: Json | null
           longitude: number
           notes: string | null
+          photo_url: string | null
           soil_type: string
           user_id: string
         }
         Insert: {
+          ai_brief?: string | null
           created_at?: string
           depth_m: number
+          extras?: Json
           id?: string
           latitude: number
           layers?: Json | null
           longitude: number
           notes?: string | null
+          photo_url?: string | null
           soil_type: string
           user_id: string
         }
         Update: {
+          ai_brief?: string | null
           created_at?: string
           depth_m?: number
+          extras?: Json
           id?: string
           latitude?: number
           layers?: Json | null
           longitude?: number
           notes?: string | null
+          photo_url?: string | null
           soil_type?: string
           user_id?: string
         }
@@ -318,6 +333,7 @@ export type Database = {
           ai_brief: string | null
           created_at: string
           current_level_m: number | null
+          extras: Json
           id: string
           latitude: number
           longitude: number
@@ -332,6 +348,7 @@ export type Database = {
           ai_brief?: string | null
           created_at?: string
           current_level_m?: number | null
+          extras?: Json
           id?: string
           latitude: number
           longitude: number
@@ -346,6 +363,7 @@ export type Database = {
           ai_brief?: string | null
           created_at?: string
           current_level_m?: number | null
+          extras?: Json
           id?: string
           latitude?: number
           longitude?: number
