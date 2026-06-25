@@ -252,7 +252,7 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
 
   return (
     <li className="rounded-md border border-border bg-secondary/30 p-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{item.name}</div>
           <div className="text-xs text-muted-foreground">
@@ -261,14 +261,14 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
           </div>
         </div>
         {item.appointment ? (
-          <button onClick={() => requireAuth(() => setBookOpen((v) => !v))} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap">
-            {!user ? "Sign in to book" : bookOpen ? "Close" : "Book appointment"}
+          <button onClick={() => requireAuth(() => setBookOpen((v) => !v))} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap w-full sm:w-auto">
+            {!user ? "Sign in to book" : bookOpen ? "Close" : "Book"}
           </button>
         ) : (
           <button
             onClick={() => requireAuth(() => setCheckoutOpen(true))}
             disabled={outOfStock}
-            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap"
+            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap w-full sm:w-auto"
           >
             {!user ? "Sign in to buy" : outOfStock ? "Sold out" : "Buy now"}
           </button>
