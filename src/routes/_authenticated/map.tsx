@@ -886,7 +886,20 @@ function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
 
 /* ------------------------------ AI brief + Comments ------------------------------ */
 
+function ProfessionalNotesBlock({ notes }: { notes: string | null | undefined }) {
+  if (!notes) return null;
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+      <div className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-primary">
+        <MessageSquare className="h-3.5 w-3.5" /> Professional notes
+      </div>
+      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">{notes}</p>
+    </div>
+  );
+}
+
 function AiBriefBlock({ brief, pending, onGenerate }: { brief: string | null | undefined; pending: boolean; onGenerate: () => void }) {
+
   return (
     <div className="rounded-md border border-border bg-secondary/30 p-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
