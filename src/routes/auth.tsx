@@ -116,15 +116,6 @@ function AuthPage() {
       setBusy(false);
     }
   }
-        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
-        if (error) throw error;
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
