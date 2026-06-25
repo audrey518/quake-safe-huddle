@@ -570,9 +570,6 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
             </select>
           </Field>
           <Field label="Casing diameter (mm)"><input type="number" step="1" className={inputClass()} value={casingDiameter} onChange={(e) => setCasingDiameter(e.target.value)} /></Field>
-          <Field label="Professional notes" className="sm:col-span-2">
-            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
-          </Field>
         </>
       ) : (
         <>
@@ -582,6 +579,11 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
           <Field label="Photo URL of damaged area" className="sm:col-span-2"><input className={inputClass()} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" maxLength={500} /></Field>
         </>
       )}
+
+      <Field label={isProfessional ? "Professional notes" : "Notes from a professional (optional)"} className="sm:col-span-2">
+        <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Hydrogeological observations, recommendations…" />
+      </Field>
+
 
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
         <LocationButton onLocate={(la, lo) => { setLat(la); setLng(lo); }} />
