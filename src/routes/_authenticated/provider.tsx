@@ -67,7 +67,7 @@ function ProviderDashboard() {
           <p className="text-sm text-muted-foreground">{p.category} · {p.location ?? ""}</p>
         </header>
 
-        <nav className="flex gap-2 border-b border-border">
+        <nav className="flex gap-2 border-b border-border overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           {([
             ["orders", "Orders & bookings", ClipboardList],
             ["listings", "My listings", ShoppingCart],
