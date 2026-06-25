@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Lock, User, ShieldCheck, Briefcase } from "lucide-react";
+import { Mail, Lock, User, ShieldCheck, Briefcase, IdCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GeoSafeLogo } from "@/components/geosafe-logo";
@@ -17,14 +17,14 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<"local" | "professional">("local");
+  const [licenseNumber, setLicenseNumber] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Listen for sign-in then redirect
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") router.navigate({ to: "/", replace: true });
@@ -37,13 +37,29 @@ function AuthPage() {
     const cleanEmail = email.trim().toLowerCase();
     setBusy(true);
     try {
-      if (mode === "signup") {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("Password reset email sent. Check your inbox.");
+        setMode("signin");
+      } else if (mode === "signup") {
+        if (role === "professional" && !licenseNumber.trim()) {
+          toast.error("Engineering professional licence number is required");
+          setBusy(false);
+          return;
+        }
         const { data, error } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { display_name: displayName.trim() || cleanEmail.split("@")[0], role },
+            data: {
+              display_name: displayName.trim() || cleanEmail.split("@")[0],
+              role,
+              license_number: role === "professional" ? licenseNumber.trim() : "",
+            },
           },
         });
         if (error) throw error;
@@ -107,10 +123,14 @@ function AuthPage() {
           </div>
 
           <h2 className="font-display text-2xl font-semibold tracking-tight">
-            {mode === "signin" ? "Welcome back" : "Join GeoSafe AI"}
+            {mode === "signin" ? "Welcome back" : mode === "signup" ? "Join GeoSafe AI" : "Reset your password"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "signin" ? "Sign in to monitor your community." : "Create your account, then sign in with the same email and password."}
+            {mode === "signin"
+              ? "Sign in to monitor your community."
+              : mode === "signup"
+              ? "Create your account, then sign in with the same email and password."
+              : "Enter your email and we'll send you a link to set a new password."}
           </p>
 
           <form className="mt-6 space-y-3" onSubmit={onSubmit}>
@@ -118,24 +138,49 @@ function AuthPage() {
               <Input icon={<User className="h-4 w-4" />} placeholder="Display name" value={displayName} onChange={setDisplayName} />
             )}
             <Input icon={<Mail className="h-4 w-4" />} type="email" placeholder="you@example.com" value={email} onChange={setEmail} required />
-            <Input icon={<Lock className="h-4 w-4" />} type="password" placeholder="Password (min 6 chars)" value={password} onChange={setPassword} required minLength={6} />
+            {mode !== "forgot" && (
+              <Input icon={<Lock className="h-4 w-4" />} type="password" placeholder="Password (min 6 chars)" value={password} onChange={setPassword} required minLength={6} />
+            )}
 
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <RoleCard
-                  active={role === "local"}
-                  onClick={() => setRole("local")}
-                  icon={<ShieldCheck className="h-4 w-4" />}
-                  label="Local resident"
-                  hint="View, report, register wells"
-                />
-                <RoleCard
-                  active={role === "professional"}
-                  onClick={() => setRole("professional")}
-                  icon={<Briefcase className="h-4 w-4" />}
-                  label="Professional"
-                  hint="Submit soil assessments"
-                />
+              <>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <RoleCard
+                    active={role === "local"}
+                    onClick={() => setRole("local")}
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                    label="Local resident"
+                    hint="View, report, register wells"
+                  />
+                  <RoleCard
+                    active={role === "professional"}
+                    onClick={() => setRole("professional")}
+                    icon={<Briefcase className="h-4 w-4" />}
+                    label="Professional"
+                    hint="Submit soil assessments"
+                  />
+                </div>
+                {role === "professional" && (
+                  <Input
+                    icon={<IdCard className="h-4 w-4" />}
+                    placeholder="Engineering licence number *"
+                    value={licenseNumber}
+                    onChange={setLicenseNumber}
+                    required
+                  />
+                )}
+              </>
+            )}
+
+            {mode === "signin" && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => setMode("forgot")}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
               </div>
             )}
 
@@ -144,8 +189,24 @@ function AuthPage() {
               disabled={busy}
               className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             >
-              {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
+              {busy
+                ? "Working…"
+                : mode === "signin"
+                ? "Sign in"
+                : mode === "signup"
+                ? "Create account"
+                : "Send reset link"}
             </button>
+
+            {mode === "forgot" && (
+              <button
+                type="button"
+                onClick={() => setMode("signin")}
+                className="w-full text-xs text-muted-foreground hover:text-foreground"
+              >
+                ← Back to sign in
+              </button>
+            )}
           </form>
         </div>
       </div>
