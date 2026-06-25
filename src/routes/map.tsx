@@ -461,8 +461,10 @@ const WELL_TYPES = ["Domestic", "Irrigation", "Monitoring", "Industrial"];
 
 function WellsPanel() {
   const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const { isProfessional } = useRole();
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   useRealtime("wells", ["wells"]);
   const q = useQuery({
     queryKey: ["wells"],
@@ -480,7 +482,7 @@ function WellsPanel() {
       await supabase.from("well_readings").insert({ well_id: data!.id, user_id: user!.id, level_m: p.current_level_m, measured_at: now });
       return { id: data!.id as string };
     },
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Well registered"); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["wells"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); setOpen(false); toast.success("Well registered"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
   const remove = useMutation({
@@ -494,12 +496,21 @@ function WellsPanel() {
     popupHtml: `<strong>${esc(w.name)}</strong><br/>${esc(w.well_type)}<br/>Level: ${w.current_level_m ?? "—"} m`,
   }));
 
+  const handleAdd = () => {
+    if (!user) { toast.info("Please sign in to register a well."); navigate({ to: "/auth" }); return; }
+    setOpen(true);
+  };
+
   return (
-    <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Droplets className="h-5 w-5" />} title="Register a well" subtitle={isProfessional ? "Professional submission — include hydrogeological measurements." : "Track groundwater levels and report visible issues."} />
-        <WellForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-      </div>
+    <div className="space-y-4">
+      <AddBar
+        icon={<Droplets className="h-5 w-5" />}
+        title="Wells"
+        subtitle={items.length ? `${items.length} record${items.length === 1 ? "" : "s"}` : "No wells yet."}
+        addLabel="Register Well"
+        onAdd={handleAdd}
+        isGuest={!user}
+      />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
           {items.map((w) => {
@@ -524,14 +535,25 @@ function WellsPanel() {
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No wells yet.</li>}
         </ul>
       </div>
-      {selected && (
-        <div className="md:col-span-2">
-          <WellDetail item={selected} />
-        </div>
-      )}
-    </StackLayout>
+      <div className="card-soft p-2">
+        <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
+      </div>
+      {selected && <WellDetail item={selected} />}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Register a well</DialogTitle>
+            <DialogDescription>
+              {isProfessional ? "Professional submission — include hydrogeological measurements." : "Track groundwater levels and report visible issues."}
+            </DialogDescription>
+          </DialogHeader>
+          <WellForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
+
 
 function WellDetail({ item }: { item: any }) {
   const qc = useQueryClient();
