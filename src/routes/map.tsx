@@ -758,9 +758,10 @@ function ReportsPanel() {
         onAdd={handleAdd}
         isGuest={!user}
       />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search reports by type or description…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((r) => (
+          {filtered.map((r) => (
             <li key={r.id} className="p-3 flex items-start gap-3">
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
@@ -775,7 +776,8 @@ function ReportsPanel() {
               )}
             </li>
           ))}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No reports yet.</li>}
+          {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No reports yet."}</li>}
+
         </ul>
       </div>
       <div className="card-soft p-2">
