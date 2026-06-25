@@ -235,7 +235,7 @@ function ListingsTab() {
           save.mutate(editing);
         }} className="card-soft p-4 grid gap-3 sm:grid-cols-2">
           <Field label="Item name *"><input className={inputClass()} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} required /></Field>
-          <Field label="Price (Rs)"><input type="number" min={0} className={inputClass()} value={editing.price} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} /></Field>
+          <Field label="Price (MMK)"><input type="number" min={0} className={inputClass()} value={editing.price} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} /></Field>
           <Field label="Unit (optional)"><input className={inputClass()} value={editing.unit} onChange={(e) => setEditing({ ...editing, unit: e.target.value })} placeholder="bag, piece, visit" /></Field>
           <Field label="Type">
             <select className={inputClass()} value={editing.appointment ? "appt" : "buy"} onChange={(e) => setEditing({ ...editing, appointment: e.target.value === "appt" })}>
