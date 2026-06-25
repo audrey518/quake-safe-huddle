@@ -20,7 +20,7 @@ import {
 } from "@/lib/safeground";
 import { formatDistanceToNow } from "@/lib/format";
 import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
-import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Search, Send, Sparkles, Trash2 } from "lucide-react";
+import { Activity, Building2, ChevronDown, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Search, Send, Sparkles, Trash2 } from "lucide-react";
 import { AuthorBadge } from "@/components/safeground/author-badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -308,17 +308,30 @@ function BuildingsPanel() {
             const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
             const active = b.id === selectedId;
             return (
-              <li key={b.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(b.id)}>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{b.name}</div>
-                  <div className="text-[11px] text-muted-foreground truncate">{b.address}</div>
-                  <div className="mt-1"><AuthorBadge userId={b.user_id} /></div>
-                </div>
-                <RiskPill category={r.category} score={r.score} />
-                {b.user_id === user?.id && (
-                  <button onClick={(e) => { e.stopPropagation(); remove.mutate(b.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+              <li key={b.id} className={active ? "bg-primary/5" : "hover:bg-secondary/40"}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(active ? null : b.id)}
+                  className="w-full text-left p-3 flex items-center gap-3 cursor-pointer"
+                  aria-expanded={active}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{b.name}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">{b.address}</div>
+                    <div className="mt-1"><AuthorBadge userId={b.user_id} /></div>
+                  </div>
+                  <RiskPill category={r.category} score={r.score} />
+                  {b.user_id === user?.id && (
+                    <span onClick={(e) => { e.stopPropagation(); remove.mutate(b.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)] inline-flex" role="button" aria-label="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${active ? "rotate-180" : ""}`} />
+                </button>
+                {active && (
+                  <div className="px-3 pb-3">
+                    <BuildingDetail item={b} />
+                  </div>
                 )}
               </li>
             );
@@ -330,7 +343,7 @@ function BuildingsPanel() {
       <div className="card-soft p-2">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
-      {selected && <BuildingDetail item={selected} />}
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
           <DialogHeader>
@@ -552,18 +565,30 @@ function WellsPanel() {
           {filtered.map((w) => {
             const active = w.id === selectedId;
             return (
-              <li key={w.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(w.id)}>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{w.name}</div>
-                  {w.address && <div className="text-[11px] text-muted-foreground truncate">{w.address}</div>}
-                  <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
-                  <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
-                </div>
-
-                {w.user_id === user?.id && (
-                  <button onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+              <li key={w.id} className={active ? "bg-primary/5" : "hover:bg-secondary/40"}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(active ? null : w.id)}
+                  className="w-full text-left p-3 flex items-center gap-3 cursor-pointer"
+                  aria-expanded={active}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{w.name}</div>
+                    {w.address && <div className="text-[11px] text-muted-foreground truncate">{w.address}</div>}
+                    <div className="text-[11px] text-muted-foreground">{w.well_type} · Level {w.current_level_m ?? "—"} m</div>
+                    <div className="mt-1"><AuthorBadge userId={w.user_id} /></div>
+                  </div>
+                  {w.user_id === user?.id && (
+                    <span onClick={(e) => { e.stopPropagation(); remove.mutate(w.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)] inline-flex" role="button" aria-label="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${active ? "rotate-180" : ""}`} />
+                </button>
+                {active && (
+                  <div className="px-3 pb-3">
+                    <WellDetail item={w} />
+                  </div>
                 )}
               </li>
             );
@@ -575,7 +600,7 @@ function WellsPanel() {
       <div className="card-soft p-2">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
-      {selected && <WellDetail item={selected} />}
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
           <DialogHeader>
@@ -717,11 +742,13 @@ function ReportsPanel() {
   });
   const items = q.data ?? [];
   const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const ql = query.trim().toLowerCase();
   const filtered = ql ? items.filter((r) => {
     const label = (HAZARD_LABELS[r.kind as HazardType] ?? r.kind ?? "").toLowerCase();
     return label.includes(ql) || (r.description ?? "").toLowerCase().includes(ql);
   }) : items;
+
 
 
   const create = useMutation({
@@ -761,22 +788,39 @@ function ReportsPanel() {
       <SearchBar value={query} onChange={setQuery} placeholder="Search reports by type or description…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {filtered.map((r) => (
-            <li key={r.id} className="p-3 flex items-start gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
-                <div className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</div>
-                <div className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(r.created_at).getTime())} ago</div>
-                <div className="mt-1"><AuthorBadge userId={r.user_id} /></div>
-              </div>
-              {r.user_id === user?.id && (
-                <button onClick={() => remove.mutate(r.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                  <Trash2 className="h-3.5 w-3.5" />
+          {filtered.map((r) => {
+            const active = r.id === selectedId;
+            return (
+              <li key={r.id} className={active ? "bg-primary/5" : "hover:bg-secondary/40"}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(active ? null : r.id)}
+                  className="w-full text-left p-3 flex items-start gap-3 cursor-pointer"
+                  aria-expanded={active}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
+                    {!active && <div className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</div>}
+                    <div className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(r.created_at).getTime())} ago</div>
+                    <div className="mt-1"><AuthorBadge userId={r.user_id} /></div>
+                  </div>
+                  {r.user_id === user?.id && (
+                    <span onClick={(e) => { e.stopPropagation(); remove.mutate(r.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)] inline-flex" role="button" aria-label="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${active ? "rotate-180" : ""}`} />
                 </button>
-              )}
-            </li>
-          ))}
+                {active && (
+                  <div className="px-3 pb-3">
+                    <ReportDetail item={r} />
+                  </div>
+                )}
+              </li>
+            );
+          })}
           {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No reports yet."}</li>}
+
 
         </ul>
       </div>
@@ -792,6 +836,27 @@ function ReportsPanel() {
           <ReportForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function ReportDetail({ item }: { item: any }) {
+  return (
+    <div className="card-soft p-4 space-y-3 border-l-4" style={{ borderLeftColor: "var(--color-risk-high)" }}>
+      <div>
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Hazard report</div>
+        <div className="mt-1 font-display text-base font-semibold">{HAZARD_LABELS[item.kind as HazardType] ?? item.kind}</div>
+        <div className="text-[11px] text-muted-foreground">Severity: {item.severity} · {formatDistanceToNow(new Date(item.created_at).getTime())} ago</div>
+        <div className="text-[11px] text-muted-foreground">Coords: {Number(item.latitude).toFixed(3)}, {Number(item.longitude).toFixed(3)}</div>
+        <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
+      </div>
+      <p className="text-sm whitespace-pre-line">{item.description}</p>
+      {item.image_url && (
+        <a href={item.image_url} target="_blank" rel="noreferrer" className="block">
+          <img src={item.image_url} alt="Report" className="max-h-64 w-full object-cover rounded-md border border-border" />
+        </a>
+      )}
+      
     </div>
   );
 }
@@ -910,18 +975,30 @@ function SoilPanel() {
           {filtered.map((s) => {
             const active = s.id === selectedId;
             return (
-              <li key={s.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(s.id)}>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">{s.name || s.soil_type}</div>
-                  {s.address && <div className="text-[11px] text-muted-foreground truncate">{s.address}</div>}
-                  <div className="text-[11px] text-muted-foreground">{s.soil_type} · Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
-                  <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
-                </div>
-
-                {s.user_id === user?.id && (
-                  <button onClick={(e) => { e.stopPropagation(); remove.mutate(s.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+              <li key={s.id} className={active ? "bg-primary/5" : "hover:bg-secondary/40"}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(active ? null : s.id)}
+                  className="w-full text-left p-3 flex items-center gap-3 cursor-pointer"
+                  aria-expanded={active}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium">{s.name || s.soil_type}</div>
+                    {s.address && <div className="text-[11px] text-muted-foreground truncate">{s.address}</div>}
+                    <div className="text-[11px] text-muted-foreground">{s.soil_type} · Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
+                    <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
+                  </div>
+                  {s.user_id === user?.id && (
+                    <span onClick={(e) => { e.stopPropagation(); remove.mutate(s.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)] inline-flex" role="button" aria-label="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${active ? "rotate-180" : ""}`} />
+                </button>
+                {active && (
+                  <div className="px-3 pb-3">
+                    <SoilDetail item={s} />
+                  </div>
                 )}
               </li>
             );
@@ -933,7 +1010,7 @@ function SoilPanel() {
       <div className="card-soft p-2">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
-      {selected && <SoilDetail item={selected} />}
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
           <DialogHeader>
