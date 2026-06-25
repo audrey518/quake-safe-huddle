@@ -742,11 +742,13 @@ function ReportsPanel() {
   });
   const items = q.data ?? [];
   const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const ql = query.trim().toLowerCase();
   const filtered = ql ? items.filter((r) => {
     const label = (HAZARD_LABELS[r.kind as HazardType] ?? r.kind ?? "").toLowerCase();
     return label.includes(ql) || (r.description ?? "").toLowerCase().includes(ql);
   }) : items;
+
 
 
   const create = useMutation({
