@@ -186,7 +186,7 @@ function ListingsTab() {
   const fnDel = useServerFn(deleteItem);
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["my-items"], queryFn: () => fnList() });
-  const [editing, setEditing] = useState<{ id?: string; name: string; price: number; unit: string; appointment: boolean; active: boolean } | null>(null);
+  const [editing, setEditing] = useState<{ id?: string; name: string; price: number; unit: string; appointment: boolean; active: boolean; stock: number } | null>(null);
 
   const save = useMutation({
     mutationFn: (v: NonNullable<typeof editing>) => fnSave({ data: { ...v, unit: v.unit || null } }),
@@ -199,16 +199,24 @@ function ListingsTab() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Delete failed"),
   });
 
-  const items = useMemo(() => (q.data ?? []) as Array<{ id: string; name: string; price: number; unit: string | null; appointment: boolean; active: boolean }>, [q.data]);
+  const items = useMemo(() => (q.data ?? []) as Array<{ id: string; name: string; price: number; unit: string | null; appointment: boolean; active: boolean; stock: number }>, [q.data]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Active items appear in the public Services catalog.</p>
-        <button onClick={() => setEditing({ name: "", price: 0, unit: "", appointment: false, active: true })} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"><Plus className="h-3.5 w-3.5" /> Add item</button>
+        <p className="text-sm text-muted-foreground">Set stock before publishing. Active items appear in the public catalog.</p>
+        <button onClick={() => setEditing({ name: "", price: 0, unit: "", appointment: false, active: false, stock: 0 })} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"><Plus className="h-3.5 w-3.5" /> Add item</button>
       </div>
       {editing && (
-        <form onSubmit={(e) => { e.preventDefault(); if (editing.name) save.mutate(editing); }} className="card-soft p-4 grid gap-3 sm:grid-cols-2">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (!editing.name) return;
+          if (editing.active && !editing.appointment && editing.stock <= 0) {
+            toast.error("Add stock quantity before publishing");
+            return;
+          }
+          save.mutate(editing);
+        }} className="card-soft p-4 grid gap-3 sm:grid-cols-2">
           <Field label="Item name *"><input className={inputClass()} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} required /></Field>
           <Field label="Price (Rs)"><input type="number" min={0} className={inputClass()} value={editing.price} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} /></Field>
           <Field label="Unit (optional)"><input className={inputClass()} value={editing.unit} onChange={(e) => setEditing({ ...editing, unit: e.target.value })} placeholder="bag, piece, visit" /></Field>
@@ -218,9 +226,14 @@ function ListingsTab() {
               <option value="appt">Appointment / Service</option>
             </select>
           </Field>
+          {!editing.appointment && (
+            <Field label="Stock quantity *">
+              <input type="number" min={0} className={inputClass()} value={editing.stock} onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })} />
+            </Field>
+          )}
           <label className="flex items-center gap-2 text-sm sm:col-span-2">
             <input type="checkbox" checked={editing.active} onChange={(e) => setEditing({ ...editing, active: e.target.checked })} />
-            Active (visible in public catalog)
+            Publish (visible in public catalog) — requires stock &gt; 0 for purchase items
           </label>
           <div className="sm:col-span-2 flex justify-end gap-2">
             <button type="button" onClick={() => setEditing(null)} className="rounded-md border border-input px-3 py-1.5 text-xs">Cancel</button>
@@ -234,10 +247,10 @@ function ListingsTab() {
             <li key={i.id} className="card-soft p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="text-sm font-medium">{i.name} {!i.active && <span className="ml-2 text-[10px] uppercase text-muted-foreground">(inactive)</span>}</div>
-                <div className="text-xs text-muted-foreground">Rs. {i.price}{i.unit ? ` / ${i.unit}` : ""}{i.appointment ? " · appointment" : ""}</div>
+                <div className="text-xs text-muted-foreground">Rs. {i.price}{i.unit ? ` / ${i.unit}` : ""}{i.appointment ? " · appointment" : ` · stock: ${i.stock ?? 0}`}</div>
               </div>
               <div className="flex items-center gap-1.5">
-                <button onClick={() => setEditing({ id: i.id, name: i.name, price: Number(i.price), unit: i.unit ?? "", appointment: i.appointment, active: i.active })} className="rounded-md border border-input p-1.5 hover:bg-secondary" title="Edit"><Pencil className="h-3.5 w-3.5" /></button>
+                <button onClick={() => setEditing({ id: i.id, name: i.name, price: Number(i.price), unit: i.unit ?? "", appointment: i.appointment, active: i.active, stock: Number(i.stock ?? 0) })} className="rounded-md border border-input p-1.5 hover:bg-secondary" title="Edit"><Pencil className="h-3.5 w-3.5" /></button>
                 <button onClick={() => { if (confirm("Delete this item?")) del.mutate(i.id); }} className="rounded-md border border-input p-1.5 hover:bg-destructive/10 hover:text-destructive" title="Delete"><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
             </li>
@@ -247,6 +260,7 @@ function ListingsTab() {
     </div>
   );
 }
+
 
 function SettingsTab({ provider, onSaved }: { provider: { blurb: string | null; location: string | null; phone: string | null; contact_email: string | null; telegram_chat_id: string | null }; onSaved: () => void }) {
   const fn = useServerFn(updateMyProvider);

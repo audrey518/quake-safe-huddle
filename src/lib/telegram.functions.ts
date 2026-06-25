@@ -8,7 +8,9 @@ type PurchaseInput = {
   price?: number | null;
   notes?: string | null;
   provider_item_id?: string | null;
+  quantity?: number | null;
 };
+
 
 type AppointmentInput = {
   category: string;
@@ -142,12 +144,35 @@ export const recordPurchase = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const provider = await lookupProviderFromItem(data.provider_item_id);
-    const { provider_item_id, ...rest } = data;
-    void provider_item_id;
+    const qty = Math.max(1, Math.floor(Number(data.quantity ?? 1)));
+
+    // Decrement stock atomically if linked to a provider_item
+    if (data.provider_item_id) {
+      const { data: itemRow, error: itemErr } = await supabaseAdmin
+        .from("provider_items").select("stock").eq("id", data.provider_item_id).maybeSingle();
+      if (itemErr) throw new Error(itemErr.message);
+      const stock = Number((itemRow as { stock?: number } | null)?.stock ?? 0);
+      if (stock < qty) throw new Error(`Only ${stock} in stock`);
+      const { error: updErr } = await supabaseAdmin
+        .from("provider_items")
+        .update({ stock: stock - qty })
+        .eq("id", data.provider_item_id)
+        .eq("stock", stock); // optimistic
+      if (updErr) throw new Error(updErr.message);
+    }
+
+    const unit = Number(data.price ?? 0);
+    const total = unit * qty;
     const { data: row, error } = await supabaseAdmin
       .from("purchases")
       .insert({
-        ...rest,
+        category: data.category,
+        provider_name: data.provider_name,
+        item_name: data.item_name,
+        price: total,
+        notes: data.notes ?? null,
+        quantity: qty,
+        provider_item_id: data.provider_item_id ?? null,
         user_id: context.userId,
         provider_id: provider?.id ?? null,
         provider_user_id: provider?.user_id ?? null,
@@ -157,23 +182,59 @@ export const recordPurchase = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const buyer = await getBuyerInfo(context.userId, context.claims?.email as string | undefined);
-    const priceTxt = data.price ? ` — Rs. ${data.price}` : "";
+    const priceTxt = total ? ` — Rs. ${total} (${qty} × Rs. ${unit})` : "";
     await broadcastToAdmins(
       `🛒 <b>New purchase</b>\n<b>${data.item_name}</b>${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\n<b>Buyer</b>\nName: ${buyer.name}\nEmail: ${buyer.email}`,
     );
     await sendBuyerEmail(
       buyer.email,
       `Your purchase: ${data.item_name}`,
-      `Hi ${buyer.name},\n\nThanks for your purchase on GeoSafe AI.\n\nItem: ${data.item_name}${priceTxt}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\nWe'll be in touch with next steps.\n\n— GeoSafe AI`,
+      `Hi ${buyer.name},\n\nThanks for your purchase on GeoSafe AI.\n\nItem: ${data.item_name}\nQuantity: ${qty}\nTotal: Rs. ${total}\nProvider: ${data.provider_name}\nCategory: ${data.category}\n\nYou can cancel this order from your Services page if your plans change.\n\n— GeoSafe AI`,
     );
     await notifyProvider({
       provider,
       subject: `New order: ${data.item_name}`,
-      body: `Hi,\n\nYou have a new order on GeoSafe AI.\n\nItem: ${data.item_name}${priceTxt}\nCategory: ${data.category}\n\nCustomer\nName: ${buyer.name}\nEmail: ${buyer.email}\n\nManage this order in your provider dashboard.\n\n— GeoSafe AI`,
+      body: `Hi,\n\nYou have a new order on GeoSafe AI.\n\nItem: ${data.item_name}\nQuantity: ${qty}\nTotal: Rs. ${total}\nCategory: ${data.category}\n\nCustomer\nName: ${buyer.name}\nEmail: ${buyer.email}\n\nManage this order in your provider dashboard.\n\n— GeoSafe AI`,
       telegramText: `🛒 <b>New order</b>\n<b>${data.item_name}</b>${priceTxt}\n\n<b>Customer</b>\n${buyer.name} — ${buyer.email}`,
     });
     return { purchase: row, buyerEmail: buyer.email };
   });
+
+export const cancelPurchase = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("purchases")
+      .select("id,user_id,status,quantity,provider_item_id,item_name,provider_name,price")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Order not found");
+    if (row.user_id !== context.userId) throw new Error("Not your order");
+    if (row.status === "cancelled") return { ok: true };
+    if (row.status === "completed") throw new Error("Completed orders cannot be cancelled");
+
+    if (row.provider_item_id) {
+      const { data: itemRow } = await supabaseAdmin
+        .from("provider_items").select("stock").eq("id", row.provider_item_id).maybeSingle();
+      const cur = Number((itemRow as { stock?: number } | null)?.stock ?? 0);
+      await supabaseAdmin.from("provider_items")
+        .update({ stock: cur + Number(row.quantity ?? 1) })
+        .eq("id", row.provider_item_id);
+    }
+    const { error: uErr } = await supabaseAdmin
+      .from("purchases").update({ status: "cancelled" }).eq("id", row.id);
+    if (uErr) throw new Error(uErr.message);
+
+    const buyer = await getBuyerInfo(context.userId, context.claims?.email as string | undefined);
+    await broadcastToAdmins(
+      `❌ <b>Order cancelled</b>\n<b>${row.item_name}</b> × ${row.quantity}\nProvider: ${row.provider_name}\n\nBy: ${buyer.name} — ${buyer.email}`,
+    );
+    return { ok: true };
+  });
+
 
 
 export const bookAppointment = createServerFn({ method: "POST" })

@@ -78,28 +78,30 @@ export const listMyItems = createServerFn({ method: "GET" })
 
 export const saveItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string; name: string; price: number; unit?: string | null; appointment: boolean; active: boolean }) => d)
+  .inputValidator((d: { id?: string; name: string; price: number; unit?: string | null; appointment: boolean; active: boolean; stock: number }) => d)
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: prov } = await supabase.from("providers").select("id,status").eq("user_id", context.userId).maybeSingle();
     if (!prov) throw new Error("No provider profile");
     if (prov.status !== "approved") throw new Error("Awaiting admin approval");
+    const stock = Math.max(0, Math.floor(Number(data.stock ?? 0)));
     if (data.id) {
       const { error } = await supabase.from("provider_items").update({
         name: data.name, price: data.price, unit: data.unit ?? null,
-        appointment: data.appointment, active: data.active,
+        appointment: data.appointment, active: data.active, stock,
       }).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
       const { error } = await supabase.from("provider_items").insert({
         provider_id: prov.id,
         name: data.name, price: data.price, unit: data.unit ?? null,
-        appointment: data.appointment, active: data.active,
+        appointment: data.appointment, active: data.active, stock,
       });
       if (error) throw new Error(error.message);
     }
     return { ok: true };
   });
+
 
 export const deleteItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

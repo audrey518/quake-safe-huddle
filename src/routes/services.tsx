@@ -6,10 +6,10 @@ import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { Field, inputClass } from "@/components/safeground/ui";
 import { CATEGORIES, type ServiceCategoryId } from "@/lib/services-data";
-import { bookAppointment, recordPurchase } from "@/lib/telegram.functions";
+import { bookAppointment, recordPurchase, cancelPurchase } from "@/lib/telegram.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Briefcase, Building2, CalendarClock, Droplets, ShieldCheck, ShoppingCart } from "lucide-react";
+import { Briefcase, Building2, CalendarClock, CreditCard, Droplets, Lock, Minus, Plus, ShieldCheck, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({ cat: z.enum(["materials", "engineering", "water", "insurance"]).optional() });
@@ -41,6 +41,7 @@ type DbItem = {
   price: number;
   unit: string | null;
   appointment: boolean;
+  stock: number;
 };
 
 function ServicesPage() {
@@ -65,14 +66,14 @@ function ServicesPage() {
       if (!ids.length) return [];
       const { data: items } = await supabase
         .from("provider_items")
-        .select("id,provider_id,name,price,unit,appointment,active")
+        .select("id,provider_id,name,price,unit,appointment,active,stock")
         .in("provider_id", ids)
         .eq("active", true);
       return (providers ?? []).map((p) => ({
         ...p,
-        items: ((items ?? []) as Array<{provider_id:string;id:string;name:string;price:number;unit:string|null;appointment:boolean}>)
+        items: ((items ?? []) as Array<{provider_id:string;id:string;name:string;price:number;unit:string|null;appointment:boolean;stock:number}>)
           .filter((i) => i.provider_id === p.id)
-          .map((i) => ({ id: i.id, name: i.name, price: Number(i.price), unit: i.unit, appointment: i.appointment })),
+          .map((i) => ({ id: i.id, name: i.name, price: Number(i.price), unit: i.unit, appointment: i.appointment, stock: Number(i.stock ?? 0) })),
       }));
     },
   });
@@ -87,6 +88,17 @@ function ServicesPage() {
       ]);
       return { purchases: p.data ?? [], appointments: a.data ?? [] };
     },
+  });
+
+  const cancelFn = useServerFn(cancelPurchase);
+  const cancel = useMutation({
+    mutationFn: (id: string) => cancelFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Order cancelled — stock restored");
+      qc.invalidateQueries({ queryKey: ["purchases", user?.id] });
+      qc.invalidateQueries({ queryKey: ["providers-public", cat] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Cancel failed"),
   });
 
   const providers = providersQ.data ?? [];
@@ -134,7 +146,10 @@ function ServicesPage() {
               key={p.id}
               provider={p}
               category={cat}
-              onDone={() => qc.invalidateQueries({ queryKey: ["purchases", user?.id] })}
+              onDone={() => {
+                qc.invalidateQueries({ queryKey: ["purchases", user?.id] });
+                qc.invalidateQueries({ queryKey: ["providers-public", cat] });
+              }}
             />
           ))}
         </section>
@@ -148,12 +163,31 @@ function ServicesPage() {
               </div>
               {historyQ.data?.purchases.length ? (
                 <ul className="space-y-1.5 text-sm">
-                  {historyQ.data.purchases.map((p) => (
-                    <li key={p.id} className="flex justify-between gap-2 border-b border-border/60 pb-1.5">
-                      <span className="truncate">{p.item_name} <span className="text-muted-foreground">· {p.provider_name}</span></span>
-                      <span className="text-muted-foreground whitespace-nowrap">{p.price ? `Rs. ${p.price}` : ""}</span>
-                    </li>
-                  ))}
+                  {historyQ.data.purchases.map((p) => {
+                    const cancelled = p.status === "cancelled";
+                    const completed = p.status === "completed";
+                    return (
+                      <li key={p.id} className="flex items-center justify-between gap-2 border-b border-border/60 pb-1.5">
+                        <span className="truncate min-w-0">
+                          {p.item_name} × {p.quantity ?? 1}
+                          <span className="text-muted-foreground"> · {p.provider_name}</span>
+                          {cancelled && <span className="ml-1.5 text-[10px] uppercase text-destructive">cancelled</span>}
+                          {completed && <span className="ml-1.5 text-[10px] uppercase text-emerald-600">completed</span>}
+                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-muted-foreground whitespace-nowrap">{p.price ? `Rs. ${p.price}` : ""}</span>
+                          {!cancelled && !completed && (
+                            <button
+                              onClick={() => { if (confirm("Cancel this order? Stock will be restored.")) cancel.mutate(p.id); }}
+                              className="text-[11px] rounded border border-input px-1.5 py-0.5 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : <p className="text-sm text-muted-foreground">No purchases yet.</p>}
             </div>
@@ -201,20 +235,9 @@ function ProviderCard({ provider, category, onDone }: { provider: DbProvider; ca
 
 function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider: DbProvider; category: ServiceCategoryId; onDone: () => void }) {
   const [bookOpen, setBookOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { user } = useAuth();
   const navigate = Route.useNavigate();
-  const purchaseFn = useServerFn(recordPurchase);
-  const buy = useMutation({
-    mutationFn: () => purchaseFn({ data: {
-      category, provider_name: provider.name, item_name: item.name, price: item.price,
-      provider_item_id: item.id,
-    } }),
-    onSuccess: () => {
-      toast.success("Purchase recorded — provider notified");
-      onDone();
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Purchase failed"),
-  });
 
   const requireAuth = (next: () => void) => {
     if (!user) {
@@ -225,20 +248,29 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
     next();
   };
 
+  const outOfStock = !item.appointment && item.stock <= 0;
+
   return (
     <li className="rounded-md border border-border bg-secondary/30 p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{item.name}</div>
-          <div className="text-xs text-muted-foreground">Rs. {item.price}{item.unit ? ` / ${item.unit}` : ""}{item.appointment ? " · by appointment" : ""}</div>
+          <div className="text-xs text-muted-foreground">
+            Rs. {item.price}{item.unit ? ` / ${item.unit}` : ""}
+            {item.appointment ? " · by appointment" : ` · ${item.stock > 0 ? `${item.stock} in stock` : "out of stock"}`}
+          </div>
         </div>
         {item.appointment ? (
           <button onClick={() => requireAuth(() => setBookOpen((v) => !v))} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap">
             {!user ? "Sign in to book" : bookOpen ? "Close" : "Book appointment"}
           </button>
         ) : (
-          <button onClick={() => requireAuth(() => buy.mutate())} disabled={buy.isPending} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 whitespace-nowrap">
-            {!user ? "Sign in to buy" : buy.isPending ? "Processing…" : "Purchase"}
+          <button
+            onClick={() => requireAuth(() => setCheckoutOpen(true))}
+            disabled={outOfStock}
+            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap"
+          >
+            {!user ? "Sign in to buy" : outOfStock ? "Sold out" : "Buy now"}
           </button>
         )}
       </div>
@@ -250,7 +282,170 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
           onDone={() => { setBookOpen(false); onDone(); }}
         />
       )}
+      {checkoutOpen && (
+        <CheckoutModal
+          item={item}
+          provider={provider}
+          category={category}
+          onClose={() => setCheckoutOpen(false)}
+          onDone={() => { setCheckoutOpen(false); onDone(); }}
+        />
+      )}
     </li>
+  );
+}
+
+function CheckoutModal({
+  item, provider, category, onClose, onDone,
+}: {
+  item: DbItem; provider: DbProvider; category: ServiceCategoryId;
+  onClose: () => void; onDone: () => void;
+}) {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [qty, setQty] = useState(1);
+  const [card, setCard] = useState({ name: "", number: "", exp: "", cvc: "" });
+  const purchaseFn = useServerFn(recordPurchase);
+  const buy = useMutation({
+    mutationFn: () => purchaseFn({ data: {
+      category, provider_name: provider.name, item_name: item.name,
+      price: item.price, provider_item_id: item.id, quantity: qty,
+    } }),
+    onSuccess: () => {
+      setStep(3);
+      toast.success("Payment successful");
+      onDone();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Payment failed"),
+  });
+
+  const total = item.price * qty;
+  const canPay =
+    card.name.trim().length > 1 &&
+    card.number.replace(/\s/g, "").length >= 12 &&
+    /^\d{2}\/\d{2}$/.test(card.exp) &&
+    /^\d{3,4}$/.test(card.cvc);
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-md card-soft p-5 bg-background" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display text-lg font-semibold">
+            {step === 1 ? "Review order" : step === 2 ? "Payment details" : "Order confirmed"}
+          </h3>
+          <button onClick={onClose} className="rounded-md p-1 hover:bg-secondary"><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="flex items-center gap-1.5 mb-4 text-[10px] uppercase tracking-wider">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className={`flex-1 h-1 rounded ${step >= n ? "bg-primary" : "bg-border"}`} />
+          ))}
+        </div>
+
+        {step === 1 && (
+          <div className="space-y-4">
+            <div className="rounded-md border border-border p-3">
+              <div className="text-sm font-medium">{item.name}</div>
+              <div className="text-xs text-muted-foreground">{provider.name} · {item.stock} in stock</div>
+              <div className="mt-2 text-xs">Rs. {item.price}{item.unit ? ` / ${item.unit}` : ""}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Quantity</div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="rounded border border-input p-1.5 hover:bg-secondary"><Minus className="h-3.5 w-3.5" /></button>
+                <input type="number" min={1} max={item.stock} value={qty} onChange={(e) => setQty(Math.min(item.stock, Math.max(1, Number(e.target.value) || 1)))} className={inputClass("w-20 text-center")} />
+                <button onClick={() => setQty((q) => Math.min(item.stock, q + 1))} className="rounded border border-input p-1.5 hover:bg-secondary"><Plus className="h-3.5 w-3.5" /></button>
+                <span className="text-xs text-muted-foreground">max {item.stock}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-t border-border pt-3">
+              <span className="text-sm">Total</span>
+              <span className="font-display text-lg font-semibold">Rs. {total}</span>
+            </div>
+            <button onClick={() => setStep(2)} className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              Continue to payment
+            </button>
+          </div>
+        )}
+
+        {step === 2 && (
+          <form
+            onSubmit={(e) => { e.preventDefault(); if (canPay) buy.mutate(); }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Lock className="h-3 w-3" /> Test mode — do not enter real card numbers.
+            </div>
+            <Field label="Cardholder name">
+              <input className={inputClass()} value={card.name} onChange={(e) => setCard({ ...card, name: e.target.value })} required />
+            </Field>
+            <Field label="Card number">
+              <div className="relative">
+                <CreditCard className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  inputMode="numeric"
+                  placeholder="4242 4242 4242 4242"
+                  className={inputClass("pl-7")}
+                  value={card.number}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 19);
+                    setCard({ ...card, number: digits.replace(/(.{4})/g, "$1 ").trim() });
+                  }}
+                  required
+                />
+              </div>
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Expiry (MM/YY)">
+                <input
+                  placeholder="12/27"
+                  className={inputClass()}
+                  value={card.exp}
+                  onChange={(e) => {
+                    let v = e.target.value.replace(/\D/g, "").slice(0, 4);
+                    if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
+                    setCard({ ...card, exp: v });
+                  }}
+                  required
+                />
+              </Field>
+              <Field label="CVC">
+                <input
+                  inputMode="numeric"
+                  placeholder="123"
+                  className={inputClass()}
+                  value={card.cvc}
+                  onChange={(e) => setCard({ ...card, cvc: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                  required
+                />
+              </Field>
+            </div>
+            <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
+              <span>Total due</span>
+              <span className="font-display text-lg font-semibold">Rs. {total}</span>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setStep(1)} className="flex-1 rounded-md border border-input px-3 py-2 text-sm">Back</button>
+              <button disabled={!canPay || buy.isPending} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+                {buy.isPending ? "Processing…" : `Pay Rs. ${total}`}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4 text-center py-4">
+            <div className="mx-auto h-12 w-12 rounded-full bg-emerald-500/15 grid place-items-center text-emerald-500">✓</div>
+            <div>
+              <div className="font-display text-lg font-semibold">Thank you!</div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {qty} × {item.name} for Rs. {total}. The provider has been notified. You can cancel from "Your recent activity" if needed.
+              </p>
+            </div>
+            <button onClick={onClose} className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Done</button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

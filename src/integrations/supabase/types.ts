@@ -223,6 +223,7 @@ export type Database = {
           name: string
           price: number
           provider_id: string
+          stock: number
           unit: string | null
           updated_at: string
         }
@@ -234,6 +235,7 @@ export type Database = {
           name: string
           price?: number
           provider_id: string
+          stock?: number
           unit?: string | null
           updated_at?: string
         }
@@ -245,6 +247,7 @@ export type Database = {
           name?: string
           price?: number
           provider_id?: string
+          stock?: number
           unit?: string | null
           updated_at?: string
         }
@@ -315,8 +318,10 @@ export type Database = {
           notes: string | null
           price: number | null
           provider_id: string | null
+          provider_item_id: string | null
           provider_name: string
           provider_user_id: string | null
+          quantity: number
           status: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
@@ -328,8 +333,10 @@ export type Database = {
           notes?: string | null
           price?: number | null
           provider_id?: string | null
+          provider_item_id?: string | null
           provider_name: string
           provider_user_id?: string | null
+          quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
@@ -341,8 +348,10 @@ export type Database = {
           notes?: string | null
           price?: number | null
           provider_id?: string | null
+          provider_item_id?: string | null
           provider_name?: string
           provider_user_id?: string | null
+          quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
           user_id?: string
         }
@@ -352,6 +361,13 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_provider_item_id_fkey"
+            columns: ["provider_item_id"]
+            isOneToOne: false
+            referencedRelation: "provider_items"
             referencedColumns: ["id"]
           },
         ]
