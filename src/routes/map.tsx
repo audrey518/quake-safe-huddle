@@ -788,22 +788,39 @@ function ReportsPanel() {
       <SearchBar value={query} onChange={setQuery} placeholder="Search reports by type or description…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {filtered.map((r) => (
-            <li key={r.id} className="p-3 flex items-start gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
-                <div className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</div>
-                <div className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(r.created_at).getTime())} ago</div>
-                <div className="mt-1"><AuthorBadge userId={r.user_id} /></div>
-              </div>
-              {r.user_id === user?.id && (
-                <button onClick={() => remove.mutate(r.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                  <Trash2 className="h-3.5 w-3.5" />
+          {filtered.map((r) => {
+            const active = r.id === selectedId;
+            return (
+              <li key={r.id} className={active ? "bg-primary/5" : "hover:bg-secondary/40"}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(active ? null : r.id)}
+                  className="w-full text-left p-3 flex items-start gap-3 cursor-pointer"
+                  aria-expanded={active}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
+                    {!active && <div className="text-[11px] text-muted-foreground line-clamp-2">{r.description}</div>}
+                    <div className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(r.created_at).getTime())} ago</div>
+                    <div className="mt-1"><AuthorBadge userId={r.user_id} /></div>
+                  </div>
+                  {r.user_id === user?.id && (
+                    <span onClick={(e) => { e.stopPropagation(); remove.mutate(r.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)] inline-flex" role="button" aria-label="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${active ? "rotate-180" : ""}`} />
                 </button>
-              )}
-            </li>
-          ))}
+                {active && (
+                  <div className="px-3 pb-3">
+                    <ReportDetail item={r} />
+                  </div>
+                )}
+              </li>
+            );
+          })}
           {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No reports yet."}</li>}
+
 
         </ul>
       </div>
