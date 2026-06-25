@@ -311,8 +311,10 @@ export type Database = {
       }
       purchases: {
         Row: {
+          admin_commission: number
           category: string
           created_at: string
+          discount_pct: number
           id: string
           item_name: string
           notes: string | null
@@ -320,14 +322,18 @@ export type Database = {
           provider_id: string | null
           provider_item_id: string | null
           provider_name: string
+          provider_payout: number
           provider_user_id: string | null
           quantity: number
           status: Database["public"]["Enums"]["order_status"]
+          subtotal: number | null
           user_id: string
         }
         Insert: {
+          admin_commission?: number
           category: string
           created_at?: string
+          discount_pct?: number
           id?: string
           item_name: string
           notes?: string | null
@@ -335,14 +341,18 @@ export type Database = {
           provider_id?: string | null
           provider_item_id?: string | null
           provider_name: string
+          provider_payout?: number
           provider_user_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number | null
           user_id: string
         }
         Update: {
+          admin_commission?: number
           category?: string
           created_at?: string
+          discount_pct?: number
           id?: string
           item_name?: string
           notes?: string | null
@@ -350,9 +360,11 @@ export type Database = {
           provider_id?: string | null
           provider_item_id?: string | null
           provider_name?: string
+          provider_payout?: number
           provider_user_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number | null
           user_id?: string
         }
         Relationships: [
@@ -544,6 +556,15 @@ export type Database = {
           contributions: number
           display_name: string
           is_professional: boolean
+        }[]
+      }
+      get_user_discount: {
+        Args: { _user_id: string }
+        Returns: {
+          contributions: number
+          discount_pct: number
+          lifetime_spent: number
+          tier: string
         }[]
       }
       has_role: {
