@@ -688,12 +688,16 @@ function SoilPanel() {
   });
   const items = q.data ?? [];
 
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = items.find((s) => s.id === selectedId) ?? null;
+
   const create = useMutation({
-    mutationFn: async (p: { latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string }) => {
-      const { error } = await supabase.from("soil_data").insert({ user_id: user!.id, ...p, layers: [], notes: p.notes || null });
+    mutationFn: async (p: { latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => {
+      const { data, error } = await supabase.from("soil_data").insert({ user_id: user!.id, latitude: p.latitude, longitude: p.longitude, soil_type: p.soil_type, depth_m: p.depth_m, layers: [], notes: p.notes || null, photo_url: p.photo_url, extras: p.extras } as any).select("id").single();
       if (error) throw error;
+      return { id: data!.id as string };
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); toast.success("Soil record added"); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Soil record added"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
   const remove = useMutation({
@@ -709,50 +713,91 @@ function SoilPanel() {
   return (
     <StackLayout markers={markers}>
       <div className="card-soft p-5">
-        <PanelHeader icon={<Mountain className="h-5 w-5" />} title="Soil data" subtitle="Submitted by professional contributors." />
-        {isProfessional ? (
-          <SoilForm submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
-        ) : (
-          <div className="mt-4 rounded-md border border-dashed border-border bg-secondary/40 p-4 text-sm text-muted-foreground inline-flex items-center gap-2">
-            <Lock className="h-4 w-4" /> Soil submissions are restricted to professional accounts.
-          </div>
-        )}
+        <PanelHeader icon={<Mountain className="h-5 w-5" />} title="Soil data" subtitle={isProfessional ? "Professional soil profile — add measurements & notes." : "Report visible soil conditions in your area."} />
+        <SoilForm isProfessional={isProfessional} submitting={create.isPending} onSubmit={(p) => create.mutate(p)} />
       </div>
       <div className="card-soft p-2 max-h-[400px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((s) => (
-            <li key={s.id} className="p-3 flex items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">{s.soil_type}</div>
-                <div className="text-[11px] text-muted-foreground">Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
-                <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
-              </div>
-              {s.user_id === user?.id && (
-                <button onClick={() => remove.mutate(s.id)} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </li>
-          ))}
+          {items.map((s) => {
+            const active = s.id === selectedId;
+            return (
+              <li key={s.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(s.id)}>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">{s.soil_type}</div>
+                  <div className="text-[11px] text-muted-foreground">Depth {Number(s.depth_m).toFixed(1)} m · {formatDistanceToNow(new Date(s.created_at).getTime())} ago</div>
+                  <div className="mt-1"><AuthorBadge userId={s.user_id} /></div>
+                </div>
+                {s.user_id === user?.id && (
+                  <button onClick={(e) => { e.stopPropagation(); remove.mutate(s.id); }} className="text-muted-foreground hover:text-[var(--color-risk-very-high)]">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </li>
+            );
+          })}
           {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No soil data yet.</li>}
         </ul>
       </div>
+      {selected && (
+        <div className="md:col-span-2">
+          <SoilDetail item={selected} />
+        </div>
+      )}
     </StackLayout>
   );
 }
 
-function SoilForm({ onSubmit, submitting }: { onSubmit: (p: { latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string }) => void; submitting: boolean }) {
+function SoilDetail({ item }: { item: any }) {
+  const qc = useQueryClient();
+  const gen = useServerFn(generateBrief);
+  const ai = useMutation({
+    mutationFn: async () => gen({ data: { kind: "soil", id: item.id, soil_type: item.soil_type, depth_m: Number(item.depth_m ?? 0), notes: item.notes ?? null, extras: item.extras ?? null } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["soil_data"] }),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "AI failed"),
+  });
+  return (
+    <div className="card-soft p-5 space-y-4 border-l-4" style={{ borderLeftColor: "oklch(0.5 0.06 80)" }}>
+      <div>
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Soil report</div>
+        <div className="mt-1 font-display text-lg font-semibold">{item.soil_type}</div>
+        <div className="text-xs text-muted-foreground">Depth {Number(item.depth_m).toFixed(1)} m</div>
+        <div className="mt-2 text-[11px] text-muted-foreground inline-flex items-center gap-1.5">Submitted by <AuthorBadge userId={item.user_id} /></div>
+      </div>
+      {item.notes && (
+        <div className="rounded-md border border-border bg-background p-3">
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Notes</div>
+          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{item.notes}</p>
+        </div>
+      )}
+      <ExtrasBlock extras={item.extras} photoUrl={item.photo_url} />
+      <AiBriefBlock brief={item.ai_brief} pending={ai.isPending} onGenerate={() => ai.mutate()} />
+    </div>
+  );
+}
+
+function SoilForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => void; submitting: boolean; isProfessional: boolean }) {
   const [soilType, setSoilType] = useState("Clay");
   const [depth, setDepth] = useState(5);
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
   const [notes, setNotes] = useState("");
+  // local
+  const [visible, setVisible] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  // professional
+  const [bearing, setBearing] = useState("");
+  const [moisture, setMoisture] = useState("");
+  const [permeability, setPermeability] = useState("");
+  const [spt, setSpt] = useState("");
   return (
     <form className="mt-4 grid gap-3 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
         if (Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Coordinates required"); return; }
-        onSubmit({ latitude: la, longitude: lo, soil_type: soilType, depth_m: depth, notes: notes.slice(0, 1000) });
+        const extras: Record<string, unknown> = isProfessional
+          ? { bearing_capacity_kpa: bearing ? Number(bearing) : null, moisture_pct: moisture ? Number(moisture) : null, permeability_cm_s: permeability ? Number(permeability) : null, spt_n_value: spt ? Number(spt) : null }
+          : { visible_condition: visible || null };
+        onSubmit({ latitude: la, longitude: lo, soil_type: soilType, depth_m: depth, notes: notes.slice(0, 1000), photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras });
       }}>
       <Field label="Soil type">
         <select className={inputClass()} value={soilType} onChange={(e) => setSoilType(e.target.value)}>
@@ -762,9 +807,29 @@ function SoilForm({ onSubmit, submitting }: { onSubmit: (p: { latitude: number; 
       <Field label="Depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
-      <Field label="Notes" className="sm:col-span-2">
-        <textarea className={inputClass("min-h-20")} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} />
-      </Field>
+
+      {isProfessional ? (
+        <>
+          <Field label="Bearing capacity (kPa)"><input type="number" step="0.1" className={inputClass()} value={bearing} onChange={(e) => setBearing(e.target.value)} /></Field>
+          <Field label="Moisture content (%)"><input type="number" step="0.1" className={inputClass()} value={moisture} onChange={(e) => setMoisture(e.target.value)} /></Field>
+          <Field label="Permeability (cm/s)"><input type="number" step="0.0001" className={inputClass()} value={permeability} onChange={(e) => setPermeability(e.target.value)} /></Field>
+          <Field label="SPT N-value"><input type="number" step="1" className={inputClass()} value={spt} onChange={(e) => setSpt(e.target.value)} /></Field>
+          <Field label="Professional notes" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} placeholder="Layer descriptions, observations, recommendations…" />
+          </Field>
+        </>
+      ) : (
+        <>
+          <Field label="Visible soil condition" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} value={visible} onChange={(e) => setVisible(e.target.value)} maxLength={1000} placeholder="e.g. cracks, erosion, waterlogging…" />
+          </Field>
+          <Field label="Photo URL of damaged area" className="sm:col-span-2"><input className={inputClass()} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" maxLength={500} /></Field>
+          <Field label="Additional notes" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-16")} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} />
+          </Field>
+        </>
+      )}
+
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
         <LocationButton onLocate={(la, lo) => { setLat(la); setLng(lo); }} />
         <button type="submit" disabled={submitting} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 inline-flex items-center gap-2">
@@ -774,6 +839,7 @@ function SoilForm({ onSubmit, submitting }: { onSubmit: (p: { latitude: number; 
     </form>
   );
 }
+
 
 /* ------------------------------ AI brief + Comments ------------------------------ */
 
