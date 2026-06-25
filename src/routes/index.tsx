@@ -281,6 +281,151 @@ function Dashboard() {
           </aside>
         </div>
       </div>
+        </div>
+      </div>
+
+      {/* FEATURED LEARN */}
+      <section className="border-t border-border bg-secondary/30">
+        <div className="container-app py-12 md:py-16">
+          <div className="flex items-end justify-between flex-wrap gap-3">
+            <div className="max-w-2xl">
+              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Learn</div>
+              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Start with the essentials</h2>
+              <p className="mt-3 text-muted-foreground">Plain-language guides written for residents — no engineering background needed.</p>
+            </div>
+            <Link to="/learn" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
+              All articles <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {featuredPosts.map(({ category, post }) => (
+              <Link
+                key={post.slug}
+                to="/learn/$category/$post"
+                params={{ category: category.slug, post: post.slug }}
+                className="group card-soft p-6 hover:border-primary/40 transition-colors flex flex-col"
+              >
+                <div className="text-[11px] uppercase tracking-wider font-medium" style={{ color: category.accent }}>
+                  {category.shortTitle}
+                </div>
+                <div className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                  {post.title}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{post.readTime}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* COLLABORATED PROVIDERS */}
+      <section className="border-t border-border bg-background">
+        <div className="container-app py-12 md:py-16">
+          <div className="flex items-end justify-between flex-wrap gap-3">
+            <div className="max-w-2xl">
+              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Our partners</div>
+              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Collaborated service providers</h2>
+              <p className="mt-3 text-muted-foreground">Vetted local materials suppliers, engineers, water specialists and insurers — booking and purchase available inside the app.</p>
+            </div>
+            <Link to="/services" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
+              <Store className="h-4 w-4" /> Browse all
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredProviders.map(({ category, provider }) => (
+              <Link
+                key={provider.id}
+                to="/services"
+                className="group card-soft p-5 hover:border-primary/40 transition-colors flex flex-col"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground">{category.label}</span>
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                </div>
+                <div className="mt-3 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                  {provider.name}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{provider.blurb}</p>
+                <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" /> {provider.location}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ABOUT + CONTACT */}
+      <section className="border-t border-border bg-gradient-to-b from-secondary/40 to-background">
+        <div className="container-app py-14 md:py-20 grid gap-10 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">About GeoSafe AI</div>
+            <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">A community-driven platform for earthquake awareness</h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              GeoSafe AI helps ordinary residents understand the earthquake risk around their homes using public seismic data,
+              community hazard reports and simple building information — no engineering degree required.
+            </p>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div className="card-soft p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Sparkles className="h-4 w-4 text-primary" /> Our mission
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  To democratize disaster preparedness by giving every resident, student and community member free,
+                  clear and actionable insight into the seismic risk of the places they live, learn and work.
+                </p>
+              </div>
+              <div className="card-soft p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <ShieldCheck className="h-4 w-4 text-primary" /> Our vision
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  A world where neighborhoods, not just engineers, can read the ground they stand on — and where a single
+                  shared map turns isolated observations into collective resilience.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card-soft p-6 self-start">
+            <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Contact</div>
+            <h3 className="mt-2 font-display text-xl font-semibold">Get in touch</h3>
+            <p className="mt-2 text-sm text-muted-foreground">Questions, partnership ideas or feedback — we'd love to hear from you.</p>
+            <ul className="mt-5 space-y-3 text-sm">
+              <li className="flex items-start gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><FileText className="h-4 w-4" /></span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Email</div>
+                  <a href="mailto:hello@geosafe.ai" className="font-medium hover:text-primary">hello@geosafe.ai</a>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Phone className="h-4 w-4" /></span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Phone</div>
+                  <a href="tel:+97714000000" className="font-medium hover:text-primary">+977-1-400-0000</a>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-4 w-4" /></span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Office</div>
+                  <div className="font-medium">Kathmandu, Nepal</div>
+                </div>
+              </li>
+            </ul>
+            {!user && (
+              <Link to="/auth" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                Join GeoSafe AI
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
     </AppShell>
   );
 }
