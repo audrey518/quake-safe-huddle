@@ -304,7 +304,7 @@ function BuildingDetail({ item }: { item: any }) {
 
 
 function BuildingForm({ onSubmit, submitting, isProfessional }: {
-  onSubmit: (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown> }) => void;
+  onSubmit: (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => void;
   submitting: boolean;
   isProfessional: boolean;
 }) {
@@ -323,6 +323,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
   const [foundation, setFoundation] = useState("");
   const [inspection, setInspection] = useState("");
   const [loadCapacity, setLoadCapacity] = useState("");
+  const [proNotes, setProNotes] = useState("");
 
   return (
     <form
@@ -342,6 +343,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           material, latitude: latN, longitude: lngN,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null,
           extras,
+          professional_notes: isProfessional && proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
         });
       }}
     >
@@ -380,6 +382,9 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           </Field>
           <Field label="Load capacity (kN/m²)"><input type="number" step="0.1" className={inputClass()} value={loadCapacity} onChange={(e) => setLoadCapacity(e.target.value)} /></Field>
           <Field label="Last inspection date" className="sm:col-span-2"><input type="date" className={inputClass()} value={inspection} onChange={(e) => setInspection(e.target.value)} /></Field>
+          <Field label="Professional notes" className="sm:col-span-2">
+            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
+          </Field>
         </>
       ) : (
         <>
@@ -399,6 +404,7 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
     </form>
   );
 }
+
 
 
 /* ------------------------------ WELLS ------------------------------ */
