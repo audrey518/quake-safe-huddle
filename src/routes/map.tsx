@@ -716,6 +716,13 @@ function ReportsPanel() {
     queryFn: async () => (await supabase.from("hazard_reports").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((r) => {
+    const label = (HAZARD_LABELS[r.kind as HazardType] ?? r.kind ?? "").toLowerCase();
+    return label.includes(ql) || (r.description ?? "").toLowerCase().includes(ql);
+  }) : items;
+
 
   const create = useMutation({
     mutationFn: async (p: { kind: HazardType; severity: string; latitude: number; longitude: number; description: string; image_url?: string }) => {
