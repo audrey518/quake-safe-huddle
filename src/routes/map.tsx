@@ -676,8 +676,8 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState(""); const [lng, setLng] = useState("");
-  const [type, setType] = useState("Domestic");
-  const [depth, setDepth] = useState(20); const [level, setLevel] = useState(5);
+  const [type, setType] = useState("");
+  const [depth, setDepth] = useState(""); const [level, setLevel] = useState("");
   // local
   const [issues, setIssues] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
@@ -693,26 +693,27 @@ function WellForm({ onSubmit, submitting, isProfessional }: { onSubmit: (p: { na
         e.preventDefault();
         const la = parseFloat(lat); const lo = parseFloat(lng);
         if (!name.trim() || Number.isNaN(la) || Number.isNaN(lo)) { toast.error("Name and coordinates required"); return; }
+        if (!type) { toast.error("Please select a well type"); return; }
         const extras: Record<string, unknown> = isProfessional
           ? { water_ph: ph ? Number(ph) : null, yield_lpm: yieldLpm ? Number(yieldLpm) : null, drilling_method: drilling || null, casing_diameter_mm: casingDiameter ? Number(casingDiameter) : null }
           : { visible_issues: issues || null };
         onSubmit({
           name: name.trim().slice(0, 80),
           address: address.trim() ? address.trim().slice(0, 200) : null,
-          latitude: la, longitude: lo, well_type: type, total_depth_m: depth, current_level_m: level,
+          latitude: la, longitude: lo, well_type: type, total_depth_m: depth ? parseFloat(depth) : 0, current_level_m: level ? parseFloat(level) : 0,
           photo_url: photoUrl.trim() ? safeUrl(photoUrl) : null, extras,
           professional_notes: proNotes.trim() ? proNotes.trim().slice(0, 2000) : null,
         });
       }}>
       <Field label="Name"><input className={inputClass()} value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} /></Field>
       <Field label="Type">
-        <select className={inputClass()} value={type} onChange={(e) => setType(e.target.value)}>{WELL_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
+        <select className={inputClass()} value={type} onChange={(e) => setType(e.target.value)}><option value="">Select…</option>{WELL_TYPES.map((t) => <option key={t}>{t}</option>)}</select>
       </Field>
       <Field label="Address" className="sm:col-span-2"><input className={inputClass()} value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} placeholder="Street, city, area…" /></Field>
       <Field label="Latitude"><input className={inputClass()} value={lat} onChange={(e) => setLat(e.target.value)} required /></Field>
       <Field label="Longitude"><input className={inputClass()} value={lng} onChange={(e) => setLng(e.target.value)} required /></Field>
-      <Field label="Total depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(parseFloat(e.target.value || "0"))} /></Field>
-      <Field label="Water level (m)"><input type="number" step="0.01" className={inputClass()} value={level} onChange={(e) => setLevel(parseFloat(e.target.value || "0"))} /></Field>
+      <Field label="Total depth (m)"><input type="number" step="0.1" className={inputClass()} value={depth} onChange={(e) => setDepth(e.target.value)} /></Field>
+      <Field label="Water level (m)"><input type="number" step="0.01" className={inputClass()} value={level} onChange={(e) => setLevel(e.target.value)} /></Field>
 
       {isProfessional ? (
         <>
