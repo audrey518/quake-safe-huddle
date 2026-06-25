@@ -383,9 +383,6 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           </Field>
           <Field label="Load capacity (kN/m²)"><input type="number" step="0.1" className={inputClass()} value={loadCapacity} onChange={(e) => setLoadCapacity(e.target.value)} /></Field>
           <Field label="Last inspection date" className="sm:col-span-2"><input type="date" className={inputClass()} value={inspection} onChange={(e) => setInspection(e.target.value)} /></Field>
-          <Field label="Professional notes" className="sm:col-span-2">
-            <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
-          </Field>
         </>
       ) : (
         <>
@@ -395,6 +392,11 @@ function BuildingForm({ onSubmit, submitting, isProfessional }: {
           <Field label="Photo URL of damaged area" className="sm:col-span-2"><input className={inputClass()} value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://…" maxLength={500} /></Field>
         </>
       )}
+
+      <Field label={isProfessional ? "Professional notes" : "Notes from a professional (optional)"} className="sm:col-span-2">
+        <textarea className={inputClass("min-h-20")} maxLength={2000} value={proNotes} onChange={(e) => setProNotes(e.target.value)} placeholder="Engineering observations, recommendations…" />
+      </Field>
+
 
       <div className="sm:col-span-2 flex items-center justify-between gap-2 flex-wrap">
         <LocationButton onLocate={(la, lo) => { setLat(la); setLng(lo); }} />
