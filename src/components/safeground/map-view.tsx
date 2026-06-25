@@ -8,7 +8,6 @@ export type MapMarker = {
   color: string;
   title: string;
   popupHtml?: string;
-  emphasize?: boolean;
 };
 
 export function MapView({
@@ -60,32 +59,23 @@ export function MapView({
     renderMarkers(LRef.current, layerRef.current, markers);
   }, [markers]);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
-    mapRef.current.setView(center, zoom, { animate: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [center[0], center[1], zoom]);
-
   return <div ref={ref} style={{ height, width: "100%" }} className="rounded-lg overflow-hidden border border-border relative z-0 isolate" />;
 }
 
 function renderMarkers(L: typeof LeafletNS, layer: LeafletNS.LayerGroup, markers: MapMarker[]) {
   layer.clearLayers();
-  let toOpen: LeafletNS.CircleMarker | null = null;
   for (const m of markers) {
     const marker = L.circleMarker([m.lat, m.lng], {
-      radius: m.emphasize ? 14 : 8,
-      color: m.emphasize ? "#111827" : m.color,
+      radius: 8,
+      color: m.color,
       fillColor: m.color,
-      fillOpacity: m.emphasize ? 0.95 : 0.7,
-      weight: m.emphasize ? 4 : 2,
+      fillOpacity: 0.7,
+      weight: 2,
     });
     const html = m.popupHtml ?? `<strong>${escapeHtml(m.title)}</strong>`;
     marker.bindPopup(html);
     marker.addTo(layer);
-    if (m.emphasize) toOpen = marker;
   }
-  if (toOpen) toOpen.openPopup();
 }
 
 function escapeHtml(s: string) {
