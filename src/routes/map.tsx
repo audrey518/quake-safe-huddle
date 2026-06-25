@@ -860,9 +860,13 @@ function SoilPanel() {
     queryFn: async () => (await supabase.from("soil_data").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((s) => ((s.name ?? "").toLowerCase().includes(ql) || (s.address ?? "").toLowerCase().includes(ql) || (s.soil_type ?? "").toLowerCase().includes(ql))) : items;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = items.find((s) => s.id === selectedId) ?? null;
+
 
   const create = useMutation({
     mutationFn: async (p: { name: string | null; address: string | null; latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => {
