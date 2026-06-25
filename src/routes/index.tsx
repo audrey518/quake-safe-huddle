@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ArrowRight, Building2, ClipboardList, Droplets, FileText, Map, Megaphone, TrendingUp, UserCircle2, Waves } from "lucide-react";
+import { Activity, ArrowRight, BookOpen, Building2, CheckCircle2, ClipboardList, Compass, Droplets, FileText, Map, MapPin, Megaphone, Phone, ShieldCheck, Sparkles, Store, TrendingUp, UserCircle2, Waves } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { assessRisk, HAZARD_LABELS, type BuildingMaterial, type HazardType } from "@/lib/safeground";
@@ -8,6 +8,11 @@ import { fetchRecentEarthquakes } from "@/lib/usgs";
 import { formatDistanceToNow } from "@/lib/format";
 import { MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
 import { useAuth } from "@/hooks/use-auth";
+import { LEARN_CATEGORIES } from "@/lib/learn-content";
+import { CATEGORIES as SERVICE_CATEGORIES, PROVIDERS } from "@/lib/services-data";
+import heroImage from "@/assets/hero-geosafe.jpg";
+import heroCard1 from "@/assets/hero-card-1.jpg";
+import heroCard2 from "@/assets/hero-card-2.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "Dashboard — GeoSafe AI" }] }),
