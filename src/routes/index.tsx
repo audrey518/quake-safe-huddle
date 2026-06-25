@@ -406,7 +406,7 @@ function Dashboard() {
         </div>
       </section>
 
-      <section className="border-t border-border bg-gradient-to-b from-secondary/40 to-background">
+      <section className="border-t border-border" style={{ background: "linear-gradient(180deg, #fffbeb 0%, #fef3ec 60%, #fdf2f8 100%)" }}>
         <div className="container-app py-14 md:py-20 grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">About GeoSafe AI</div>
