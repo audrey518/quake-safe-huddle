@@ -43,7 +43,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
               </div>
             </div>
           </Link>
-          <nav className="hidden md:flex items-center gap-1.5">
+          <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
@@ -52,13 +52,13 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-[15px] font-medium transition-colors",
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors",
                     active
                       ? "bg-secondary text-secondary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               );
