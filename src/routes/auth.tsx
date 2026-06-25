@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mail, Lock, User, ShieldCheck, Briefcase, IdCard, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -120,13 +120,13 @@ function AuthPage() {
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-primary/15 via-accent/30 to-background p-10">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition">
           <GeoSafeLogo />
           <div className="leading-tight">
             <div className="font-display font-semibold tracking-tight text-lg">GeoSafe AI</div>
             <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Geo-risk awareness</div>
           </div>
-        </div>
+        </Link>
         <div className="max-w-md">
           <h1 className="font-display text-4xl font-semibold tracking-tight">
             Understand the ground beneath your community.
@@ -146,6 +146,14 @@ function AuthPage() {
 
       <div className="flex items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-sm">
+          <Link to="/" className="mb-6 inline-flex items-center gap-2 hover:opacity-80 transition">
+            <GeoSafeLogo />
+            <div className="leading-tight">
+              <div className="font-display font-semibold tracking-tight text-lg">GeoSafe AI</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Geo-risk awareness</div>
+            </div>
+          </Link>
+
           <div className="mb-6 inline-flex rounded-full border border-border bg-card p-1 text-xs">
             {(["signin", "signup"] as const).map((m) => (
               <button
@@ -281,6 +289,16 @@ function AuthPage() {
               </button>
             )}
           </form>
+
+          <div className="mt-6 border-t border-border pt-6">
+            <p className="text-xs text-muted-foreground mb-2">Not ready to sign in?</p>
+            <Link
+              to="/"
+              className="block w-full rounded-md border border-border bg-card px-4 py-2.5 text-center text-sm font-medium text-foreground hover:bg-accent transition"
+            >
+              Continue as guest
+            </Link>
+          </div>
         </div>
       </div>
     </div>
