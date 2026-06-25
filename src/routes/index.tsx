@@ -446,17 +446,18 @@ function Dashboard() {
   );
 }
 
-function StatCard({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint: string }) {
+function StatCard({ icon, label, value, hint, tint, ink }: { icon: React.ReactNode; label: string; value: string; hint: string; tint?: string; ink?: string }) {
   return (
-    <div className="card-soft p-5">
-      <div className="flex items-center gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</span>
+    <div className="card-soft p-5 relative overflow-hidden">
+      {tint && <div aria-hidden className="absolute -right-6 -top-6 h-20 w-20 rounded-full" style={{ background: tint, opacity: 0.55 }} />}
+      <div className="relative flex items-center gap-3">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: tint ?? "color-mix(in oklab, var(--color-primary) 10%, transparent)", color: ink ?? "var(--color-primary)" }}>{icon}</span>
         <div>
           <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
           <div className="font-display text-3xl font-semibold tracking-tight">{value}</div>
         </div>
       </div>
-      <div className="mt-3 text-xs text-muted-foreground line-clamp-1">{hint}</div>
+      <div className="relative mt-3 text-xs text-muted-foreground line-clamp-1">{hint}</div>
     </div>
   );
 }
