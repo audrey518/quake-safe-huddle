@@ -83,11 +83,11 @@ function ProfilePage() {
           <div className="grid h-16 w-16 sm:h-20 sm:w-20 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
             <UserCircle2 className="h-10 w-10 sm:h-12 sm:w-12" />
           </div>
-          <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight truncate">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight truncate">
               {profileQ.data?.display_name || user?.email?.split("@")[0] || "Your profile"}
             </h1>
-            <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">{user?.email}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span
                 className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wider"
