@@ -242,8 +242,12 @@ function BuildingsPanel() {
     queryFn: async () => (await supabase.from("buildings").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((b) => (b.name?.toLowerCase().includes(ql) || b.address?.toLowerCase().includes(ql))) : items;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = items.find((b) => b.id === selectedId) ?? null;
+
 
   const create = useMutation({
     mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
