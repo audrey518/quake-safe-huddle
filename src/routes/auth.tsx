@@ -120,13 +120,13 @@ function AuthPage() {
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-primary/15 via-accent/30 to-background p-10">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition">
           <GeoSafeLogo />
           <div className="leading-tight">
             <div className="font-display font-semibold tracking-tight text-lg">GeoSafe AI</div>
             <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Geo-risk awareness</div>
           </div>
-        </div>
+        </Link>
         <div className="max-w-md">
           <h1 className="font-display text-4xl font-semibold tracking-tight">
             Understand the ground beneath your community.
