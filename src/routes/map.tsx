@@ -119,6 +119,22 @@ function PanelHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: 
   );
 }
 
+function AddBar({ icon, title, subtitle, addLabel, onAdd, isGuest }: { icon: React.ReactNode; title: string; subtitle: string; addLabel: string; onAdd: () => void; isGuest: boolean }) {
+  return (
+    <div className="card-soft p-4 flex items-center justify-between gap-3 flex-wrap">
+      <PanelHeader icon={icon} title={title} subtitle={subtitle} />
+      <button
+        onClick={onAdd}
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2"
+      >
+        {isGuest ? <Lock className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+        {isGuest ? "Sign in to add" : addLabel}
+      </button>
+    </div>
+  );
+}
+
+
 /** Subscribe to realtime changes on a table and invalidate a query key. */
 function useRealtime(table: string, queryKey: unknown[]) {
   const qc = useQueryClient();
