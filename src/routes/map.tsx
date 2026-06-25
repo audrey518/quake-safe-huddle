@@ -606,6 +606,9 @@ function WellsPanel() {
 
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
+      </div>
+
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
