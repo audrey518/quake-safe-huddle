@@ -112,7 +112,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 pb-20 md:pb-0">{children ?? <Outlet />}</main>
+      <main className="flex-1 pb-20 md:pb-0 overflow-x-clip">{children ?? <Outlet />}</main>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
         <div className={cn("grid", user ? "grid-cols-5" : "grid-cols-4")}>
