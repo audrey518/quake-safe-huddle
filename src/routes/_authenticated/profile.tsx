@@ -193,8 +193,13 @@ function ProfilePage() {
               }}
             >
               <Field label="Display name">
-                <input className={inputClass()} value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={80} />
+                <input className={inputClass()} value={displayName} onChange={(e) => { setNameDirty(true); setDisplayName(e.target.value); }} maxLength={80} />
               </Field>
+              {profileQ.data && (profileQ.data as { license_number?: string | null }).license_number && (
+                <Field label="Professional licence number">
+                  <input className={inputClass("opacity-70")} value={(profileQ.data as { license_number?: string | null }).license_number ?? ""} disabled />
+                </Field>
+              )}
               <Field label="Email">
                 <input className={inputClass("opacity-70")} value={user?.email ?? ""} disabled />
               </Field>
