@@ -56,8 +56,7 @@ function ProfilePage() {
   const saveProfile = useMutation({
     mutationFn: async (input: { name: string }) => {
       const { error } = await supabase.from("profiles")
-        .update({ display_name: input.name })
-        .eq("id", user!.id);
+        .upsert({ id: user!.id, display_name: input.name }, { onConflict: "id" });
       if (error) throw error;
     },
     onSuccess: () => {
