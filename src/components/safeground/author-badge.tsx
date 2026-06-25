@@ -12,23 +12,17 @@ interface AuthorInfo {
 }
 
 async function fetchAuthor(userId: string): Promise<AuthorInfo> {
-  const [profileRes, rolesRes, b, w, r, s] = await Promise.all([
-    supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle(),
-    supabase.from("user_roles").select("role").eq("user_id", userId),
-    supabase.from("buildings").select("id", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("wells").select("id", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("hazard_reports").select("id", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("soil_data").select("id", { count: "exact", head: true }).eq("user_id", userId),
-  ]);
-  const contributions = (b.count ?? 0) + (w.count ?? 0) + (r.count ?? 0) + (s.count ?? 0);
+  const { data, error } = await supabase.rpc("get_author_info", { _user_id: userId });
+  if (error) throw error;
+  const row = Array.isArray(data) ? data[0] : data;
+  const contributions = (row?.contributions as number) ?? 0;
   const tier = tierFor(contributions);
-  const isProfessional = (rolesRes.data ?? []).some((r) => r.role === "professional");
   return {
-    displayName: profileRes.data?.display_name || "Member",
+    displayName: (row?.display_name as string) || "Member",
     tier,
     color: tierColor(tier),
     contributions,
-    isProfessional,
+    isProfessional: Boolean(row?.is_professional),
   };
 }
 

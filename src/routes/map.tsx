@@ -20,7 +20,7 @@ import {
 } from "@/lib/safeground";
 import { formatDistanceToNow } from "@/lib/format";
 import { Field, inputClass, MagnitudeBadge, RiskPill } from "@/components/safeground/ui";
-import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Send, Sparkles, Trash2 } from "lucide-react";
+import { Activity, Building2, Droplets, Lock, MapPin, Megaphone, MessageSquare, Mountain, Plus, Search, Send, Sparkles, Trash2 } from "lucide-react";
 import { AuthorBadge } from "@/components/safeground/author-badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -134,6 +134,22 @@ function AddBar({ icon, title, subtitle, addLabel, onAdd, isGuest }: { icon: Rea
   );
 }
 
+function SearchBar({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+      <input
+        type="search"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={inputClass("pl-9")}
+      />
+    </div>
+  );
+}
+
+
 
 /** Subscribe to realtime changes on a table and invalidate a query key. */
 function useRealtime(table: string, queryKey: unknown[]) {
@@ -161,48 +177,54 @@ const FEEDS: { id: UsgsFeed; label: string }[] = [
 
 function EarthquakesPanel() {
   const [feed, setFeed] = useState<UsgsFeed>("2.5_day");
+  const [query, setQuery] = useState("");
   const { data, isLoading } = useQuery({
     queryKey: ["usgs", feed],
     queryFn: () => fetchRecentEarthquakes(feed),
     refetchInterval: 60_000,
   });
   const quakes = data ?? [];
-  const markers: MapMarker[] = quakes.map((q) => ({
+  const filtered = quakes.filter((q) => q.place.toLowerCase().includes(query.trim().toLowerCase()));
+  const markers: MapMarker[] = filtered.map((q) => ({
     id: `q-${q.id}`, lat: q.latitude, lng: q.longitude, color: magnitudeColor(q.magnitude), title: q.place,
     popupHtml: `<strong>M${q.magnitude.toFixed(1)}</strong><br/>${esc(q.place)}<br/><span style="color:#666">${q.depth.toFixed(0)} km deep</span>`,
   }));
 
   return (
     <StackLayout markers={markers}>
-      <div className="card-soft p-5">
-        <PanelHeader icon={<Activity className="h-5 w-5" />} title="Live earthquakes" subtitle="Real-time USGS feed (read-only)." />
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {FEEDS.map((f) => (
-            <button key={f.id} onClick={() => setFeed(f.id)}
-              className={`rounded-full border px-2.5 py-1 text-xs ${feed === f.id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>
-              {f.label}
-            </button>
-          ))}
+      <div className="card-soft p-5 md:col-span-2 space-y-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <PanelHeader icon={<Activity className="h-5 w-5" />} title="Live earthquakes" subtitle="Real-time USGS feed (read-only)." />
+          <div className="flex flex-wrap gap-1.5">
+            {FEEDS.map((f) => (
+              <button key={f.id} onClick={() => setFeed(f.id)}
+                className={`rounded-full border px-2.5 py-1 text-xs ${feed === f.id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="card-soft p-2 max-h-[400px] overflow-auto">
-        {isLoading && <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>}
-        <ul className="divide-y divide-border">
-          {quakes.slice(0, 50).map((q) => (
-            <li key={q.id} className="flex items-center gap-3 p-3">
-              <MagnitudeBadge mag={q.magnitude} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{q.place}</div>
-                <div className="text-[11px] text-muted-foreground">{q.depth.toFixed(0)} km · {formatDistanceToNow(q.time)} ago</div>
-              </div>
-            </li>
-          ))}
-          {quakes.length === 0 && !isLoading && <li className="p-6 text-center text-sm text-muted-foreground">No earthquakes in this feed.</li>}
-        </ul>
+        <SearchBar value={query} onChange={setQuery} placeholder="Search earthquakes by place…" />
+        <div className="max-h-[400px] overflow-auto -mx-2">
+          {isLoading && <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>}
+          <ul className="divide-y divide-border">
+            {filtered.slice(0, 50).map((q) => (
+              <li key={q.id} className="flex items-center gap-3 p-3">
+                <MagnitudeBadge mag={q.magnitude} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{q.place}</div>
+                  <div className="text-[11px] text-muted-foreground">{q.depth.toFixed(0)} km · {formatDistanceToNow(q.time)} ago</div>
+                </div>
+              </li>
+            ))}
+            {filtered.length === 0 && !isLoading && <li className="p-6 text-center text-sm text-muted-foreground">{query ? "No matches." : "No earthquakes in this feed."}</li>}
+          </ul>
+        </div>
       </div>
     </StackLayout>
   );
 }
+
 
 /* ------------------------------ BUILDINGS ------------------------------ */
 
@@ -220,8 +242,12 @@ function BuildingsPanel() {
     queryFn: async () => (await supabase.from("buildings").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((b) => (b.name?.toLowerCase().includes(ql) || b.address?.toLowerCase().includes(ql))) : items;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = items.find((b) => b.id === selectedId) ?? null;
+
 
   const create = useMutation({
     mutationFn: async (p: { name: string; address: string; year_built: number; floors: number; material: BuildingMaterial; latitude: number | null; longitude: number | null; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
@@ -246,7 +272,7 @@ function BuildingsPanel() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["buildings"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
 
-  const markers: MapMarker[] = items.flatMap((b) => {
+  const markers: MapMarker[] = filtered.flatMap((b) => {
     if (b.latitude == null || b.longitude == null) return [];
     const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
     return [{
@@ -254,6 +280,7 @@ function BuildingsPanel() {
       popupHtml: `<strong>${esc(b.name)}</strong><br/><span style="color:#666">${esc(b.address)}</span><br/>${r.category} (${r.score}/100) · ${MATERIAL_LABELS[b.material as BuildingMaterial]}`,
     }];
   });
+
 
   const handleAdd = () => {
     if (!user) {
@@ -274,9 +301,10 @@ function BuildingsPanel() {
         onAdd={handleAdd}
         isGuest={!user}
       />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search buildings by name or address…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((b) => {
+          {filtered.map((b) => {
             const r = assessRisk({ yearBuilt: b.year_built, floors: b.floors, material: b.material as BuildingMaterial });
             const active = b.id === selectedId;
             return (
@@ -295,9 +323,10 @@ function BuildingsPanel() {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No buildings yet. {user ? "Click \"Add Building\" to create one." : "Sign in to add one."}</li>}
+          {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : (user ? "No buildings yet. Click \"Add Building\" to create one." : "No buildings yet. Sign in to add one.")}</li>}
         </ul>
       </div>
+
       <div className="card-soft p-2">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
@@ -471,8 +500,12 @@ function WellsPanel() {
     queryFn: async () => (await supabase.from("wells").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((w) => (w.name?.toLowerCase().includes(ql) || w.address?.toLowerCase().includes(ql))) : items;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = items.find((w) => w.id === selectedId) ?? null;
+
 
   const create = useMutation({
     mutationFn: async (p: { name: string; address: string | null; latitude: number; longitude: number; well_type: string; total_depth_m: number; current_level_m: number; photo_url: string | null; extras: Record<string, unknown>; professional_notes: string | null }) => {
@@ -491,10 +524,11 @@ function WellsPanel() {
   });
 
 
-  const markers: MapMarker[] = items.map((w) => ({
+  const markers: MapMarker[] = filtered.map((w) => ({
     id: `w-${w.id}`, lat: w.latitude, lng: w.longitude, color: "oklch(0.6 0.12 230)", title: w.name,
     popupHtml: `<strong>${esc(w.name)}</strong><br/>${esc(w.well_type)}<br/>Level: ${w.current_level_m ?? "—"} m`,
   }));
+
 
   const handleAdd = () => {
     if (!user) { toast.info("Please sign in to register a well."); navigate({ to: "/auth" }); return; }
@@ -511,9 +545,11 @@ function WellsPanel() {
         onAdd={handleAdd}
         isGuest={!user}
       />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search wells by name or address…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((w) => {
+
+          {filtered.map((w) => {
             const active = w.id === selectedId;
             return (
               <li key={w.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(w.id)}>
@@ -532,9 +568,10 @@ function WellsPanel() {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No wells yet.</li>}
+          {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No wells yet."}</li>}
         </ul>
       </div>
+
       <div className="card-soft p-2">
         <MapView markers={markers} center={markers[0] ? [markers[0].lat, markers[0].lng] : [20, 0]} zoom={markers.length ? 4 : 2} height={420} />
       </div>
@@ -679,6 +716,13 @@ function ReportsPanel() {
     queryFn: async () => (await supabase.from("hazard_reports").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((r) => {
+    const label = (HAZARD_LABELS[r.kind as HazardType] ?? r.kind ?? "").toLowerCase();
+    return label.includes(ql) || (r.description ?? "").toLowerCase().includes(ql);
+  }) : items;
+
 
   const create = useMutation({
     mutationFn: async (p: { kind: HazardType; severity: string; latitude: number; longitude: number; description: string; image_url?: string }) => {
@@ -693,10 +737,11 @@ function ReportsPanel() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["hazard_reports"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
 
-  const markers: MapMarker[] = items.map((r) => ({
+  const markers: MapMarker[] = filtered.map((r) => ({
     id: `r-${r.id}`, lat: r.latitude, lng: r.longitude, color: "var(--color-risk-high)", title: r.kind,
     popupHtml: `<strong>${esc(HAZARD_LABELS[r.kind as HazardType] ?? r.kind)}</strong><br/>${esc(r.description)}`,
   }));
+
 
   const handleAdd = () => {
     if (!user) { toast.info("Please sign in to submit a report."); navigate({ to: "/auth" }); return; }
@@ -713,9 +758,10 @@ function ReportsPanel() {
         onAdd={handleAdd}
         isGuest={!user}
       />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search reports by type or description…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((r) => (
+          {filtered.map((r) => (
             <li key={r.id} className="p-3 flex items-start gap-3">
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">{HAZARD_LABELS[r.kind as HazardType] ?? r.kind}</div>
@@ -730,7 +776,8 @@ function ReportsPanel() {
               )}
             </li>
           ))}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No reports yet.</li>}
+          {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No reports yet."}</li>}
+
         </ul>
       </div>
       <div className="card-soft p-2">
@@ -813,9 +860,13 @@ function SoilPanel() {
     queryFn: async () => (await supabase.from("soil_data").select("*").order("created_at", { ascending: false })).data ?? [],
   });
   const items = q.data ?? [];
+  const [query, setQuery] = useState("");
+  const ql = query.trim().toLowerCase();
+  const filtered = ql ? items.filter((s) => ((s.name ?? "").toLowerCase().includes(ql) || (s.address ?? "").toLowerCase().includes(ql) || (s.soil_type ?? "").toLowerCase().includes(ql))) : items;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = items.find((s) => s.id === selectedId) ?? null;
+
 
   const create = useMutation({
     mutationFn: async (p: { name: string | null; address: string | null; latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => {
@@ -832,10 +883,11 @@ function SoilPanel() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
   });
 
-  const markers: MapMarker[] = items.map((s) => ({
+  const markers: MapMarker[] = filtered.map((s) => ({
     id: `s-${s.id}`, lat: s.latitude, lng: s.longitude, color: "oklch(0.5 0.06 80)", title: s.soil_type,
     popupHtml: `<strong>Soil: ${esc(s.soil_type)}</strong><br/>Depth: ${s.depth_m} m`,
   }));
+
 
   const handleAdd = () => {
     if (!user) { toast.info("Please sign in to add soil data."); navigate({ to: "/auth" }); return; }
@@ -852,9 +904,10 @@ function SoilPanel() {
         onAdd={handleAdd}
         isGuest={!user}
       />
+      <SearchBar value={query} onChange={setQuery} placeholder="Search soil records by name, address or type…" />
       <div className="card-soft p-2 max-h-[460px] overflow-auto">
         <ul className="divide-y divide-border">
-          {items.map((s) => {
+          {filtered.map((s) => {
             const active = s.id === selectedId;
             return (
               <li key={s.id} className={`p-3 flex items-center gap-3 cursor-pointer ${active ? "bg-primary/5" : "hover:bg-secondary/40"}`} onClick={() => setSelectedId(s.id)}>
@@ -873,7 +926,8 @@ function SoilPanel() {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">No soil data yet.</li>}
+          {filtered.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">{ql ? "No matches." : "No soil data yet."}</li>}
+
         </ul>
       </div>
       <div className="card-soft p-2">

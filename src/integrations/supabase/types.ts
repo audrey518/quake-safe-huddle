@@ -522,6 +522,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_author_info: {
+        Args: { _user_id: string }
+        Returns: {
+          contributions: number
+          display_name: string
+          is_professional: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
