@@ -31,7 +31,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-clip">
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
         <div className="container-app flex h-16 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 group">
@@ -112,7 +112,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 pb-20 md:pb-0">{children ?? <Outlet />}</main>
+      <main className="flex-1 pb-20 md:pb-0 overflow-x-clip">{children ?? <Outlet />}</main>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
         <div className={cn("grid", user ? "grid-cols-5" : "grid-cols-4")}>

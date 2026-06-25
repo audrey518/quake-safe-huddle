@@ -67,7 +67,7 @@ function ProviderDashboard() {
           <p className="text-sm text-muted-foreground">{p.category} · {p.location ?? ""}</p>
         </header>
 
-        <nav className="flex gap-2 border-b border-border">
+        <nav className="flex gap-2 border-b border-border overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           {([
             ["orders", "Orders & bookings", ClipboardList],
             ["listings", "My listings", ShoppingCart],
@@ -76,7 +76,7 @@ function ProviderDashboard() {
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm ${
+              className={`-mb-px inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm ${
                 tab === id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
