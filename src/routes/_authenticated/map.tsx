@@ -720,14 +720,15 @@ function SoilPanel() {
   const selected = items.find((s) => s.id === selectedId) ?? null;
 
   const create = useMutation({
-    mutationFn: async (p: { latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => {
-      const { data, error } = await supabase.from("soil_data").insert({ user_id: user!.id, latitude: p.latitude, longitude: p.longitude, soil_type: p.soil_type, depth_m: p.depth_m, layers: [], notes: p.notes || null, photo_url: p.photo_url, extras: p.extras } as any).select("id").single();
+    mutationFn: async (p: { name: string | null; address: string | null; latitude: number; longitude: number; soil_type: string; depth_m: number; notes: string; photo_url: string | null; extras: Record<string, unknown> }) => {
+      const { data, error } = await supabase.from("soil_data").insert({ user_id: user!.id, name: p.name, address: p.address, latitude: p.latitude, longitude: p.longitude, soil_type: p.soil_type, depth_m: p.depth_m, layers: [], notes: p.notes || null, photo_url: p.photo_url, extras: p.extras } as any).select("id").single();
       if (error) throw error;
       return { id: data!.id as string };
     },
     onSuccess: (r) => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); setSelectedId(r.id); toast.success("Soil record added"); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
+
   const remove = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from("soil_data").delete().eq("id", id); if (error) throw error; },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["soil_data"] }); qc.invalidateQueries({ queryKey: ["trust-badge"] }); },
