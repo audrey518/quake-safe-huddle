@@ -130,9 +130,52 @@ function ProfilePage() {
               <Receipt className="h-5 w-5 text-primary" />
               <h2 className="font-display text-lg font-semibold">Purchase history</h2>
             </div>
-            <div className="mt-4 rounded-lg border border-dashed border-border bg-secondary/40 p-6 text-center">
-              <p className="text-sm text-muted-foreground">No purchases yet.</p>
-              <p className="mt-1 text-xs text-muted-foreground">GeoSafe AI is currently free. Premium reports coming soon.</p>
+            <div className="mt-4 space-y-4">
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <ShoppingCart className="h-3.5 w-3.5" /> Purchases
+                </div>
+                {historyQ.isLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading…</p>
+                ) : historyQ.data?.purchases.length ? (
+                  <ul className="space-y-1.5 text-sm">
+                    {historyQ.data.purchases.map((p) => (
+                      <li key={p.id} className="flex justify-between gap-2 border-b border-border/60 pb-1.5">
+                        <span className="truncate">
+                          {p.item_name} <span className="text-muted-foreground">· {p.provider_name}</span>
+                        </span>
+                        <span className="text-muted-foreground whitespace-nowrap">{p.price ? `Rs. ${p.price}` : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No purchases yet.</p>
+                )}
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                  <CalendarClock className="h-3.5 w-3.5" /> Appointments
+                </div>
+                {historyQ.isLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading…</p>
+                ) : historyQ.data?.appointments.length ? (
+                  <ul className="space-y-1.5 text-sm">
+                    {historyQ.data.appointments.map((a) => (
+                      <li key={a.id} className="flex justify-between gap-2 border-b border-border/60 pb-1.5">
+                        <span className="truncate">
+                          {a.service_name} <span className="text-muted-foreground">· {a.provider_name}</span>
+                        </span>
+                        <span className="text-muted-foreground whitespace-nowrap">
+                          {a.appointment_date}
+                          {a.appointment_time ? ` ${a.appointment_time}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No appointments yet.</p>
+                )}
+              </div>
             </div>
           </section>
 
