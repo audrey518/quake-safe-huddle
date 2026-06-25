@@ -59,7 +59,7 @@ export function MapView({
     renderMarkers(LRef.current, layerRef.current, markers);
   }, [markers]);
 
-  return <div ref={ref} style={{ height, width: "100%" }} className="rounded-lg overflow-hidden border border-border" />;
+  return <div ref={ref} style={{ height, width: "100%" }} className="rounded-lg overflow-hidden border border-border relative z-0 isolate" />;
 }
 
 function renderMarkers(L: typeof LeafletNS, layer: LeafletNS.LayerGroup, markers: MapMarker[]) {
