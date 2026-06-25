@@ -856,7 +856,7 @@ function ReportDetail({ item }: { item: any }) {
           <img src={item.image_url} alt="Report" className="max-h-64 w-full object-cover rounded-md border border-border" />
         </a>
       )}
-      <Comments targetType="report" targetId={item.id} />
+      
     </div>
   );
 }
