@@ -300,13 +300,16 @@ function Dashboard() {
       </div>
 
 
-      {/* FEATURED LEARN */}
-      <section className="border-t border-border bg-secondary/30">
-        <div className="container-app py-12 md:py-16">
+      {/* FEATURED LEARN — lavender wash */}
+      <section className="border-t border-border relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f5f3ff 0%, #faf5ff 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute top-10 right-0 h-64 w-64 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #ddd6fe 0%, transparent 70%)" }} />
+        <div className="container-app relative py-12 md:py-16">
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div className="max-w-2xl">
-              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Learn</div>
-              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Start with the essentials</h2>
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#ede9fe", color: "#5b21b6" }}>
+                <BookOpen className="h-3.5 w-3.5" /> Learn
+              </div>
+              <h2 className="mt-3 font-display text-3xl md:text-4xl font-semibold tracking-tight">Start with the essentials</h2>
               <p className="mt-3 text-muted-foreground">Plain-language guides written for residents — no engineering background needed.</p>
             </div>
             <Link to="/learn" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
@@ -314,37 +317,54 @@ function Dashboard() {
             </Link>
           </div>
           <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {featuredPosts.map(({ category, post }) => (
-              <Link
-                key={post.slug}
-                to="/learn/$category/$post"
-                params={{ category: category.slug, post: post.slug }}
-                className="group card-soft p-6 hover:border-primary/40 transition-colors flex flex-col"
-              >
-                <div className="text-[11px] uppercase tracking-wider font-medium" style={{ color: category.accent }}>
-                  {category.shortTitle}
-                </div>
-                <div className="mt-2 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
-                  {post.title}
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
-                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{post.readTime}</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </Link>
-            ))}
+            {featuredPosts.map(({ category, post }, i) => {
+              const tints = [
+                { bg: "#fee2e2", ink: "#991b1b" },
+                { bg: "#e0e7ff", ink: "#3730a3" },
+                { bg: "#fef3c7", ink: "#92400e" },
+              ][i];
+              return (
+                <Link
+                  key={post.slug}
+                  to="/learn/$category/$post"
+                  params={{ category: category.slug, post: post.slug }}
+                  className="group card-soft overflow-hidden hover:border-primary/40 transition-colors flex flex-col"
+                >
+                  <div className="h-24 relative" style={{ background: `linear-gradient(135deg, ${tints.bg} 0%, white 100%)` }}>
+                    <div className="absolute inset-0 flex items-center justify-between px-5">
+                      <span className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: tints.ink }}>
+                        {category.shortTitle}
+                      </span>
+                      <BookOpen className="h-10 w-10" style={{ color: tints.ink, opacity: 0.35 }} />
+                    </div>
+                  </div>
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                      {post.title}
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{post.excerpt}</p>
+                    <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{post.readTime}</span>
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* COLLABORATED PROVIDERS */}
-      <section className="border-t border-border bg-background">
-        <div className="container-app py-12 md:py-16">
+      {/* COLLABORATED PROVIDERS — sky wash */}
+      <section className="border-t border-border relative overflow-hidden" style={{ background: "linear-gradient(180deg, #eff6ff 0%, #ecfeff 100%)" }}>
+        <div aria-hidden className="pointer-events-none absolute -bottom-20 left-1/3 h-72 w-72 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, #bae6fd 0%, transparent 70%)" }} />
+        <div className="container-app relative py-12 md:py-16">
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div className="max-w-2xl">
-              <div className="text-xs uppercase tracking-[0.18em] text-primary font-medium">Our partners</div>
-              <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold tracking-tight">Collaborated service providers</h2>
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-medium rounded-full px-3 py-1" style={{ background: "#dbeafe", color: "#1e40af" }}>
+                <ShieldCheck className="h-3.5 w-3.5" /> Our partners
+              </div>
+              <h2 className="mt-3 font-display text-3xl md:text-4xl font-semibold tracking-tight">Collaborated service providers</h2>
               <p className="mt-3 text-muted-foreground">Vetted local materials suppliers, engineers, water specialists and insurers — booking and purchase available inside the app.</p>
             </div>
             <Link to="/services" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
@@ -352,30 +372,40 @@ function Dashboard() {
             </Link>
           </div>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProviders.map(({ category, provider }) => (
-              <Link
-                key={provider.id}
-                to="/services"
-                className="group card-soft p-5 hover:border-primary/40 transition-colors flex flex-col"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground">{category.label}</span>
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                </div>
-                <div className="mt-3 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
-                  {provider.name}
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{provider.blurb}</p>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" /> {provider.location}
-                </div>
-              </Link>
-            ))}
+            {featuredProviders.map(({ category, provider }, i) => {
+              const tints = [
+                { bg: "#cffafe", ink: "#155e75" },
+                { bg: "#fce7f3", ink: "#9d174d" },
+                { bg: "#fef3c7", ink: "#92400e" },
+                { bg: "#dcfce7", ink: "#166534" },
+              ][i % 4];
+              return (
+                <Link
+                  key={provider.id}
+                  to="/services"
+                  className="group card-soft overflow-hidden hover:border-primary/40 transition-all hover:-translate-y-0.5 flex flex-col"
+                >
+                  <div className="h-2" style={{ background: tints.ink }} />
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase tracking-wider font-semibold rounded-full px-2 py-0.5" style={{ background: tints.bg, color: tints.ink }}>{category.label}</span>
+                      <ShieldCheck className="h-4 w-4" style={{ color: tints.ink }} />
+                    </div>
+                    <div className="mt-3 font-display text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
+                      {provider.name}
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-3 flex-1">{provider.blurb}</p>
+                    <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" /> {provider.location}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ABOUT + CONTACT */}
       <section className="border-t border-border bg-gradient-to-b from-secondary/40 to-background">
         <div className="container-app py-14 md:py-20 grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-2">
