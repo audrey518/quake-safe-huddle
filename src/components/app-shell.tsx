@@ -33,17 +33,17 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-clip">
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-        <div className="container-app flex h-20 items-center justify-between gap-4">
+        <div className="container-app flex h-20 md:h-14 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <GeoSafeLogo className="h-10 w-10 rounded-lg" />
+            <GeoSafeLogo className="h-10 w-10 md:h-8 md:w-8 rounded-lg" />
             <div className="leading-tight">
-              <div className="font-display font-semibold tracking-tight text-lg">GeoSafe AI</div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="font-display font-semibold tracking-tight text-lg md:text-sm">GeoSafe AI</div>
+              <div className="text-[11px] md:text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 Geo-risk awareness
               </div>
             </div>
           </Link>
-          <nav className="hidden md:flex items-center gap-1.5">
+          <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
@@ -52,13 +52,13 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "inline-flex items-center gap-2 px-4 py-2.5 rounded-md text-[15px] font-medium transition-colors",
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors",
                     active
                       ? "bg-secondary text-secondary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               );

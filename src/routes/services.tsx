@@ -175,7 +175,7 @@ function ServicesPage() {
                           {completed && <span className="ml-1.5 text-[10px] uppercase text-emerald-600">completed</span>}
                         </span>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-muted-foreground whitespace-nowrap">{p.price ? `Rs. ${p.price}` : ""}</span>
+                          <span className="text-muted-foreground whitespace-nowrap">{p.price ? `MMK ${Number(p.price).toLocaleString()}` : ""}</span>
                           {!cancelled && !completed && (
                             <button
                               onClick={() => { if (confirm("Cancel this order? Stock will be restored.")) cancel.mutate(p.id); }}
@@ -256,7 +256,7 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{item.name}</div>
           <div className="text-xs text-muted-foreground">
-            Rs. {item.price}{item.unit ? ` / ${item.unit}` : ""}
+            MMK {Number(item.price).toLocaleString()}{item.unit ? ` / ${item.unit}` : ""}
             {item.appointment ? " · by appointment" : ` · ${item.stock > 0 ? `${item.stock} in stock` : "out of stock"}`}
           </div>
         </div>
@@ -301,10 +301,25 @@ function CheckoutModal({
   item: DbItem; provider: DbProvider; category: ServiceCategoryId;
   onClose: () => void; onDone: () => void;
 }) {
+  const { user } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [qty, setQty] = useState(1);
   const [card, setCard] = useState({ name: "", number: "", exp: "", cvc: "" });
   const purchaseFn = useServerFn(recordPurchase);
+
+  const discountQ = useQuery({
+    queryKey: ["my-discount", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_user_discount", { _user_id: user!.id });
+      if (error) throw error;
+      const row = (data as Array<{ tier: string; discount_pct: number; contributions: number; lifetime_spent: number }> | null)?.[0];
+      return row ?? { tier: "bronze", discount_pct: 0, contributions: 0, lifetime_spent: 0 };
+    },
+  });
+  const discountPct = Number(discountQ.data?.discount_pct ?? 0);
+  const tier = (discountQ.data?.tier ?? "bronze") as string;
+
   const buy = useMutation({
     mutationFn: () => purchaseFn({ data: {
       category, provider_name: provider.name, item_name: item.name,
@@ -318,7 +333,17 @@ function CheckoutModal({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Payment failed"),
   });
 
-  const total = item.price * qty;
+  const subtotal = item.price * qty;
+  const discountAmt = Math.round(subtotal * (discountPct / 100));
+  const total = subtotal - discountAmt;
+  const fmt = (n: number) => `MMK ${Math.round(n).toLocaleString()}`;
+  const tierColor: Record<string, string> = {
+    bronze: "text-amber-700 bg-amber-500/10",
+    silver: "text-slate-500 bg-slate-400/15",
+    gold: "text-yellow-600 bg-yellow-500/15",
+    platinum: "text-violet-600 bg-violet-500/15",
+  };
+
   const canPay =
     card.name.trim().length > 1 &&
     card.number.replace(/\s/g, "").length >= 12 &&
@@ -346,7 +371,7 @@ function CheckoutModal({
             <div className="rounded-md border border-border p-3">
               <div className="text-sm font-medium">{item.name}</div>
               <div className="text-xs text-muted-foreground">{provider.name} · {item.stock} in stock</div>
-              <div className="mt-2 text-xs">Rs. {item.price}{item.unit ? ` / ${item.unit}` : ""}</div>
+              <div className="mt-2 text-xs">{fmt(item.price)}{item.unit ? ` / ${item.unit}` : ""}</div>
             </div>
             <div>
               <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Quantity</div>
@@ -357,9 +382,20 @@ function CheckoutModal({
                 <span className="text-xs text-muted-foreground">max {item.stock}</span>
               </div>
             </div>
-            <div className="flex items-center justify-between border-t border-border pt-3">
-              <span className="text-sm">Total</span>
-              <span className="font-display text-lg font-semibold">Rs. {total}</span>
+            <div className="space-y-1 border-t border-border pt-3 text-sm">
+              <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className={`text-[10px] uppercase tracking-wider rounded-full px-1.5 py-0.5 ${tierColor[tier]}`}>{tier}</span>
+                  <span className="text-muted-foreground">Loyalty discount</span>
+                </span>
+                <span className={discountPct > 0 ? "text-emerald-600" : "text-muted-foreground"}>
+                  {discountPct > 0 ? `−${fmt(discountAmt)} (${discountPct}%)` : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between font-display text-lg font-semibold pt-1">
+                <span>Total</span><span>{fmt(total)}</span>
+              </div>
             </div>
             <button onClick={() => setStep(2)} className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               Continue to payment
@@ -421,12 +457,12 @@ function CheckoutModal({
             </div>
             <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
               <span>Total due</span>
-              <span className="font-display text-lg font-semibold">Rs. {total}</span>
+              <span className="font-display text-lg font-semibold">{fmt(total)}</span>
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(1)} className="flex-1 rounded-md border border-input px-3 py-2 text-sm">Back</button>
               <button disabled={!canPay || buy.isPending} className="flex-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
-                {buy.isPending ? "Processing…" : `Pay Rs. ${total}`}
+                {buy.isPending ? "Processing…" : `Pay ${fmt(total)}`}
               </button>
             </div>
           </form>
@@ -438,7 +474,7 @@ function CheckoutModal({
             <div>
               <div className="font-display text-lg font-semibold">Thank you!</div>
               <p className="text-sm text-muted-foreground mt-1">
-                {qty} × {item.name} for Rs. {total}. The provider has been notified. You can cancel from "Your recent activity" if needed.
+                {qty} × {item.name} for {fmt(total)}. The provider has been notified. You can cancel from "Your recent activity" if needed.
               </p>
             </div>
             <button onClick={onClose} className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Done</button>

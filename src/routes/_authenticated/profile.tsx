@@ -144,7 +144,7 @@ function ProfilePage() {
                         <span className="truncate">
                           {p.item_name} <span className="text-muted-foreground">· {p.provider_name}</span>
                         </span>
-                        <span className="text-muted-foreground whitespace-nowrap">{p.price ? `Rs. ${p.price}` : ""}</span>
+                        <span className="text-muted-foreground whitespace-nowrap">{p.price ? `MMK ${Number(p.price).toLocaleString()}` : ""}</span>
                       </li>
                     ))}
                   </ul>
