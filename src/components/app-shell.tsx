@@ -115,8 +115,8 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       <main className="flex-1 pb-20 md:pb-0">{children ?? <Outlet />}</main>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
-        <div className="grid grid-cols-5">
-          {NAV.map((item) => {
+        <div className={cn("grid", user ? "grid-cols-5" : "grid-cols-4")}>
+          {navItems.map((item) => {
             const Icon = item.icon;
             const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
             return (
