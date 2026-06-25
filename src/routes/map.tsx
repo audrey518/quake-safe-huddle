@@ -27,7 +27,7 @@ import { toast } from "sonner";
 type CategoryKey = "earthquakes" | "buildings" | "wells" | "reports" | "soil";
 const CATS: CategoryKey[] = ["earthquakes", "buildings", "wells", "reports", "soil"];
 
-export const Route = createFileRoute("/_authenticated/map")({
+export const Route = createFileRoute("/map")({
   head: () => ({ meta: [{ title: "InfoHub — GeoSafe AI" }] }),
   validateSearch: (s: Record<string, unknown>): { cat?: CategoryKey } => {
     const c = s.cat;

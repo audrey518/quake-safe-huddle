@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { LEARN_CATEGORIES } from "@/lib/learn-content";
 import { AlertTriangle, Building2, Droplets, GraduationCap, Hammer, Mountain } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/learn/")({
+export const Route = createFileRoute("/learn/")({
   head: () => ({
     meta: [
       { title: "Learn — GeoSafe AI" },

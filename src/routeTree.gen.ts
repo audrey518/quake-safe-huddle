@@ -9,22 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as LearnIndexRouteImport } from './routes/learn.index'
 import { Route as AuthenticatedProviderRouteImport } from './routes/_authenticated/provider'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
-import { Route as AuthenticatedLearnIndexRouteImport } from './routes/_authenticated/learn.index'
+import { Route as LearnCategoryPostRouteImport } from './routes/learn.$category.$post'
 import { Route as AuthenticatedAdminProvidersRouteImport } from './routes/_authenticated/admin.providers'
 import { Route as ApiPublicHooksAppointmentRemindersRouteImport } from './routes/api/public/hooks/appointment-reminders'
-import { Route as AuthenticatedLearnCategoryPostRouteImport } from './routes/_authenticated/learn.$category.$post'
 
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -36,15 +46,15 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const LearnIndexRoute = LearnIndexRouteImport.update({
+  id: '/learn/',
+  path: '/learn/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedProviderRoute = AuthenticatedProviderRouteImport.update({
   id: '/provider',
@@ -56,15 +66,10 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
-  id: '/map',
-  path: '/map',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedLearnIndexRoute = AuthenticatedLearnIndexRouteImport.update({
-  id: '/learn/',
-  path: '/learn/',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const LearnCategoryPostRoute = LearnCategoryPostRouteImport.update({
+  id: '/learn/$category/$post',
+  path: '/learn/$category/$post',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminProvidersRoute =
   AuthenticatedAdminProvidersRouteImport.update({
@@ -78,52 +83,46 @@ const ApiPublicHooksAppointmentRemindersRoute =
     path: '/api/public/hooks/appointment-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedLearnCategoryPostRoute =
-  AuthenticatedLearnCategoryPostRouteImport.update({
-    id: '/learn/$category/$post',
-    path: '/learn/$category/$post',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/map': typeof MapRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/map': typeof AuthenticatedMapRoute
+  '/services': typeof ServicesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/provider': typeof AuthenticatedProviderRoute
-  '/services': typeof AuthenticatedServicesRoute
+  '/learn/': typeof LearnIndexRoute
   '/admin/providers': typeof AuthenticatedAdminProvidersRoute
-  '/learn/': typeof AuthenticatedLearnIndexRoute
-  '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
+  '/learn/$category/$post': typeof LearnCategoryPostRoute
   '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/map': typeof MapRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/map': typeof AuthenticatedMapRoute
+  '/services': typeof ServicesRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/provider': typeof AuthenticatedProviderRoute
-  '/services': typeof AuthenticatedServicesRoute
-  '/': typeof AuthenticatedIndexRoute
+  '/learn': typeof LearnIndexRoute
   '/admin/providers': typeof AuthenticatedAdminProvidersRoute
-  '/learn': typeof AuthenticatedLearnIndexRoute
-  '/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
+  '/learn/$category/$post': typeof LearnCategoryPostRoute
   '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/map': typeof MapRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/map': typeof AuthenticatedMapRoute
+  '/services': typeof ServicesRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/provider': typeof AuthenticatedProviderRoute
-  '/_authenticated/services': typeof AuthenticatedServicesRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/learn/': typeof LearnIndexRoute
   '/_authenticated/admin/providers': typeof AuthenticatedAdminProvidersRoute
-  '/_authenticated/learn/': typeof AuthenticatedLearnIndexRoute
-  '/_authenticated/learn/$category/$post': typeof AuthenticatedLearnCategoryPostRoute
+  '/learn/$category/$post': typeof LearnCategoryPostRoute
   '/api/public/hooks/appointment-reminders': typeof ApiPublicHooksAppointmentRemindersRoute
 }
 export interface FileRouteTypes {
@@ -131,58 +130,77 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/reset-password'
     | '/map'
+    | '/reset-password'
+    | '/services'
     | '/profile'
     | '/provider'
-    | '/services'
-    | '/admin/providers'
     | '/learn/'
+    | '/admin/providers'
     | '/learn/$category/$post'
     | '/api/public/hooks/appointment-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/auth'
-    | '/reset-password'
     | '/map'
+    | '/reset-password'
+    | '/services'
     | '/profile'
     | '/provider'
-    | '/services'
-    | '/'
-    | '/admin/providers'
     | '/learn'
+    | '/admin/providers'
     | '/learn/$category/$post'
     | '/api/public/hooks/appointment-reminders'
   id:
     | '__root__'
+    | '/'
     | '/_authenticated'
     | '/auth'
+    | '/map'
     | '/reset-password'
-    | '/_authenticated/map'
+    | '/services'
     | '/_authenticated/profile'
     | '/_authenticated/provider'
-    | '/_authenticated/services'
-    | '/_authenticated/'
+    | '/learn/'
     | '/_authenticated/admin/providers'
-    | '/_authenticated/learn/'
-    | '/_authenticated/learn/$category/$post'
+    | '/learn/$category/$post'
     | '/api/public/hooks/appointment-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  MapRoute: typeof MapRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ServicesRoute: typeof ServicesRoute
+  LearnIndexRoute: typeof LearnIndexRoute
+  LearnCategoryPostRoute: typeof LearnCategoryPostRoute
   ApiPublicHooksAppointmentRemindersRoute: typeof ApiPublicHooksAppointmentRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -199,19 +217,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/services': {
-      id: '/_authenticated/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof AuthenticatedServicesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/learn/': {
+      id: '/learn/'
+      path: '/learn'
+      fullPath: '/learn/'
+      preLoaderRoute: typeof LearnIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/provider': {
       id: '/_authenticated/provider'
@@ -227,19 +245,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/map': {
-      id: '/_authenticated/map'
-      path: '/map'
-      fullPath: '/map'
-      preLoaderRoute: typeof AuthenticatedMapRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/learn/': {
-      id: '/_authenticated/learn/'
-      path: '/learn'
-      fullPath: '/learn/'
-      preLoaderRoute: typeof AuthenticatedLearnIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/learn/$category/$post': {
+      id: '/learn/$category/$post'
+      path: '/learn/$category/$post'
+      fullPath: '/learn/$category/$post'
+      preLoaderRoute: typeof LearnCategoryPostRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/providers': {
       id: '/_authenticated/admin/providers'
@@ -255,45 +266,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAppointmentRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/learn/$category/$post': {
-      id: '/_authenticated/learn/$category/$post'
-      path: '/learn/$category/$post'
-      fullPath: '/learn/$category/$post'
-      preLoaderRoute: typeof AuthenticatedLearnCategoryPostRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProviderRoute: typeof AuthenticatedProviderRoute
-  AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAdminProvidersRoute: typeof AuthenticatedAdminProvidersRoute
-  AuthenticatedLearnIndexRoute: typeof AuthenticatedLearnIndexRoute
-  AuthenticatedLearnCategoryPostRoute: typeof AuthenticatedLearnCategoryPostRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProviderRoute: AuthenticatedProviderRoute,
-  AuthenticatedServicesRoute: AuthenticatedServicesRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAdminProvidersRoute: AuthenticatedAdminProvidersRoute,
-  AuthenticatedLearnIndexRoute: AuthenticatedLearnIndexRoute,
-  AuthenticatedLearnCategoryPostRoute: AuthenticatedLearnCategoryPostRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  MapRoute: MapRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ServicesRoute: ServicesRoute,
+  LearnIndexRoute: LearnIndexRoute,
+  LearnCategoryPostRoute: LearnCategoryPostRoute,
   ApiPublicHooksAppointmentRemindersRoute:
     ApiPublicHooksAppointmentRemindersRoute,
 }

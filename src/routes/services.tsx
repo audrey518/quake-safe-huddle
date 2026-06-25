@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 const searchSchema = z.object({ cat: z.enum(["materials", "engineering", "water", "insurance"]).optional() });
 
-export const Route = createFileRoute("/_authenticated/services")({
+export const Route = createFileRoute("/services")({
   head: () => ({ meta: [{ title: "Services & Products — GeoSafe AI" }] }),
   validateSearch: searchSchema,
   component: ServicesPage,
@@ -201,6 +201,8 @@ function ProviderCard({ provider, category, onDone }: { provider: DbProvider; ca
 
 function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider: DbProvider; category: ServiceCategoryId; onDone: () => void }) {
   const [bookOpen, setBookOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = Route.useNavigate();
   const purchaseFn = useServerFn(recordPurchase);
   const buy = useMutation({
     mutationFn: () => purchaseFn({ data: {
@@ -214,6 +216,15 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
     onError: (e) => toast.error(e instanceof Error ? e.message : "Purchase failed"),
   });
 
+  const requireAuth = (next: () => void) => {
+    if (!user) {
+      toast.info("Please sign in to continue");
+      navigate({ to: "/auth" });
+      return;
+    }
+    next();
+  };
+
   return (
     <li className="rounded-md border border-border bg-secondary/30 p-3">
       <div className="flex items-center justify-between gap-3">
@@ -222,12 +233,12 @@ function ItemRow({ item, provider, category, onDone }: { item: DbItem; provider:
           <div className="text-xs text-muted-foreground">Rs. {item.price}{item.unit ? ` / ${item.unit}` : ""}{item.appointment ? " · by appointment" : ""}</div>
         </div>
         {item.appointment ? (
-          <button onClick={() => setBookOpen((v) => !v)} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap">
-            {bookOpen ? "Close" : "Book appointment"}
+          <button onClick={() => requireAuth(() => setBookOpen((v) => !v))} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 whitespace-nowrap">
+            {!user ? "Sign in to book" : bookOpen ? "Close" : "Book appointment"}
           </button>
         ) : (
-          <button onClick={() => buy.mutate()} disabled={buy.isPending} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 whitespace-nowrap">
-            {buy.isPending ? "Processing…" : "Purchase"}
+          <button onClick={() => requireAuth(() => buy.mutate())} disabled={buy.isPending} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 whitespace-nowrap">
+            {!user ? "Sign in to buy" : buy.isPending ? "Processing…" : "Purchase"}
           </button>
         )}
       </div>
