@@ -241,10 +241,12 @@ function ServicesPage() {
                           <span className="text-muted-foreground whitespace-nowrap text-xs sm:text-sm">{a.appointment_date}{a.appointment_time ? ` ${a.appointment_time}` : ""}</span>
                           {!cancelled && !completed && (
                             <button
-                              onClick={() => { if (confirm("Cancel this appointment?")) cancelAppt.mutate(a.id); }}
-                              className="text-[11px] rounded border border-input px-2 py-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                              type="button"
+                              disabled={cancelAppt.isPending}
+                              onClick={() => { if (window.confirm("Cancel this appointment?")) cancelAppt.mutate(a.id); }}
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium min-h-[36px] hover:bg-destructive/10 hover:text-destructive hover:border-destructive active:bg-destructive/20 disabled:opacity-60"
                             >
-                              Cancel
+                              {cancelAppt.isPending ? "Cancelling…" : "Cancel"}
                             </button>
                           )}
                         </div>
